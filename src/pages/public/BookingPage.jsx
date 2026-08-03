@@ -9,7 +9,9 @@ import {
     useGetAvailableSlotsQuery, 
     useCreatePublicAppointmentMutation 
 } from '../../services/api/kinesioApi.js';
-import { useSelector } from 'react-redux';
+import { useLogoutMutation } from '../../services/api/authApi.js';
+import { logout } from '../../services/auth/authSlice.js';
+import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import moment from 'moment';
 import 'moment/locale/es';
@@ -30,8 +32,21 @@ export default function BookingPage() {
     const [isSuccess, setIsSuccess] = useState(false);
 
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const [searchParams, setSearchParams] = useSearchParams();
     const userInfo = useSelector((state) => state.authSlice?.userInfo);
+
+    const [logoutApi] = useLogoutMutation();
+
+    const handleLogout = async () => {
+        try {
+            await logoutApi().unwrap();
+        } catch (error) {
+            console.error(error);
+        }
+        dispatch(logout());
+        toast({ title: 'Sesión cerrada', description: 'Has cerrado sesión exitosamente.' });
+    };
 
     React.useEffect(() => {
         if (userInfo) {
@@ -167,6 +182,22 @@ export default function BookingPage() {
                                 Panel Admin
                             </button>
                         ) : null}
+
+                        {userInfo && userInfo.email ? (
+                            <button 
+                                onClick={handleLogout}
+                                className="hover:text-red-600 transition-colors"
+                            >
+                                Cerrar Sesión
+                            </button>
+                        ) : (
+                            <button 
+                                onClick={() => navigate('/login')}
+                                className="hover:text-[#0a47d4] transition-colors"
+                            >
+                                Iniciar Sesión
+                            </button>
+                        )}
                     </nav>
 
                     <div className="w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden border border-gray-200 bg-gray-100 flex justify-center items-center">
