@@ -25,6 +25,7 @@ export default function BookingPage() {
     const [selectedDate, setSelectedDate] = useState(null);
     const [selectedTime, setSelectedTime] = useState(null);
     const [weekOffset, setWeekOffset] = useState(0);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const [showModal, setShowModal] = useState(false);
     const [patientName, setPatientName] = useState('');
@@ -160,7 +161,10 @@ export default function BookingPage() {
                 {/* Header Navbar */}
                 <header className="flex items-center justify-between px-6 py-4 bg-white sticky top-0 z-10 md:px-10 md:py-6 md:border-b md:border-gray-100">
                     <div className="flex items-center gap-4">
-                        <button className="p-2 -ml-2 text-gray-500 hover:text-gray-900 transition-colors md:hidden">
+                        <button 
+                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                            className="p-2 -ml-2 text-gray-500 hover:text-gray-900 transition-colors md:hidden"
+                        >
                             <Menu size={24} />
                         </button>
                         <div className="flex items-center gap-3">
@@ -209,6 +213,41 @@ export default function BookingPage() {
                         <User size={20} className="text-gray-400" />
                     </div>
                 </header>
+
+                {/* Mobile Navigation */}
+                {isMobileMenuOpen && (
+                    <div className="md:hidden absolute top-full left-0 w-full bg-white border-b border-gray-100 shadow-lg flex flex-col p-6 gap-5 z-20">
+                        <button onClick={() => { setIsMobileMenuOpen(false); }} className="text-left text-lg font-semibold text-[#0a47d4]">Reservar Turno</button>
+                        <button onClick={() => { setIsMobileMenuOpen(false); navigate('/mis-turnos'); }} className="text-left text-lg font-semibold text-gray-500 hover:text-[#0a47d4]">Mis Turnos</button>
+                        
+                        {userInfo?.role === 'ADMIN' || userInfo?.role === 'EMPLOYEE' ? (
+                            <button 
+                                onClick={() => { setIsMobileMenuOpen(false); navigate('/dashboard'); }}
+                                className="text-left text-lg font-bold text-[#0a47d4]"
+                            >
+                                Panel Admin
+                            </button>
+                        ) : null}
+
+                        <div className="h-px bg-gray-100 w-full my-1"></div>
+
+                        {accessToken ? (
+                            <button 
+                                onClick={() => { setIsMobileMenuOpen(false); handleLogout(); }}
+                                className="text-left text-lg font-semibold text-red-600"
+                            >
+                                Cerrar Sesión
+                            </button>
+                        ) : (
+                            <button 
+                                onClick={() => { setIsMobileMenuOpen(false); navigate('/login'); }}
+                                className="text-left text-lg font-semibold text-[#0a47d4]"
+                            >
+                                Iniciar Sesión
+                            </button>
+                        )}
+                    </div>
+                )}
 
                 <main className="flex-1 px-6 pt-4 pb-24 md:pb-10 md:px-10 md:pt-8">
                     {/* Title Section */}

@@ -1,6 +1,7 @@
+import React, { useState } from 'react';
 import {Link, useLocation, useNavigate} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
-import {LogOut, Settings, Bell, LayoutDashboard, Users, Calendar, FileText, Home} from "lucide-react";
+import {LogOut, Settings, Bell, LayoutDashboard, Users, Calendar, FileText, Home, Menu, X} from "lucide-react";
 import {logout} from "../../services/auth/authSlice.js";
 
 const Navbar = ({children}) => {
@@ -8,6 +9,7 @@ const Navbar = ({children}) => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const user = useSelector(state => state.authSlice.user)
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const handleLogout = () => {
         dispatch(logout());
@@ -54,6 +56,12 @@ const Navbar = ({children}) => {
                 <header className="h-20 flex items-center justify-between px-8 border-b border-gray-100 shrink-0">
                     {/* Logo */}
                     <div className="flex items-center gap-3">
+                        <button 
+                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                            className="md:hidden p-2 -ml-2 text-gray-500 hover:text-gray-900 transition-colors"
+                        >
+                            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                        </button>
                         <div className="w-8 h-8 bg-[#3B82F6] rounded-lg flex flex-wrap gap-0.5 p-1.5 items-center justify-center transform rotate-45">
                              <div className="w-2 h-2 bg-white rounded-full"></div>
                              <div className="w-2 h-2 bg-white rounded-full"></div>
@@ -112,6 +120,45 @@ const Navbar = ({children}) => {
                         </div>
                     </div>
                 </header>
+
+                {/* Mobile Menu */}
+                {isMobileMenuOpen && (
+                    <div className="md:hidden bg-white border-b border-gray-100 shadow-md">
+                        <nav className="flex flex-col p-4 gap-2">
+                            {navItems.map((item) => {
+                                const isActive = location.pathname === item.path;
+                                return (
+                                    <Link
+                                        key={item.path}
+                                        to={item.path}
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                        className={`px-4 py-3 rounded-lg text-sm font-semibold transition-all ${
+                                            isActive
+                                                ? 'bg-[#3B82F6] text-white'
+                                                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                                        }`}
+                                    >
+                                        {item.title}
+                                    </Link>
+                                );
+                            })}
+                            <div className="h-px bg-gray-100 w-full my-2"></div>
+                            <Link 
+                                to="/reservar" 
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-semibold text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                            >
+                                <Home size={18} /> Inicio
+                            </Link>
+                            <button 
+                                onClick={() => { setIsMobileMenuOpen(false); handleLogout(); }}
+                                className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-semibold text-red-500 hover:bg-red-50"
+                            >
+                                <LogOut size={18}/> Salir
+                            </button>
+                        </nav>
+                    </div>
+                )}
 
                 {/* Main Content Area */}
                 <main className="flex-1 overflow-x-hidden overflow-y-auto bg-white">
