@@ -121,44 +121,64 @@ const Navbar = ({children}) => {
                     </div>
                 </header>
 
-                {/* Mobile Menu */}
-                {isMobileMenuOpen && (
-                    <div className="md:hidden bg-white border-b border-gray-100 shadow-md">
-                        <nav className="flex flex-col p-4 gap-2">
-                            {navItems.map((item) => {
-                                const isActive = location.pathname === item.path;
-                                return (
-                                    <Link
-                                        key={item.path}
-                                        to={item.path}
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                        className={`px-4 py-3 rounded-lg text-sm font-semibold transition-all ${
-                                            isActive
-                                                ? 'bg-[#3B82F6] text-white'
-                                                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                                        }`}
-                                    >
-                                        {item.title}
-                                    </Link>
-                                );
-                            })}
-                            <div className="h-px bg-gray-100 w-full my-2"></div>
-                            <Link 
-                                to="/reservar" 
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-semibold text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-                            >
-                                <Home size={18} /> Inicio
-                            </Link>
-                            <button 
-                                onClick={() => { setIsMobileMenuOpen(false); handleLogout(); }}
-                                className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-semibold text-red-500 hover:bg-red-50"
-                            >
-                                <LogOut size={18}/> Salir
-                            </button>
-                        </nav>
+                {/* Mobile Menu Overlay */}
+                <div 
+                    className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 md:hidden ${isMobileMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                ></div>
+
+                {/* Mobile Menu Drawer */}
+                <div 
+                    className={`fixed top-0 left-0 h-full w-[280px] bg-white z-50 transform transition-transform duration-300 ease-in-out md:hidden shadow-2xl flex flex-col ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
+                >
+                    <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-[#3B82F6] rounded-lg flex flex-wrap gap-0.5 p-1.5 items-center justify-center transform rotate-45">
+                                 <div className="w-2 h-2 bg-white rounded-full"></div>
+                                 <div className="w-2 h-2 bg-white rounded-full"></div>
+                                 <div className="w-2 h-2 bg-white rounded-full"></div>
+                                 <div className="w-2 h-2 bg-white rounded-full"></div>
+                            </div>
+                            <span className="text-xl font-bold text-[#1E293B] tracking-tight">PAUSES</span>
+                        </div>
+                        <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-500 hover:text-gray-900 transition-colors">
+                            <X size={24} />
+                        </button>
                     </div>
-                )}
+                    <nav className="flex flex-col p-4 gap-2 overflow-y-auto flex-1">
+                        {navItems.map((item) => {
+                            const isActive = location.pathname === item.path;
+                            return (
+                                <Link
+                                    key={item.path}
+                                    to={item.path}
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className={`px-4 py-3 rounded-xl text-[15px] font-semibold transition-all ${
+                                        isActive
+                                            ? 'bg-[#3B82F6] text-white shadow-md shadow-blue-500/20'
+                                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                    }`}
+                                >
+                                    {item.title}
+                                </Link>
+                            );
+                        })}
+                        <div className="h-px bg-gray-100 w-full my-4"></div>
+                        <Link 
+                            to="/reservar" 
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="flex items-center gap-3 px-4 py-3 rounded-xl text-[15px] font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                        >
+                            <Home size={20} /> Ir al Inicio
+                        </Link>
+                        <button 
+                            onClick={() => { setIsMobileMenuOpen(false); handleLogout(); }}
+                            className="flex items-center gap-3 px-4 py-3 rounded-xl text-[15px] font-semibold text-red-500 hover:bg-red-50 transition-colors mt-auto mb-4"
+                        >
+                            <LogOut size={20}/> Cerrar Sesión
+                        </button>
+                    </nav>
+                </div>
 
                 {/* Main Content Area */}
                 <main className="flex-1 overflow-x-hidden overflow-y-auto bg-white">

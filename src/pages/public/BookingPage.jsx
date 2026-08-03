@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { toast } from '../../components/ui/use-toast';
 import { 
-    Menu, CheckCircle2, Circle, ChevronLeft, ChevronRight, 
+    Menu, X, CheckCircle2, Circle, ChevronLeft, ChevronRight, 
     ArrowRight, Home, CalendarPlus, ClipboardList, User, Activity, Loader2, Check
 } from 'lucide-react';
 import { 
@@ -214,40 +214,53 @@ export default function BookingPage() {
                     </div>
                 </header>
 
-                {/* Mobile Navigation */}
-                {isMobileMenuOpen && (
-                    <div className="md:hidden absolute top-full left-0 w-full bg-white border-b border-gray-100 shadow-lg flex flex-col p-6 gap-5 z-20">
+                {/* Mobile Navigation Drawer & Overlay */}
+                <div 
+                    className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 md:hidden ${isMobileMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                ></div>
+
+                <div 
+                    className={`fixed top-0 left-0 h-full w-[280px] bg-white z-50 transform transition-transform duration-300 ease-in-out md:hidden shadow-2xl flex flex-col ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
+                >
+                    <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                        <span className="text-xl font-bold text-[#1E293B]">Menú</span>
+                        <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-500 hover:text-gray-900 transition-colors">
+                            <X size={24} />
+                        </button>
+                    </div>
+                    <div className="flex flex-col p-6 gap-6">
                         <button onClick={() => { setIsMobileMenuOpen(false); }} className="text-left text-lg font-semibold text-[#0a47d4]">Reservar Turno</button>
-                        <button onClick={() => { setIsMobileMenuOpen(false); navigate('/mis-turnos'); }} className="text-left text-lg font-semibold text-gray-500 hover:text-[#0a47d4]">Mis Turnos</button>
+                        <button onClick={() => { setIsMobileMenuOpen(false); navigate('/mis-turnos'); }} className="text-left text-lg font-semibold text-gray-500 hover:text-[#0a47d4] transition-colors">Mis Turnos</button>
                         
                         {userInfo?.role === 'ADMIN' || userInfo?.role === 'EMPLOYEE' ? (
                             <button 
                                 onClick={() => { setIsMobileMenuOpen(false); navigate('/dashboard'); }}
-                                className="text-left text-lg font-bold text-[#0a47d4]"
+                                className="text-left text-lg font-bold text-[#0a47d4] transition-colors"
                             >
                                 Panel Admin
                             </button>
                         ) : null}
 
-                        <div className="h-px bg-gray-100 w-full my-1"></div>
+                        <div className="h-px bg-gray-100 w-full my-2"></div>
 
                         {accessToken ? (
                             <button 
                                 onClick={() => { setIsMobileMenuOpen(false); handleLogout(); }}
-                                className="text-left text-lg font-semibold text-red-600"
+                                className="text-left text-lg font-semibold text-red-600 transition-colors"
                             >
                                 Cerrar Sesión
                             </button>
                         ) : (
                             <button 
                                 onClick={() => { setIsMobileMenuOpen(false); navigate('/login'); }}
-                                className="text-left text-lg font-semibold text-[#0a47d4]"
+                                className="text-left text-lg font-semibold text-[#0a47d4] transition-colors"
                             >
                                 Iniciar Sesión
                             </button>
                         )}
                     </div>
-                )}
+                </div>
 
                 <main className="flex-1 px-6 pt-4 pb-24 md:pb-10 md:px-10 md:pt-8">
                     {/* Title Section */}
