@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import logoCruce from '../../pages/images/nuevo_logo.png'; 
 
 export default function Loader({ fullScreen = false, isLoading = true }) {
   const [render, setRender] = useState(isLoading || fullScreen);
@@ -28,12 +27,16 @@ export default function Loader({ fullScreen = false, isLoading = true }) {
         {/* Pulsing glow effect behind logo (soft blue) */}
         <div className="absolute inset-0 bg-[#0a47d4] rounded-full blur-[80px] opacity-20 animate-pulse"></div>
         
-        {/* Logo with pulsing animation, rounded corners */}
-        <img
-          src={logoCruce}
-          alt="Cargando..."
-          className="h-32 md:h-40 w-auto object-contain animate-pulse relative z-10 rounded-3xl shadow-xl shadow-blue-900/10"
-        />
+        {/* New CSS Logo with pulsing animation */}
+        <div className="relative z-10 flex items-center gap-4 md:gap-6 animate-pulse">
+            <div className="w-12 h-12 md:w-16 md:h-16 bg-[#3B82F6] rounded-xl md:rounded-2xl flex flex-wrap gap-1 p-2.5 md:p-3.5 items-center justify-center transform rotate-45 shadow-lg shadow-blue-500/30">
+                 <div className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 bg-white rounded-full"></div>
+                 <div className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 bg-white rounded-full"></div>
+                 <div className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 bg-white rounded-full"></div>
+                 <div className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 bg-white rounded-full"></div>
+            </div>
+            <span className="text-4xl md:text-5xl font-bold text-[#1E293B] tracking-tight">PAUSES</span>
+        </div>
       </div>
     </div>
   );
