@@ -10,6 +10,7 @@ import {
     useCreatePublicAppointmentMutation 
 } from '../../services/api/kinesioApi.js';
 import { useLogoutMutation } from '../../services/api/authApi.js';
+import { useGetUserQuery } from '../../services/api/userApi.js';
 import { logout } from '../../services/auth/authSlice.js';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -35,6 +36,10 @@ export default function BookingPage() {
     const dispatch = useDispatch();
     const [searchParams, setSearchParams] = useSearchParams();
     const userInfo = useSelector((state) => state.authSlice?.userInfo);
+    const accessToken = useSelector((state) => state.authSlice?.accessToken);
+
+    // Fetch user info if logged in so we can prepopulate the booking form
+    useGetUserQuery(undefined, { skip: !accessToken });
 
     const [logoutApi] = useLogoutMutation();
 
@@ -183,7 +188,7 @@ export default function BookingPage() {
                             </button>
                         ) : null}
 
-                        {userInfo && userInfo.email ? (
+                        {accessToken ? (
                             <button 
                                 onClick={handleLogout}
                                 className="hover:text-red-600 transition-colors"
