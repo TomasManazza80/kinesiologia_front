@@ -1,0 +1,512 @@
+import React, { useState } from 'react';
+import { useGetProfessionalsQuery, useCreateProfessionalMutation, useUpdateProfessionalMutation } from '../../services/api/kinesioApi.js';
+import { toast } from '../ui/use-toast.tsx';
+import { Plus, User, Mail, Shield, ShieldAlert, Loader2, X, Briefcase, Search, Filter, Camera, Check } from 'lucide-react';
+
+const ProfessionalList = () => {
+    const { data, isLoading, error } = useGetProfessionalsQuery();
+    const [createProfessional, { isLoading: isCreating }] = useCreateProfessionalMutation();
+    const [updateProfessional, { isLoading: isUpdating }] = useUpdateProfessionalMutation();
+    
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        password: '',
+        specialty: '',
+        role: 'ADMIN' // Always creating an ADMIN for now
+    });
+    const [searchTerm, setSearchTerm] = useState('');
+    const [roleFilter, setRoleFilter] = useState('ALL');
+    const [selectedProfessional, setSelectedProfessional] = useState(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editFormData, setEditFormData] = useState({});
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+    const professionals = data?.data || [];
+    
+    const filteredProfessionals = professionals.filter(prof => {
+        const matchesSearch = (prof.name || prof.email).toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesRole = roleFilter === 'ALL' || prof.role === roleFilter;
+        return matchesSearch && matchesRole;
+    });
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await createProfessional(formData).unwrap();
+            toast({
+                title: 'Éxito',
+                description: 'Profesional creado correctamente.',
+                variant: 'success'
+            });
+            setIsModalOpen(false);
+            setFormData({ name: '', email: '', password: '', specialty: '', role: 'ADMIN' });
+        } catch (err) {
+            toast({
+                title: 'Error',
+                description: err?.data?.message || 'Error al crear profesional',
+                variant: 'error'
+            });
+        }
+    };
+
+    const handleUpdate = async (e) => {
+        e.preventDefault();
+        try {
+            await updateProfessional({ id: selectedProfessional.id, ...editFormData }).unwrap();
+            toast({
+                title: 'Éxito',
+                description: 'Profesional actualizado correctamente.',
+                variant: 'success'
+            });
+            setIsEditing(false);
+            setSelectedProfessional({ ...selectedProfessional, ...editFormData });
+        } catch (err) {
+            toast({
+                title: 'Error',
+                description: err?.data?.message || 'Error al actualizar',
+                variant: 'error'
+            });
+        }
+    };
+
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('image', file);
+
+        setIsUploadingImage(true);
+        try {
+            const token = localStorage.getItem('token');
+            const backendUrl = import.meta.env.VITE_PUBLIC_URL || 'http://localhost:3000'; // Fallback
+            // If it's a relative path it will use current domain, but backend is on different port in dev usually.
+            // Using /api/upload since Vite proxies /api to backend.
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+            const data = await response.json();
+            if (data.success) {
+                setEditFormData(prev => ({ ...prev, profile_picture: data.url }));
+                toast({ title: 'Imagen subida', description: 'La imagen se subió correctamente', variant: 'success' });
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            console.error(error);
+            toast({ title: 'Error', description: 'No se pudo subir la imagen', variant: 'error' });
+        } finally {
+            setIsUploadingImage(false);
+        }
+    };
+
+    return (
+        <div className="w-full h-full bg-[#F8FAFC] p-4 md:p-8 flex flex-col gap-6 overflow-y-auto">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight text-[#111827]">Equipo / Profesionales</h1>
+                    <p className="text-gray-500 mt-1">Gestiona los profesionales y usuarios administradores del sistema.</p>
+                </div>
+                <button 
+                    onClick={() => setIsModalOpen(true)}
+                    className="bg-[#0A58CA] hover:bg-blue-700 text-white font-bold py-2.5 px-5 rounded-xl transition-colors shadow-sm flex items-center justify-center gap-2"
+                >
+                    <Plus size={20} />
+                    Añadir Profesional
+                </button>
+            </div>
+
+            {/* Filters */}
+            <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <input 
+                        type="text" 
+                        placeholder="Buscar por nombre o email..." 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl outline-none focus:border-[#0A58CA] focus:ring-1 focus:ring-[#0A58CA]"
+                    />
+                </div>
+                <div className="sm:w-64 relative flex items-center">
+                    <Filter className="absolute left-3 text-gray-400" size={18} />
+                    <select
+                        value={roleFilter}
+                        onChange={(e) => setRoleFilter(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl outline-none focus:border-[#0A58CA] appearance-none bg-white cursor-pointer"
+                    >
+                        <option value="ALL">Todos los roles</option>
+                        <option value="ADMIN">ADMIN</option>
+                        <option value="USER">USER</option>
+                        <option value="EMPLOYEE">EMPLOYEE</option>
+                    </select>
+                </div>
+            </div>
+
+            {/* List */}
+            {isLoading ? (
+                <div className="flex items-center justify-center h-40">
+                    <Loader2 className="animate-spin text-[#0A58CA]" size={32} />
+                </div>
+            ) : error ? (
+                <div className="p-6 bg-red-50 text-red-600 rounded-2xl border border-red-100 flex flex-col items-center justify-center text-center">
+                    <ShieldAlert size={32} className="mb-2" />
+                    <p className="font-semibold">Error al cargar los profesionales.</p>
+                </div>
+            ) : (
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left text-sm text-gray-500">
+                            <thead className="bg-[#F8FAFC] text-xs uppercase text-gray-700 font-bold border-b border-gray-100">
+                                <tr>
+                                    <th className="px-6 py-4">Profesional</th>
+                                    <th className="px-6 py-4">Contacto</th>
+                                    <th className="px-6 py-4">Rol</th>
+                                    <th className="px-6 py-4 text-center">Público (Web)</th>
+                                    <th className="px-6 py-4 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {filteredProfessionals.length > 0 ? (
+                                    filteredProfessionals.map((prof) => (
+                                        <tr key={prof.id} className="hover:bg-gray-50/50 transition-colors">
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    {prof.profile_picture ? (
+                                                        <img src={prof.profile_picture} alt={prof.name} className="w-10 h-10 rounded-full object-cover border border-gray-200 shadow-sm" />
+                                                    ) : (
+                                                        <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold shrink-0">
+                                                            {(prof.name || prof.email).charAt(0).toUpperCase()}
+                                                        </div>
+                                                    )}
+                                                    <div>
+                                                        <p className="font-bold text-gray-900">{prof.name || '-'}</p>
+                                                        <p className="text-xs text-gray-400 mt-0.5">{prof.specialty || 'Kinesiología'}</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-2 text-gray-600">
+                                                    <Mail size={16} className="text-gray-400" />
+                                                    {prof.email}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className={`px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1 w-max ${
+                                                    prof.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700'
+                                                }`}>
+                                                    <Shield size={12} />
+                                                    {prof.role}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <label className="relative inline-flex items-center cursor-pointer">
+                                                    <input 
+                                                        type="checkbox" 
+                                                        className="sr-only peer"
+                                                        checked={prof.is_public || false}
+                                                        onChange={async (e) => {
+                                                            try {
+                                                                await updateProfessional({ id: prof.id, is_public: e.target.checked }).unwrap();
+                                                                toast({ title: 'Actualizado', description: 'Visibilidad actualizada.', variant: 'success' });
+                                                            } catch(err) {
+                                                                toast({ title: 'Error', description: 'No se pudo actualizar.', variant: 'error' });
+                                                            }
+                                                        }}
+                                                    />
+                                                    <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500"></div>
+                                                </label>
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <button 
+                                                    onClick={() => {
+                                                        setSelectedProfessional(prof);
+                                                        setEditFormData(prof);
+                                                        setIsEditing(false);
+                                                    }}
+                                                    className="text-blue-500 hover:text-blue-700 font-semibold text-sm"
+                                                >
+                                                    Ver Detalle
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="4" className="px-6 py-8 text-center text-gray-500">
+                                            No hay profesionales registrados.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de Creación */}
+            {isModalOpen && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                            <h2 className="text-xl font-bold text-gray-900">Añadir Profesional</h2>
+                            <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1 rounded-lg transition-colors hover:bg-gray-100">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-6 overflow-y-auto">
+                            <form id="profForm" onSubmit={handleSubmit} className="flex flex-col gap-4">
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-2"><User size={16}/> Nombre Completo</label>
+                                    <input 
+                                        type="text" name="name" required
+                                        value={formData.name} onChange={handleInputChange}
+                                        placeholder="Ej. Dr. Juan Pérez"
+                                        className="w-full border border-gray-300 rounded-xl px-4 py-2.5 outline-none focus:border-[#0A58CA] focus:ring-1 focus:ring-[#0A58CA]" 
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-2"><Briefcase size={16}/> Especialidad</label>
+                                    <input 
+                                        type="text" name="specialty" 
+                                        value={formData.specialty} onChange={handleInputChange}
+                                        placeholder="Ej. Kinesiología Deportiva"
+                                        className="w-full border border-gray-300 rounded-xl px-4 py-2.5 outline-none focus:border-[#0A58CA] focus:ring-1 focus:ring-[#0A58CA]" 
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-2"><Mail size={16}/> Email (Usuario)</label>
+                                    <input 
+                                        type="email" name="email" required
+                                        value={formData.email} onChange={handleInputChange}
+                                        placeholder="correo@ejemplo.com"
+                                        className="w-full border border-gray-300 rounded-xl px-4 py-2.5 outline-none focus:border-[#0A58CA] focus:ring-1 focus:ring-[#0A58CA]" 
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-2"><Shield size={16}/> Contraseña de Acceso</label>
+                                    <input 
+                                        type="password" name="password" required minLength="6"
+                                        value={formData.password} onChange={handleInputChange}
+                                        placeholder="Mínimo 6 caracteres"
+                                        className="w-full border border-gray-300 rounded-xl px-4 py-2.5 outline-none focus:border-[#0A58CA] focus:ring-1 focus:ring-[#0A58CA]" 
+                                    />
+                                </div>
+                                <div className="mt-2 bg-blue-50 text-blue-800 p-3 rounded-lg text-sm flex gap-2">
+                                    <ShieldAlert size={18} className="shrink-0 mt-0.5" />
+                                    <p>Este usuario se creará con el rol <strong>ADMIN</strong>, lo que le dará acceso al panel de administración para gestionar su propia agenda y pacientes.</p>
+                                </div>
+                            </form>
+                        </div>
+                        <div className="p-6 border-t border-gray-100 flex gap-3 bg-gray-50 mt-auto">
+                            <button 
+                                type="button" 
+                                onClick={() => setIsModalOpen(false)}
+                                className="flex-1 py-2.5 bg-white text-gray-700 rounded-xl font-bold border border-gray-300 hover:bg-gray-50 transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button 
+                                form="profForm"
+                                type="submit"
+                                disabled={isCreating}
+                                className="flex-1 py-2.5 bg-[#0A58CA] text-white rounded-xl font-bold hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                            >
+                                {isCreating && <Loader2 className="animate-spin" size={18} />}
+                                Guardar Profesional
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de Detalle */}
+            {selectedProfessional && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col">
+                        <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-[#F8FAFC]">
+                            <h2 className="text-xl font-bold text-gray-900">
+                                {isEditing ? 'Editar Profesional' : 'Detalles del Profesional'}
+                            </h2>
+                            <button onClick={() => setSelectedProfessional(null)} className="text-gray-400 hover:text-gray-600 p-1 rounded-lg transition-colors hover:bg-gray-200">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-6 flex flex-col gap-6 overflow-y-auto">
+                            <div className="flex flex-col sm:flex-row items-center gap-6">
+                                <div className="relative group">
+                                    {isEditing && editFormData.profile_picture ? (
+                                        <img src={editFormData.profile_picture} alt="Profile" className="w-20 h-20 rounded-full object-cover shadow-inner border border-gray-200" />
+                                    ) : !isEditing && selectedProfessional.profile_picture ? (
+                                        <img src={selectedProfessional.profile_picture} alt="Profile" className="w-20 h-20 rounded-full object-cover shadow-inner border border-gray-200" />
+                                    ) : (
+                                        <div className="w-20 h-20 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-3xl shadow-inner shrink-0 border border-blue-200">
+                                            {(selectedProfessional.name || selectedProfessional.email).charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
+                                    
+                                    {isEditing && (
+                                        <label className="absolute inset-0 bg-black/40 rounded-full flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                            {isUploadingImage ? <Loader2 className="animate-spin" size={20} /> : <Camera size={20} />}
+                                            <span className="text-[10px] mt-1 font-semibold">Subir</span>
+                                            <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploadingImage} />
+                                        </label>
+                                    )}
+                                </div>
+                                {isEditing ? (
+                                    <div className="w-full">
+                                        <label className="block text-xs font-bold text-gray-500 mb-1">Nombre Completo</label>
+                                        <input 
+                                            type="text" 
+                                            value={editFormData.name || ''} 
+                                            onChange={e => setEditFormData({...editFormData, name: e.target.value})}
+                                            className="w-full border border-gray-300 rounded-lg px-3 py-1.5 outline-none focus:border-[#0A58CA] text-sm font-semibold"
+                                        />
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <h3 className="text-xl font-bold text-gray-900">{selectedProfessional.name || 'Sin Nombre'}</h3>
+                                        <p className="text-blue-600 font-medium text-sm flex items-center gap-1 mt-1">
+                                            <Briefcase size={14} />
+                                            {selectedProfessional.specialty || 'Kinesiología'}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                            
+                            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 flex flex-col gap-4">
+                                <div>
+                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Especialidad</p>
+                                    {isEditing ? (
+                                        <input 
+                                            type="text" 
+                                            value={editFormData.specialty || ''} 
+                                            onChange={e => setEditFormData({...editFormData, specialty: e.target.value})}
+                                            className="w-full border border-gray-300 rounded-lg px-3 py-1.5 outline-none focus:border-[#0A58CA] text-sm"
+                                        />
+                                    ) : (
+                                        <p className="text-gray-900 font-medium flex items-center gap-2">
+                                            <Briefcase size={16} className="text-gray-400" />
+                                            {selectedProfessional.specialty || 'No especificada'}
+                                        </p>
+                                    )}
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Contacto / Usuario</p>
+                                    {isEditing ? (
+                                        <input 
+                                            type="email" 
+                                            value={editFormData.email || ''} 
+                                            onChange={e => setEditFormData({...editFormData, email: e.target.value})}
+                                            className="w-full border border-gray-300 rounded-lg px-3 py-1.5 outline-none focus:border-[#0A58CA] text-sm"
+                                        />
+                                    ) : (
+                                        <p className="text-gray-900 font-medium flex items-center gap-2">
+                                            <Mail size={16} className="text-gray-400" />
+                                            {selectedProfessional.email}
+                                        </p>
+                                    )}
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Rol de Usuario</p>
+                                    {isEditing ? (
+                                        <select 
+                                            value={editFormData.role || 'ADMIN'} 
+                                            onChange={e => setEditFormData({...editFormData, role: e.target.value})}
+                                            className="w-full border border-gray-300 rounded-lg px-3 py-1.5 outline-none focus:border-[#0A58CA] text-sm bg-white"
+                                        >
+                                            <option value="ADMIN">ADMIN (Acceso Total)</option>
+                                            <option value="USER">USER (Acceso Limitado)</option>
+                                            <option value="EMPLOYEE">EMPLOYEE (Staff)</option>
+                                        </select>
+                                    ) : (
+                                        <span className={`px-2.5 py-1 rounded-md text-sm font-semibold flex items-center gap-1.5 w-max ${
+                                            selectedProfessional.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700'
+                                        }`}>
+                                            <Shield size={14} />
+                                            {selectedProfessional.role}
+                                        </span>
+                                    )}
+                                </div>
+                                
+                                {isEditing && (
+                                    <div className="pt-2 border-t border-gray-200 mt-2 flex items-center justify-between">
+                                        <div>
+                                            <p className="text-sm font-bold text-gray-900">Mostrar en web pública</p>
+                                            <p className="text-xs text-gray-500">Permite que los pacientes agenden turnos con este profesional</p>
+                                        </div>
+                                        <label className="relative inline-flex items-center cursor-pointer">
+                                            <input 
+                                                type="checkbox" 
+                                                className="sr-only peer"
+                                                checked={editFormData.is_public || false}
+                                                onChange={e => setEditFormData({...editFormData, is_public: e.target.checked})}
+                                            />
+                                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                                        </label>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        <div className="p-6 border-t border-gray-100 flex gap-3 bg-gray-50 mt-auto">
+                            {isEditing ? (
+                                <>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => {
+                                            setIsEditing(false);
+                                            setEditFormData(selectedProfessional);
+                                        }}
+                                        className="flex-1 py-2.5 bg-white text-gray-700 rounded-xl font-bold border border-gray-300 hover:bg-gray-50 transition-colors"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        onClick={handleUpdate}
+                                        disabled={isUpdating}
+                                        className="flex-1 py-2.5 bg-[#0A58CA] text-white rounded-xl font-bold hover:bg-blue-700 transition-colors disabled:opacity-50 flex justify-center items-center gap-2"
+                                    >
+                                        {isUpdating && <Loader2 className="animate-spin" size={16} />}
+                                        Guardar
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setSelectedProfessional(null)}
+                                        className="flex-1 py-2.5 bg-white text-gray-700 rounded-xl font-bold border border-gray-300 hover:bg-gray-50 transition-colors"
+                                    >
+                                        Cerrar
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setIsEditing(true)}
+                                        className="flex-1 py-2.5 bg-[#0A58CA] text-white rounded-xl font-bold hover:bg-blue-700 transition-colors"
+                                    >
+                                        Editar Datos
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default ProfessionalList;
