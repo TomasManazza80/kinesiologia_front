@@ -1,8 +1,11 @@
 import {logout} from "./authSlice.js";
+import {store} from "../store/store.js";
 
 export function logoutUser() {
-    logout();
-    localStorage.removeItem('refreshToken')
+    store.dispatch(logout());
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userInfo');
 
     // Si el usuario no está ya en login o signup, redirigir a login
     const publicRoutes = ['/login', '/signup', '/signup-admin', '/'];

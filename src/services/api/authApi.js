@@ -65,7 +65,7 @@ export const authApi = createApi({
             }
         }),
     }),
-    tagTypes: ['User', 'Properties', 'Units', 'Tenants', 'Leases', "Payments", "Expenses", "Maintenance", "UserList", "Product", "Category", "Patients", "Appointments", "Professionals", "Balance", "Availability"]
+    tagTypes: ['User', 'Properties', 'Units', 'Tenants', 'Leases', "Payments", "Expenses", "Maintenance", "UserList", "Product", "Category", "Patients", "Appointments", "Professionals", "Balance", "Availability", "WhatsApp"]
 })
 
 export const {

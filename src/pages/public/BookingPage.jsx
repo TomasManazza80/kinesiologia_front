@@ -20,12 +20,13 @@ import 'moment/locale/es';
 moment.locale('es');
 
 export default function BookingPage() {
-    const [selectedService, setSelectedService] = useState('Kinesiología General');
+    const [selectedService, setSelectedService] = useState(null);
     const [selectedSpecialistId, setSelectedSpecialistId] = useState(null);
     const [selectedDate, setSelectedDate] = useState(null);
     const [selectedTime, setSelectedTime] = useState(null);
     const [weekOffset, setWeekOffset] = useState(0);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
     const [showModal, setShowModal] = useState(false);
     const [patientName, setPatientName] = useState('');
@@ -83,6 +84,37 @@ export default function BookingPage() {
     // Queries
     const { data: profData, isLoading: isLoadingProfs } = useGetPublicProfessionalsQuery();
     const professionals = profData?.data || [];
+
+    const allSpecialties = useMemo(() => {
+        const specs = new Set();
+        professionals.forEach(p => {
+            if (p.specialty && Array.isArray(p.specialty)) {
+                p.specialty.forEach(s => specs.add(s));
+            } else if (p.specialty && typeof p.specialty === 'string') {
+                specs.add(p.specialty);
+            }
+        });
+        if (specs.size === 0) specs.add('Kinesiología General');
+        return Array.from(specs);
+    }, [professionals]);
+
+    React.useEffect(() => {
+        if (!selectedService && allSpecialties.length > 0) {
+            setSelectedService(allSpecialties[0]);
+        }
+    }, [allSpecialties, selectedService]);
+
+    const filteredProfessionals = useMemo(() => {
+        if (!selectedService) return [];
+        return professionals.filter(p => {
+            if (p.specialty && Array.isArray(p.specialty)) {
+                return p.specialty.includes(selectedService);
+            } else if (p.specialty && typeof p.specialty === 'string') {
+                return p.specialty === selectedService;
+            }
+            return selectedService === 'Kinesiología General';
+        });
+    }, [professionals, selectedService]);
 
     const { data: slotsData, isLoading: isLoadingSlots, isFetching: isFetchingSlots } = useGetAvailableSlotsQuery(
         { professional_id: selectedSpecialistId, date: selectedDate?.date, service: selectedService },
@@ -192,14 +224,7 @@ export default function BookingPage() {
                             </button>
                         ) : null}
 
-                        {accessToken ? (
-                            <button 
-                                onClick={handleLogout}
-                                className="hover:text-red-600 transition-colors"
-                            >
-                                Cerrar Sesión
-                            </button>
-                        ) : (
+                        {!accessToken && (
                             <button 
                                 onClick={() => navigate('/login')}
                                 className="hover:text-[#0a47d4] transition-colors"
@@ -209,8 +234,42 @@ export default function BookingPage() {
                         )}
                     </nav>
 
-                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden border border-gray-200 bg-gray-100 flex justify-center items-center">
-                        <User size={20} className="text-gray-400" />
+                    {/* User Profile / Dropdown */}
+                    <div className="relative">
+                        <button 
+                            onClick={() => {
+                                if (!accessToken) {
+                                    navigate('/login');
+                                } else {
+                                    setIsUserMenuOpen(!isUserMenuOpen);
+                                }
+                            }}
+                            className="w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden border border-gray-200 bg-gray-100 flex justify-center items-center hover:bg-gray-200 transition-colors cursor-pointer"
+                        >
+                            <User size={20} className="text-gray-400" />
+                        </button>
+                        
+                        {isUserMenuOpen && accessToken && (
+                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
+                                <div className="px-4 py-3 border-b border-gray-50 mb-1">
+                                    <p className="text-sm font-bold text-gray-900 truncate">
+                                        {userInfo?.firstName || userInfo?.lastName ? `${userInfo.firstName || ''} ${userInfo.lastName || ''}`.trim() : userInfo?.email}
+                                    </p>
+                                    {(userInfo?.firstName || userInfo?.lastName) && (
+                                        <p className="text-xs text-gray-500 truncate mt-0.5">{userInfo?.email}</p>
+                                    )}
+                                </div>
+                                <button 
+                                    onClick={() => {
+                                        setIsUserMenuOpen(false);
+                                        handleLogout();
+                                    }}
+                                    className="w-full text-left px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                                >
+                                    Cerrar Sesión
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </header>
 
@@ -285,35 +344,21 @@ export default function BookingPage() {
                                 </div>
                                 
                                 <div className="flex flex-col md:grid md:grid-cols-2 gap-3 md:gap-5">
-                                    {/* Option 1 */}
-                                    <div 
-                                        onClick={() => { setSelectedService('Kinesiología General'); setSelectedTime(null); }}
-                                        className={`p-4 rounded-xl border-2 transition-all cursor-pointer relative ${selectedService === 'Kinesiología General' ? 'border-[#0a47d4] bg-[#f0f5ff] shadow-md shadow-blue-500/10' : 'border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50'}`}
-                                    >
-                                        <div className="flex justify-between items-start mb-2">
-                                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-[#e1ebff] flex items-center justify-center text-[#0a47d4]">
-                                                <Activity size={20} className="md:w-6 md:h-6" />
+                                    {allSpecialties.map((spec) => (
+                                        <div 
+                                            key={spec}
+                                            onClick={() => { setSelectedService(spec); setSelectedSpecialistId(null); setSelectedTime(null); }}
+                                            className={`p-4 rounded-xl border-2 transition-all cursor-pointer relative ${selectedService === spec ? 'border-[#0a47d4] bg-[#f0f5ff] shadow-md shadow-blue-500/10' : 'border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50'}`}
+                                        >
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-[#e1ebff] flex items-center justify-center text-[#0a47d4]">
+                                                    <Activity size={20} className="md:w-6 md:h-6" />
+                                                </div>
+                                                {selectedService === spec ? <CheckCircle2 className="text-[#0a47d4]" size={22} fill="white" /> : <Circle className="text-gray-300" size={22} />}
                                             </div>
-                                            {selectedService === 'Kinesiología General' ? <CheckCircle2 className="text-[#0a47d4]" size={22} fill="white" /> : <Circle className="text-gray-300" size={22} />}
+                                            <h3 className="font-bold text-gray-900 mb-1 text-[15px] md:text-base">{spec}</h3>
                                         </div>
-                                        <h3 className="font-bold text-gray-900 mb-1 text-[15px] md:text-base">Kinesiología General</h3>
-                                        <p className="text-sm text-gray-500 leading-snug">Evaluación y tratamiento integral para dolor agudo y crónico.</p>
-                                    </div>
-
-                                    {/* Option 2 */}
-                                    <div 
-                                        onClick={() => { setSelectedService('Rehabilitación Deportiva'); setSelectedTime(null); }}
-                                        className={`p-4 rounded-xl border-2 transition-all cursor-pointer relative ${selectedService === 'Rehabilitación Deportiva' ? 'border-[#0a47d4] bg-[#f0f5ff] shadow-md shadow-blue-500/10' : 'border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50'}`}
-                                    >
-                                        <div className="flex justify-between items-start mb-2">
-                                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-[#f0f2f5] flex items-center justify-center text-gray-500">
-                                                <svg className="w-5 h-5 md:w-6 md:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="5" r="2"/><path d="m19 9-5.5-3.5a3 3 0 0 0-4.6 1.7L7 12"/><path d="M7 12h5l3 4 3.5 1.5"/><path d="M12 16v6"/><path d="M8 22 5.5 15.5"/></svg>
-                                            </div>
-                                            {selectedService === 'Rehabilitación Deportiva' ? <CheckCircle2 className="text-[#0a47d4]" size={22} fill="white" /> : <Circle className="text-gray-300" size={22} />}
-                                        </div>
-                                        <h3 className="font-bold text-gray-900 mb-1 text-[15px] md:text-base">Rehabilitación Deportiva</h3>
-                                        <p className="text-sm text-gray-500 leading-snug">Recuperación enfocada en atletas y lesiones deportivas específicas.</p>
-                                    </div>
+                                    ))}
                                 </div>
                             </div>
 
@@ -326,11 +371,11 @@ export default function BookingPage() {
                                 
                                 {isLoadingProfs ? (
                                     <div className="flex items-center gap-2 text-gray-500"><Loader2 className="animate-spin" size={20}/> Cargando especialistas...</div>
-                                ) : professionals.length === 0 ? (
-                                    <p className="text-gray-500 text-sm">No hay especialistas disponibles por el momento.</p>
+                                ) : filteredProfessionals.length === 0 ? (
+                                    <p className="text-gray-500 text-sm">No hay especialistas disponibles para esta especialidad.</p>
                                 ) : (
                                     <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar">
-                                        {professionals.map(prof => (
+                                        {filteredProfessionals.map(prof => (
                                             <div 
                                                 key={prof.id}
                                                 onClick={() => { setSelectedSpecialistId(prof.id); setSelectedTime(null); }}
@@ -344,7 +389,9 @@ export default function BookingPage() {
                                                     )}
                                                 </div>
                                                 <h3 className="font-bold text-gray-900 text-[14px] md:text-base">{prof.name || prof.email}</h3>
-                                                <span className="mt-1 px-2 py-0.5 rounded-full bg-[#f0f5ff] text-[#0a47d4] text-[10px] md:text-[11px] font-semibold">{prof.specialty || 'Kinesiología'}</span>
+                                                <span className="mt-1 px-2 py-0.5 rounded-full bg-[#f0f5ff] text-[#0a47d4] text-[10px] md:text-[11px] font-semibold">
+                                                    {(prof.specialty && prof.specialty.length > 0) ? (Array.isArray(prof.specialty) ? prof.specialty.join(', ') : prof.specialty) : 'Kinesiología'}
+                                                </span>
                                             </div>
                                         ))}
                                     </div>

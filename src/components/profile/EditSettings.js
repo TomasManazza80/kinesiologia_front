@@ -18,6 +18,7 @@ import {Label} from "../ui/label.tsx";
 import {ComputerIcon, Moon, Sun} from "lucide-react";
 import {useTheme} from "../../services/contexts/ThemeContext.tsx";
 import {cn} from "../../utils.ts";
+import WhatsAppSettings from "./WhatsAppSettings.jsx";
 
 const currencies = [
     "USD",
@@ -173,6 +174,10 @@ const EditSettings = () => {
                     </Button>
                 </form>
             </Form>
+
+            <div className="w-full h-[2px] bg-border my-8"/>
+
+            <WhatsAppSettings />
 
             <AlertDialog>
                 <AlertDialogTrigger className="mt-24">

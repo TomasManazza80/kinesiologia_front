@@ -1,19 +1,80 @@
 import React, { useState } from 'react';
-import { useGetProfessionalsQuery, useCreateProfessionalMutation, useUpdateProfessionalMutation } from '../../services/api/kinesioApi.js';
+import { Select, Divider, Input, Button } from 'antd';
+import { 
+    useGetProfessionalsQuery, 
+    useCreateProfessionalMutation, 
+    useUpdateProfessionalMutation, 
+    useUploadImageMutation,
+    useGetSpecialtiesQuery,
+    useCreateSpecialtyMutation,
+    useUpdateSpecialtyMutation,
+    useDeleteSpecialtyMutation
+} from '../../services/api/kinesioApi.js';
 import { toast } from '../ui/use-toast.tsx';
-import { Plus, User, Mail, Shield, ShieldAlert, Loader2, X, Briefcase, Search, Filter, Camera, Check } from 'lucide-react';
+import { Plus, User, Mail, Shield, ShieldAlert, Loader2, X, Briefcase, Search, Filter, Camera, Check, Users, Edit2, Trash2 } from 'lucide-react';
+
 
 const ProfessionalList = () => {
     const { data, isLoading, error } = useGetProfessionalsQuery();
     const [createProfessional, { isLoading: isCreating }] = useCreateProfessionalMutation();
     const [updateProfessional, { isLoading: isUpdating }] = useUpdateProfessionalMutation();
+    const [uploadImage] = useUploadImageMutation();
+
+    const { data: specData, isLoading: isLoadingSpecs } = useGetSpecialtiesQuery();
+    const [createSpecialtyMutation] = useCreateSpecialtyMutation();
+    const [updateSpecialtyMutation] = useUpdateSpecialtyMutation();
+    const [deleteSpecialtyMutation] = useDeleteSpecialtyMutation();
+    const specialties = specData?.data || [];
+    
+    const [isManageSpecialtiesModalOpen, setIsManageSpecialtiesModalOpen] = useState(false);
+    const [editingSpecialtyId, setEditingSpecialtyId] = useState(null);
+    const [editingSpecialtyName, setEditingSpecialtyName] = useState('');
+    
+    const [newSpecialtyName, setNewSpecialtyName] = useState('');
+    const inputRef = React.useRef(null);
+
+    const handleAddSpecialty = async (e) => {
+        e.preventDefault();
+        if (!newSpecialtyName) return;
+        try {
+            await createSpecialtyMutation({ name: newSpecialtyName }).unwrap();
+            setNewSpecialtyName('');
+            setTimeout(() => {
+                inputRef.current?.focus();
+            }, 0);
+        } catch (err) {
+            toast({ title: 'Error', description: err?.data?.message || 'Error al agregar', variant: 'error' });
+        }
+    };
+
+    const handleUpdateSpecialty = async (id) => {
+        if (!editingSpecialtyName) return;
+        try {
+            await updateSpecialtyMutation({ id, name: editingSpecialtyName }).unwrap();
+            setEditingSpecialtyId(null);
+            setEditingSpecialtyName('');
+            toast({ title: 'Éxito', description: 'Especialidad actualizada', variant: 'success' });
+        } catch (err) {
+            toast({ title: 'Error', description: err?.data?.message || 'Error al actualizar', variant: 'error' });
+        }
+    };
+
+    const handleDeleteSpecialty = async (id) => {
+        if (!window.confirm('¿Seguro que deseas eliminar esta especialidad? Se quitará también de los profesionales asignados.')) return;
+        try {
+            await deleteSpecialtyMutation(id).unwrap();
+            toast({ title: 'Éxito', description: 'Especialidad eliminada', variant: 'success' });
+        } catch (err) {
+            toast({ title: 'Error', description: err?.data?.message || 'Error al eliminar', variant: 'error' });
+        }
+    };
     
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         password: '',
-        specialty: '',
+        specialty: [],
         role: 'ADMIN' // Always creating an ADMIN for now
     });
     const [searchTerm, setSearchTerm] = useState('');
@@ -46,7 +107,7 @@ const ProfessionalList = () => {
                 variant: 'success'
             });
             setIsModalOpen(false);
-            setFormData({ name: '', email: '', password: '', specialty: '', role: 'ADMIN' });
+            setFormData({ name: '', email: '', password: '', specialty: [], role: 'ADMIN' });
         } catch (err) {
             toast({
                 title: 'Error',
@@ -85,23 +146,12 @@ const ProfessionalList = () => {
 
         setIsUploadingImage(true);
         try {
-            const token = localStorage.getItem('token');
-            const backendUrl = import.meta.env.VITE_PUBLIC_URL || 'http://localhost:3000'; // Fallback
-            // If it's a relative path it will use current domain, but backend is on different port in dev usually.
-            // Using /api/upload since Vite proxies /api to backend.
-            const response = await fetch('/api/upload', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                body: formData
-            });
-            const data = await response.json();
-            if (data.success) {
-                setEditFormData(prev => ({ ...prev, profile_picture: data.url }));
+            const result = await uploadImage(formData).unwrap();
+            if (result.success) {
+                setEditFormData(prev => ({ ...prev, profile_picture: result.url }));
                 toast({ title: 'Imagen subida', description: 'La imagen se subió correctamente', variant: 'success' });
             } else {
-                throw new Error(data.message);
+                throw new Error(result.message);
             }
         } catch (error) {
             console.error(error);
@@ -109,6 +159,60 @@ const ProfessionalList = () => {
         } finally {
             setIsUploadingImage(false);
         }
+    };
+
+    const specialtyOptionRender = (option) => {
+        const spec = specialties.find(s => s.name === option.value);
+        if (!spec) return <span>{option.label}</span>;
+        
+        if (editingSpecialtyId === spec.id) {
+            return (
+                <div className="flex items-center gap-2 w-full" onClick={e => e.stopPropagation()}>
+                    <input 
+                        type="text" 
+                        value={editingSpecialtyName}
+                        onChange={(e) => setEditingSpecialtyName(e.target.value)}
+                        className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-blue-500"
+                        autoFocus
+                        onKeyDown={(e) => {
+                            e.stopPropagation();
+                            if (e.key === 'Enter') handleUpdateSpecialty(spec.id);
+                        }}
+                    />
+                    <button onClick={(e) => { e.stopPropagation(); handleUpdateSpecialty(spec.id); }} className="text-green-600 hover:bg-green-50 p-1 rounded transition-colors"><Check size={14}/></button>
+                    <button onClick={(e) => { e.stopPropagation(); setEditingSpecialtyId(null); }} className="text-gray-400 hover:bg-gray-200 p-1 rounded transition-colors"><X size={14}/></button>
+                </div>
+            );
+        }
+
+        return (
+            <div className="flex justify-between items-center w-full">
+                <span className="text-sm">{option.label}</span>
+                <div className="flex gap-1">
+                    <button 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingSpecialtyId(spec.id);
+                            setEditingSpecialtyName(spec.name);
+                        }}
+                        className="text-blue-500 hover:bg-blue-50 p-1 rounded transition-colors"
+                        title="Editar"
+                    >
+                        <Edit2 size={14} />
+                    </button>
+                    <button 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteSpecialty(spec.id);
+                        }}
+                        className="text-red-500 hover:bg-red-50 p-1 rounded transition-colors"
+                        title="Eliminar"
+                    >
+                        <Trash2 size={14} />
+                    </button>
+                </div>
+            </div>
+        );
     };
 
     return (
@@ -193,7 +297,7 @@ const ProfessionalList = () => {
                                                     )}
                                                     <div>
                                                         <p className="font-bold text-gray-900">{prof.name || '-'}</p>
-                                                        <p className="text-xs text-gray-400 mt-0.5">{prof.specialty || 'Kinesiología'}</p>
+                                                        <p className="text-xs text-gray-400 mt-0.5">{(prof.specialty && prof.specialty.length > 0) ? prof.specialty.join(', ') : 'Kinesiología'}</p>
                                                     </div>
                                                 </div>
                                             </td>
@@ -279,11 +383,33 @@ const ProfessionalList = () => {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-2"><Briefcase size={16}/> Especialidad</label>
-                                    <input 
-                                        type="text" name="specialty" 
-                                        value={formData.specialty} onChange={handleInputChange}
-                                        placeholder="Ej. Kinesiología Deportiva"
-                                        className="w-full border border-gray-300 rounded-xl px-4 py-2.5 outline-none focus:border-[#0A58CA] focus:ring-1 focus:ring-[#0A58CA]" 
+                                    <Select 
+                                        mode="multiple"
+                                        style={{ width: '100%', minHeight: '46px' }}
+                                        placeholder="Seleccione especialidades"
+                                        value={formData.specialty || []} 
+                                        onChange={(val) => setFormData(prev => ({ ...prev, specialty: val }))}
+                                        options={specialties.map(s => ({ value: s.name, label: s.name }))}
+                                        loading={isLoadingSpecs}
+                                        optionRender={specialtyOptionRender}
+                                        dropdownRender={(menu) => (
+                                            <>
+                                                {menu}
+                                                <Divider style={{ margin: '8px 0' }} />
+                                                <div className="flex px-2 pb-2 gap-2">
+                                                    <Input
+                                                        placeholder="Nueva especialidad"
+                                                        ref={inputRef}
+                                                        value={newSpecialtyName}
+                                                        onChange={(e) => setNewSpecialtyName(e.target.value)}
+                                                        onKeyDown={(e) => e.stopPropagation()}
+                                                    />
+                                                    <Button type="text" icon={<Plus size={16} />} onClick={handleAddSpecialty} className="flex items-center text-blue-600 hover:text-blue-800">
+                                                        Añadir
+                                                    </Button>
+                                                </div>
+                                            </>
+                                        )}
                                     />
                                 </div>
                                 <div>
@@ -335,7 +461,7 @@ const ProfessionalList = () => {
             {/* Modal de Detalle */}
             {selectedProfessional && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col">
+                    <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
                         <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-[#F8FAFC]">
                             <h2 className="text-xl font-bold text-gray-900">
                                 {isEditing ? 'Editar Profesional' : 'Detalles del Profesional'}
@@ -380,7 +506,7 @@ const ProfessionalList = () => {
                                         <h3 className="text-xl font-bold text-gray-900">{selectedProfessional.name || 'Sin Nombre'}</h3>
                                         <p className="text-blue-600 font-medium text-sm flex items-center gap-1 mt-1">
                                             <Briefcase size={14} />
-                                            {selectedProfessional.specialty || 'Kinesiología'}
+                                            {(selectedProfessional.specialty && selectedProfessional.specialty.length > 0) ? selectedProfessional.specialty.join(', ') : 'Kinesiología'}
                                         </p>
                                     </div>
                                 )}
@@ -390,16 +516,38 @@ const ProfessionalList = () => {
                                 <div>
                                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Especialidad</p>
                                     {isEditing ? (
-                                        <input 
-                                            type="text" 
-                                            value={editFormData.specialty || ''} 
-                                            onChange={e => setEditFormData({...editFormData, specialty: e.target.value})}
-                                            className="w-full border border-gray-300 rounded-lg px-3 py-1.5 outline-none focus:border-[#0A58CA] text-sm"
+                                        <Select 
+                                            mode="multiple"
+                                            style={{ width: '100%' }}
+                                            placeholder="Seleccione especialidades"
+                                            value={editFormData.specialty || []} 
+                                            onChange={(val) => setEditFormData({...editFormData, specialty: val})}
+                                            options={specialties.map(s => ({ value: s.name, label: s.name }))}
+                                            loading={isLoadingSpecs}
+                                            optionRender={specialtyOptionRender}
+                                            dropdownRender={(menu) => (
+                                                <>
+                                                    {menu}
+                                                    <Divider style={{ margin: '8px 0' }} />
+                                                    <div className="flex px-2 pb-2 gap-2">
+                                                        <Input
+                                                            placeholder="Nueva especialidad"
+                                                            ref={inputRef}
+                                                            value={newSpecialtyName}
+                                                            onChange={(e) => setNewSpecialtyName(e.target.value)}
+                                                            onKeyDown={(e) => e.stopPropagation()}
+                                                        />
+                                                        <Button type="text" icon={<Plus size={16} />} onClick={handleAddSpecialty} className="flex items-center text-blue-600 hover:text-blue-800">
+                                                            Añadir
+                                                        </Button>
+                                                    </div>
+                                                </>
+                                            )}
                                         />
                                     ) : (
                                         <p className="text-gray-900 font-medium flex items-center gap-2">
                                             <Briefcase size={16} className="text-gray-400" />
-                                            {selectedProfessional.specialty || 'No especificada'}
+                                            {(selectedProfessional.specialty && selectedProfessional.specialty.length > 0) ? selectedProfessional.specialty.join(', ') : 'No especificada'}
                                         </p>
                                     )}
                                 </div>
@@ -456,6 +604,29 @@ const ProfessionalList = () => {
                                             />
                                             <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
                                         </label>
+                                    </div>
+                                )}
+                                
+                                {!isEditing && (
+                                    <div className="pt-2 border-t border-gray-200 mt-2">
+                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                                            <Users size={14} />
+                                            Pacientes Asignados ({selectedProfessional.patients?.length || 0})
+                                        </p>
+                                        {selectedProfessional.patients && selectedProfessional.patients.length > 0 ? (
+                                            <ul className="space-y-2 max-h-40 overflow-y-auto pr-2">
+                                                {selectedProfessional.patients.map(patient => (
+                                                    <li key={patient.id} className="flex justify-between items-center bg-white p-2 rounded-lg border border-gray-100 shadow-sm text-sm">
+                                                        <span className="font-semibold text-gray-800">{patient.nombre}</span>
+                                                        <span className="text-gray-500 text-xs truncate max-w-[150px]">
+                                                            {patient.datos_contacto?.email || patient.datos_contacto?.phone || 'Sin contacto'}
+                                                        </span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        ) : (
+                                            <p className="text-sm text-gray-500 italic">No hay pacientes asignados a este profesional.</p>
+                                        )}
                                     </div>
                                 )}
                             </div>

@@ -125,6 +125,28 @@ const PatientProfile = () => {
                             </div>
                         </div>
                     </div>
+
+                    <div className="flex flex-col gap-4 pt-4 border-t border-gray-100">
+                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Equipo Médico</h3>
+                        
+                        {patient.professionals && patient.professionals.length > 0 ? (
+                            <div className="flex flex-col gap-3">
+                                {patient.professionals.map(prof => (
+                                    <div key={prof.id} className="flex items-center gap-3 text-sm text-gray-700">
+                                        <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0 font-bold text-xs">
+                                            {getInitials(prof.name)}
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold">{prof.name}</p>
+                                            <p className="text-xs text-gray-500">{prof.specialty || 'Kinesiólogo'}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-sm text-gray-500">No hay profesionales asignados.</p>
+                        )}
+                    </div>
                 </div>
 
                 {/* Right Column: Tabs & Content */}

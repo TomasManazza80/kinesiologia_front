@@ -8,7 +8,7 @@ const Navbar = ({children}) => {
     const location = useLocation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const user = useSelector(state => state.authSlice.user)
+    const user = useSelector(state => state.authSlice.userInfo);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const handleLogout = () => {
@@ -40,12 +40,15 @@ const Navbar = ({children}) => {
         {
             path: '/disponibilidad',
             title: 'Disponibilidad',
-        },
-        {
-            path: '/profesionales',
-            title: 'Equipo',
         }
     ];
+
+    if (user?.role === 'ADMIN') {
+        navItems.push({
+            path: '/profesionales',
+            title: 'Equipo',
+        });
+    }
 
     return (
         <div className="flex h-screen bg-[#F0F4F8] font-sans overflow-hidden">

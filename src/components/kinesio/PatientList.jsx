@@ -1,11 +1,32 @@
 import React, { useState } from 'react';
+import { useSelector } from "react-redux";
 import { Search, Plus, RotateCcw, Edit, X, Trash2, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useGetPatientsQuery, useUpdatePatientMutation, useCreatePatientMutation, useDeletePatientMutation } from '../../services/api/kinesioApi.js';
+import { useGetPatientsQuery, useUpdatePatientMutation, useCreatePatientMutation, useDeletePatientMutation, useGetProfessionalsQuery } from '../../services/api/kinesioApi.js';
 import { toast } from '../ui/use-toast';
+import DatePicker, { registerLocale } from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
+import es from 'date-fns/locale/es';
+
+registerLocale('es', es);
+
+const parseDateString = (dateString) => {
+    if (!dateString) return null;
+    const [year, month, day] = dateString.split('-');
+    return new Date(year, month - 1, day);
+};
+
+const formatDateString = (date) => {
+    if (!date) return '';
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
 
 const PatientList = () => {
   const navigate = useNavigate();
+  const user = useSelector(state => state.authSlice.userInfo);
   const [activeFilter, setActiveFilter] = useState('Todos los Pacientes');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -13,6 +34,8 @@ const PatientList = () => {
   const [updatePatient, { isLoading: isUpdating }] = useUpdatePatientMutation();
   const [createPatient, { isLoading: isCreating }] = useCreatePatientMutation();
   const [deletePatient] = useDeletePatientMutation();
+  const { data: professionalsResponse } = useGetProfessionalsQuery();
+  const professionals = professionalsResponse?.data || [];
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
@@ -45,7 +68,8 @@ const PatientList = () => {
               blood_type: patient.blood_type || '',
               status: patient.status || '',
               email: patient.datos_contacto?.email || '',
-              phone: patient.datos_contacto?.phone || ''
+              phone: patient.datos_contacto?.phone || '',
+              professionalIds: patient.professionals ? patient.professionals.map(p => p.id) : []
           });
       } else {
           setEditingPatient({
@@ -55,7 +79,8 @@ const PatientList = () => {
               blood_type: '',
               status: '',
               email: '',
-              phone: ''
+              phone: '',
+              professionalIds: []
           });
       }
       setIsModalOpen(true);
@@ -73,7 +98,8 @@ const PatientList = () => {
               datos_contacto: {
                   email: editingPatient.email,
                   phone: editingPatient.phone
-              }
+              },
+              professionalIds: editingPatient.professionalIds
           };
 
           if (editingPatient.id) {
@@ -238,15 +264,15 @@ const PatientList = () => {
 
       {/* Edit/Create Modal */}
       {isModalOpen && (
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-              <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                  <div className="flex justify-between items-center p-5 border-b border-gray-100">
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                  <div className="flex justify-between items-center p-5 border-b border-gray-100 shrink-0">
                       <h3 className="font-bold text-lg text-gray-900">
                           {editingPatient?.id ? 'Editar Paciente' : 'Nuevo Paciente'}
                       </h3>
-                      <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20}/></button>
+                      <button type="button" onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20}/></button>
                   </div>
-                  <form onSubmit={handleSave} className="p-5 flex flex-col gap-4">
+                  <form onSubmit={handleSave} className="p-5 flex flex-col gap-4 overflow-y-auto">
                       <div className="grid grid-cols-2 gap-4">
                           <div>
                               <label className="block text-sm font-semibold text-gray-700 mb-1">Nombre Completo *</label>
@@ -293,11 +319,17 @@ const PatientList = () => {
                       <div className="grid grid-cols-2 gap-4">
                           <div>
                               <label className="block text-sm font-semibold text-gray-700 mb-1">Fecha de Nacimiento</label>
-                              <input 
-                                  type="date" 
+                              <DatePicker
+                                  selected={parseDateString(editingPatient?.fecha_nacimiento)}
+                                  onChange={(date) => setEditingPatient({...editingPatient, fecha_nacimiento: formatDateString(date)})}
+                                  dateFormat="dd/MM/yyyy"
+                                  locale="es"
+                                  showMonthDropdown
+                                  showYearDropdown
+                                  dropdownMode="select"
+                                  placeholderText="Seleccione fecha"
                                   className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:border-blue-500"
-                                  value={editingPatient?.fecha_nacimiento || ''}
-                                  onChange={(e) => setEditingPatient({...editingPatient, fecha_nacimiento: e.target.value})}
+                                  wrapperClassName="w-full"
                               />
                           </div>
                           <div>
@@ -318,13 +350,21 @@ const PatientList = () => {
                       <div className="grid grid-cols-2 gap-4">
                           <div>
                               <label className="block text-sm font-semibold text-gray-700 mb-1">Tipo de Sangre</label>
-                              <input 
-                                  type="text" 
-                                  placeholder="Ej. O+"
-                                  className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:border-blue-500"
+                              <select 
+                                  className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:border-blue-500 bg-white"
                                   value={editingPatient?.blood_type || ''}
                                   onChange={(e) => setEditingPatient({...editingPatient, blood_type: e.target.value})}
-                              />
+                              >
+                                  <option value="">Seleccione</option>
+                                  <option value="A+">A+</option>
+                                  <option value="A-">A-</option>
+                                  <option value="B+">B+</option>
+                                  <option value="B-">B-</option>
+                                  <option value="AB+">AB+</option>
+                                  <option value="AB-">AB-</option>
+                                  <option value="O+">O+</option>
+                                  <option value="O-">O-</option>
+                              </select>
                           </div>
                           <div>
                               <label className="block text-sm font-semibold text-gray-700 mb-1">Estado</label>
@@ -337,6 +377,35 @@ const PatientList = () => {
                               />
                           </div>
                       </div>
+
+                      {['ADMIN', 'EMPLOYEE'].includes(user?.role) && (
+                          <div className="grid grid-cols-1 gap-4">
+                              <div>
+                                  <label className="block text-sm font-semibold text-gray-700 mb-2">Profesionales Asignados</label>
+                                  <div className="flex flex-col gap-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-gray-50">
+                                      {professionals.map(prof => (
+                                          <label key={prof.id} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                                              <input 
+                                                  type="checkbox" 
+                                                  className="rounded text-[#0A58CA] focus:ring-[#0A58CA]"
+                                                  checked={editingPatient?.professionalIds?.includes(prof.id) || false}
+                                                  onChange={(e) => {
+                                                      const newIds = e.target.checked 
+                                                          ? [...(editingPatient.professionalIds || []), prof.id]
+                                                          : (editingPatient.professionalIds || []).filter(id => id !== prof.id);
+                                                      setEditingPatient({...editingPatient, professionalIds: newIds});
+                                                  }}
+                                              />
+                                              {prof.name}
+                                          </label>
+                                      ))}
+                                      {professionals.length === 0 && (
+                                          <span className="text-gray-400 text-sm">No hay profesionales disponibles.</span>
+                                      )}
+                                  </div>
+                              </div>
+                          </div>
+                      )}
 
                       <div className="mt-4 flex justify-end gap-2">
                           <button 

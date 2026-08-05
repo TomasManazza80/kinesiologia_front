@@ -1,12 +1,36 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useGetPatientsQuery } from '../../services/api/kinesioApi.js';
-import { Activity, Stethoscope, Droplet, User, History, Mic, ShieldPlus as Shield, ClipboardList, Save, Plus, ArrowLeft } from 'lucide-react';
+import { 
+    useGetPatientsQuery,
+    useGetMedicalHistoryQuery,
+    useCreateMedicalHistoryMutation,
+    useUploadImageMutation
+} from '../../services/api/kinesioApi.js';
+import { Activity, Stethoscope, Droplet, User, History, Mic, ShieldPlus as Shield, ClipboardList, Save, Plus, ArrowLeft, Image as ImageIcon, Loader2, X, Camera } from 'lucide-react';
+import { toast } from '../ui/use-toast.tsx';
+import moment from 'moment';
 
 const MedicalHistoryEntry = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: patients, isLoading } = useGetPatientsQuery();
+  
+  const { data: patients, isLoading: isLoadingPatients } = useGetPatientsQuery();
+  const { data: historyList = [], isLoading: isLoadingHistory, refetch } = useGetMedicalHistoryQuery(id, { skip: !id });
+  const [createMedicalHistory, { isLoading: isSaving }] = useCreateMedicalHistoryMutation();
+  const [uploadImage] = useUploadImageMutation();
+
+  const [formData, setFormData] = useState({
+    reason_for_visit: '',
+    blood_pressure: '',
+    heart_rate: '',
+    physical_findings: '',
+    diagnostico: '',
+    tratamiento: '',
+    archivos_adjuntos: []
+  });
+
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [viewingHistory, setViewingHistory] = useState(false);
 
   const patient = useMemo(() => {
     if (!patients || !id) return null;
@@ -24,9 +48,76 @@ const MedicalHistoryEntry = () => {
       return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
-  if (isLoading) return <div className="p-8 text-gray-500">Cargando paciente...</div>;
+  const handleInputChange = (e) => {
+      const { name, value } = e.target;
+      setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageUpload = async (e) => {
+      const files = Array.from(e.target.files);
+      if (!files.length) return;
+
+      setIsUploadingImage(true);
+      try {
+          const uploadedUrls = [];
+          for (let file of files) {
+              const data = new FormData();
+              data.append('image', file);
+              const result = await uploadImage(data).unwrap();
+              if (result.success) {
+                  uploadedUrls.push(result.url);
+              } else {
+                  throw new Error(result.message);
+              }
+          }
+          setFormData(prev => ({
+              ...prev,
+              archivos_adjuntos: [...(prev.archivos_adjuntos || []), ...uploadedUrls]
+          }));
+          toast({ title: 'Éxito', description: 'Imágenes subidas correctamente.', variant: 'success' });
+      } catch (error) {
+          console.error(error);
+          toast({ title: 'Error', description: 'No se pudieron subir las imágenes.', variant: 'error' });
+      } finally {
+          setIsUploadingImage(false);
+      }
+  };
+
+  const removeImage = (indexToRemove) => {
+      setFormData(prev => ({
+          ...prev,
+          archivos_adjuntos: prev.archivos_adjuntos.filter((_, idx) => idx !== indexToRemove)
+      }));
+  };
+
+  const handleSave = async () => {
+      if (!id) return;
+      try {
+          await createMedicalHistory({
+              patient_id: parseInt(id),
+              ...formData
+          }).unwrap();
+          toast({ title: 'Guardado', description: 'Registro guardado correctamente.', variant: 'success' });
+          refetch();
+          setFormData({
+              reason_for_visit: '',
+              blood_pressure: '',
+              heart_rate: '',
+              physical_findings: '',
+              diagnostico: '',
+              tratamiento: '',
+              archivos_adjuntos: []
+          });
+          setViewingHistory(true);
+      } catch (err) {
+          toast({ title: 'Error', description: 'Ocurrió un error al guardar.', variant: 'error' });
+      }
+  };
+
+  if (isLoadingPatients) return <div className="p-8 text-gray-500 flex justify-center"><Loader2 className="animate-spin text-[#0A58CA]" size={32} /></div>;
 
   if (id && !patient) return <div className="p-8 text-red-500">Paciente no encontrado.</div>;
+  
   return (
     <div className="w-full h-full bg-[#F8FAFC] p-4 md:p-8 flex flex-col gap-6 font-sans overflow-y-auto">
       {/* Header */}
@@ -56,8 +147,11 @@ const MedicalHistoryEntry = () => {
               </div>
             </div>
           </div>
-          <button className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
-            <History size={16} /> Registros Previos
+          <button 
+              onClick={() => setViewingHistory(!viewingHistory)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${viewingHistory ? 'bg-[#0A58CA] text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+          >
+            <History size={16} /> {viewingHistory ? 'Nueva Consulta' : 'Registros Previos'}
           </button>
         </div>
       ) : (
@@ -66,93 +160,193 @@ const MedicalHistoryEntry = () => {
         </div>
       )}
 
-      {/* Reason for Visit Card */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-2 text-[#0A58CA]">
-            <Stethoscope size={20} strokeWidth={2.5} />
-            <h3 className="text-lg font-bold text-gray-900">Motivo de la Consulta</h3>
+      {viewingHistory ? (
+          <div className="flex flex-col gap-4">
+              {isLoadingHistory ? (
+                  <div className="flex justify-center p-8"><Loader2 className="animate-spin text-[#0A58CA]" size={32} /></div>
+              ) : historyList.length === 0 ? (
+                  <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm text-center text-gray-500">
+                      No hay registros previos para este paciente.
+                  </div>
+              ) : (
+                  historyList.map((entry, index) => (
+                      <div key={entry.id || index} className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                          <div className="flex justify-between items-start mb-4 pb-4 border-b border-gray-100">
+                              <div>
+                                  <h3 className="font-bold text-lg text-gray-900">Consulta {moment(entry.fecha).format('DD/MM/YYYY')}</h3>
+                                  <p className="text-sm text-gray-500">Motivo: {entry.reason_for_visit || 'No especificado'}</p>
+                              </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                              <div>
+                                  <h4 className="text-sm font-bold text-gray-700 flex items-center gap-1.5 mb-1"><Activity size={16} className="text-[#0A58CA]"/> Signos Vitales</h4>
+                                  <p className="text-sm text-gray-600">PA: {entry.blood_pressure || '-'} | FC: {entry.heart_rate || '-'}</p>
+                              </div>
+                              <div>
+                                  <h4 className="text-sm font-bold text-gray-700 flex items-center gap-1.5 mb-1"><Shield size={16} className="text-[#0A58CA]"/> Diagnóstico</h4>
+                                  <p className="text-sm text-gray-600">{entry.diagnostico || 'No especificado'}</p>
+                              </div>
+                          </div>
+                          
+                          <div className="mb-4">
+                              <h4 className="text-sm font-bold text-gray-700 flex items-center gap-1.5 mb-1"><ClipboardList size={16} className="text-[#0A58CA]"/> Plan de Tratamiento</h4>
+                              <p className="text-sm text-gray-600 whitespace-pre-wrap bg-gray-50 p-3 rounded-xl border border-gray-100">{entry.tratamiento || 'No especificado'}</p>
+                          </div>
+                          
+                          {entry.archivos_adjuntos && entry.archivos_adjuntos.length > 0 && (
+                              <div>
+                                  <h4 className="text-sm font-bold text-gray-700 flex items-center gap-1.5 mb-2"><ImageIcon size={16} className="text-[#0A58CA]"/> Archivos Adjuntos</h4>
+                                  <div className="flex gap-3 flex-wrap">
+                                      {entry.archivos_adjuntos.map((url, i) => (
+                                          <a key={i} href={url} target="_blank" rel="noreferrer" className="block relative group overflow-hidden rounded-xl border border-gray-200">
+                                              <img src={url} alt={`Adjunto ${i}`} className="w-24 h-24 object-cover transition-transform group-hover:scale-110" />
+                                          </a>
+                                      ))}
+                                  </div>
+                              </div>
+                          )}
+                      </div>
+                  ))
+              )}
           </div>
-          <button className="text-[#0A58CA] hover:bg-blue-50 p-2 rounded-full transition-colors">
-            <Mic size={20} />
-          </button>
-        </div>
-        <textarea 
-          className="w-full bg-[#F1F5F9] border-transparent rounded-xl p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA] resize-none h-32"
-          placeholder="Ingrese los síntomas principales del paciente y su duración..."
-        ></textarea>
-      </div>
+      ) : (
+          <>
+              {/* Reason for Visit Card */}
+              <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex items-center gap-2 text-[#0A58CA]">
+                    <Stethoscope size={20} strokeWidth={2.5} />
+                    <h3 className="text-lg font-bold text-gray-900">Motivo de la Consulta</h3>
+                  </div>
+                  <button className="text-[#0A58CA] hover:bg-blue-50 p-2 rounded-full transition-colors">
+                    <Mic size={20} />
+                  </button>
+                </div>
+                <textarea 
+                  name="reason_for_visit"
+                  value={formData.reason_for_visit}
+                  onChange={handleInputChange}
+                  className="w-full bg-[#F1F5F9] border-transparent rounded-xl p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA] resize-none h-32"
+                  placeholder="Ingrese los síntomas principales del paciente y su duración..."
+                ></textarea>
+              </div>
 
-      {/* Physical Examination Card */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-        <div className="flex items-center gap-2 text-[#0A58CA] mb-5">
-          <Activity size={20} strokeWidth={2.5} />
-          <h3 className="text-lg font-bold text-gray-900">Examen Físico</h3>
-        </div>
-        
-        <div className="flex flex-col md:flex-row gap-4 mb-4">
-          <div className="flex-1">
-            <label className="block text-xs font-bold text-gray-500 mb-1.5">Presión Arterial</label>
-            <input 
-              type="text" 
-              className="w-full bg-[#F1F5F9] border-transparent rounded-xl px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA]"
-              placeholder="ej. 120/80 mmHg"
-            />
-          </div>
-          <div className="flex-1">
-            <label className="block text-xs font-bold text-gray-500 mb-1.5">Frecuencia Cardíaca</label>
-            <input 
-              type="text" 
-              className="w-full bg-[#F1F5F9] border-transparent rounded-xl px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA]"
-              placeholder="ej. 72 lpm"
-            />
-          </div>
-        </div>
+              {/* Physical Examination Card */}
+              <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                <div className="flex items-center gap-2 text-[#0A58CA] mb-5">
+                  <Activity size={20} strokeWidth={2.5} />
+                  <h3 className="text-lg font-bold text-gray-900">Examen Físico</h3>
+                </div>
+                
+                <div className="flex flex-col md:flex-row gap-4 mb-4">
+                  <div className="flex-1">
+                    <label className="block text-xs font-bold text-gray-500 mb-1.5">Presión Arterial</label>
+                    <input 
+                      type="text" 
+                      name="blood_pressure"
+                      value={formData.blood_pressure}
+                      onChange={handleInputChange}
+                      className="w-full bg-[#F1F5F9] border-transparent rounded-xl px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA]"
+                      placeholder="ej. 120/80 mmHg"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-xs font-bold text-gray-500 mb-1.5">Frecuencia Cardíaca</label>
+                    <input 
+                      type="text" 
+                      name="heart_rate"
+                      value={formData.heart_rate}
+                      onChange={handleInputChange}
+                      className="w-full bg-[#F1F5F9] border-transparent rounded-xl px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA]"
+                      placeholder="ej. 72 lpm"
+                    />
+                  </div>
+                </div>
 
-        <textarea 
-          className="w-full bg-[#F1F5F9] border-transparent rounded-xl p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA] resize-none h-32"
-          placeholder="Hallazgos físicos detallados..."
-        ></textarea>
-      </div>
+                <textarea 
+                  name="physical_findings"
+                  value={formData.physical_findings}
+                  onChange={handleInputChange}
+                  className="w-full bg-[#F1F5F9] border-transparent rounded-xl p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA] resize-none h-32"
+                  placeholder="Hallazgos físicos detallados..."
+                ></textarea>
+              </div>
 
-      {/* Diagnosis & Treatment Plan Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
-        {/* Diagnosis Card */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-          <div className="flex items-center gap-2 text-[#0A58CA] mb-4">
-            <Shield size={20} strokeWidth={2.5} />
-            <h3 className="text-lg font-bold text-gray-900">Diagnóstico</h3>
-          </div>
-          <textarea 
-            className="w-full bg-[#F1F5F9] border-transparent rounded-xl p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA] resize-none h-32"
-            placeholder="Diagnósticos principales y secundarios..."
-          ></textarea>
-        </div>
+              {/* Diagnosis & Treatment Plan Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* Diagnosis Card */}
+                <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                  <div className="flex items-center gap-2 text-[#0A58CA] mb-4">
+                    <Shield size={20} strokeWidth={2.5} />
+                    <h3 className="text-lg font-bold text-gray-900">Diagnóstico</h3>
+                  </div>
+                  <textarea 
+                    name="diagnostico"
+                    value={formData.diagnostico}
+                    onChange={handleInputChange}
+                    className="w-full bg-[#F1F5F9] border-transparent rounded-xl p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA] resize-none h-32"
+                    placeholder="Diagnósticos principales y secundarios..."
+                  ></textarea>
+                </div>
 
-        {/* Treatment Plan Card */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-          <div className="flex items-center gap-2 text-[#0A58CA] mb-4">
-            <ClipboardList size={20} strokeWidth={2.5} />
-            <h3 className="text-lg font-bold text-gray-900">Plan de Tratamiento</h3>
-          </div>
-          <textarea 
-            className="w-full bg-[#F1F5F9] border-transparent rounded-xl p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA] resize-none h-32"
-            placeholder="Medicamentos, procedimientos y recomendaciones..."
-          ></textarea>
-        </div>
+                {/* Treatment Plan Card */}
+                <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                  <div className="flex items-center gap-2 text-[#0A58CA] mb-4">
+                    <ClipboardList size={20} strokeWidth={2.5} />
+                    <h3 className="text-lg font-bold text-gray-900">Plan de Tratamiento</h3>
+                  </div>
+                  <textarea 
+                    name="tratamiento"
+                    value={formData.tratamiento}
+                    onChange={handleInputChange}
+                    className="w-full bg-[#F1F5F9] border-transparent rounded-xl p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA] resize-none h-32"
+                    placeholder="Medicamentos, procedimientos y recomendaciones..."
+                  ></textarea>
+                </div>
 
-      </div>
+              </div>
+              
+              {/* Image Attachments Card */}
+              <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                  <div className="flex items-center gap-2 text-[#0A58CA] mb-4">
+                      <ImageIcon size={20} strokeWidth={2.5} />
+                      <h3 className="text-lg font-bold text-gray-900">Archivos Adjuntos (Imágenes/Fotos)</h3>
+                  </div>
+                  <div className="flex flex-wrap gap-4">
+                      {formData.archivos_adjuntos.map((url, idx) => (
+                          <div key={idx} className="relative w-32 h-32 rounded-xl overflow-hidden border border-gray-200 group shadow-sm">
+                              <img src={url} alt={`Adjunto ${idx}`} className="w-full h-full object-cover" />
+                              <button 
+                                  onClick={() => removeImage(idx)}
+                                  className="absolute top-1 right-1 bg-white text-red-500 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                              >
+                                  <X size={14} strokeWidth={3} />
+                              </button>
+                          </div>
+                      ))}
+                      <label className="w-32 h-32 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-[#0A58CA] transition-colors text-gray-500 hover:text-[#0A58CA]">
+                          {isUploadingImage ? <Loader2 className="animate-spin mb-2" size={24} /> : <Camera size={24} className="mb-2" />}
+                          <span className="text-xs font-semibold text-center px-2">{isUploadingImage ? 'Subiendo...' : 'Añadir Fotos'}</span>
+                          <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploadingImage} />
+                      </label>
+                  </div>
+              </div>
 
-      {/* Footer Actions */}
-      <div className="flex justify-between items-center mt-2 pb-8">
-        <button className="flex items-center gap-2 text-[#0A58CA] bg-white border-2 border-[#0A58CA] hover:bg-blue-50 px-5 py-2.5 rounded-full font-bold text-sm transition-colors shadow-sm">
-          <Plus size={18} strokeWidth={3} /> Agregar Sección
-        </button>
-        <button className="flex items-center gap-2 bg-[#0A58CA] hover:bg-blue-700 text-white px-6 py-2.5 rounded-full font-bold text-sm transition-colors shadow-md">
-          <Save size={18} strokeWidth={2.5} /> Guardar Registro
-        </button>
-      </div>
+              {/* Footer Actions */}
+              <div className="flex justify-end items-center mt-2 pb-8">
+                <button 
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="flex items-center gap-2 bg-[#0A58CA] hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold text-sm transition-colors shadow-md disabled:opacity-50"
+                >
+                  {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} strokeWidth={2.5} />} 
+                  Guardar Registro
+                </button>
+              </div>
+          </>
+      )}
 
     </div>
   );

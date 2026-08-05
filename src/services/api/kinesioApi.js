@@ -13,6 +13,36 @@ export const kinesioApi = authApi.injectEndpoints({
             }),
             providesTags: ['Professionals'],
         }),
+        getSpecialties: build.query({
+            query: () => ({
+                url: '/api/kinesio/specialties',
+                method: 'GET',
+            }),
+            providesTags: ['Specialties'],
+        }),
+        createSpecialty: build.mutation({
+            query: (data) => ({
+                url: '/api/kinesio/specialties',
+                method: 'POST',
+                body: data,
+            }),
+            invalidatesTags: ['Specialties']
+        }),
+        updateSpecialty: build.mutation({
+            query: ({ id, ...data }) => ({
+                url: `/api/kinesio/specialties/${id}`,
+                method: 'PUT',
+                body: data,
+            }),
+            invalidatesTags: ['Specialties', 'Professionals']
+        }),
+        deleteSpecialty: build.mutation({
+            query: (id) => ({
+                url: `/api/kinesio/specialties/${id}`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: ['Specialties', 'Professionals']
+        }),
         createProfessional: build.mutation({
             query: (data) => ({
                 url: '/api/kinesio/professionals',
@@ -71,6 +101,14 @@ export const kinesioApi = authApi.injectEndpoints({
             }),
             invalidatesTags: ['Appointments']
         }),
+        updateAppointment: build.mutation({
+            query: ({ id, ...data }) => ({
+                url: `/api/kinesio/appointments/${id}`,
+                method: 'PUT',
+                body: data,
+            }),
+            invalidatesTags: ['Appointments']
+        }),
         createPatient: build.mutation({
             query: (data) => ({
                 url: '/api/kinesio/patients',
@@ -97,6 +135,29 @@ export const kinesioApi = authApi.injectEndpoints({
         getMedicalHistory: build.query({
             query: (patientId) => `/api/kinesio/history/patient/${patientId}`,
             providesTags: ['History'],
+        }),
+        createMedicalHistory: build.mutation({
+            query: (data) => ({
+                url: '/api/kinesio/history',
+                method: 'POST',
+                body: data,
+            }),
+            invalidatesTags: ['History']
+        }),
+        updateMedicalHistory: build.mutation({
+            query: ({ id, ...data }) => ({
+                url: `/api/kinesio/history/${id}`,
+                method: 'PUT',
+                body: data,
+            }),
+            invalidatesTags: ['History']
+        }),
+        uploadImage: build.mutation({
+            query: (formData) => ({
+                url: '/api/upload',
+                method: 'POST',
+                body: formData,
+            }),
         }),
         // Availability Endpoints
         getAvailability: build.query({
@@ -160,12 +221,48 @@ export const kinesioApi = authApi.injectEndpoints({
                 body: data,
             })
         }),
+        getWhatsappStatus: build.query({
+            query: (profId) => `/api/whatsapp/status${profId ? `?prof_id=${profId}` : ''}`,
+            providesTags: ['WhatsApp']
+        }),
+        startWhatsapp: build.mutation({
+            query: (profId) => ({
+                url: `/api/whatsapp/start`,
+                method: 'POST',
+                body: { prof_id: profId }
+            }),
+            invalidatesTags: ['WhatsApp']
+        }),
+        getWhatsappQr: build.query({
+            query: (profId) => `/api/whatsapp/qr${profId ? `?prof_id=${profId}` : ''}`,
+            providesTags: ['WhatsApp']
+        }),
+        disconnectWhatsapp: build.mutation({
+            query: (profId) => ({
+                url: `/api/whatsapp/disconnect`,
+                method: 'POST',
+                body: { prof_id: profId }
+            }),
+            invalidatesTags: ['WhatsApp']
+        }),
+        saveWhatsappTemplate: build.mutation({
+            query: ({ template, profId }) => ({
+                url: `/api/whatsapp/template`,
+                method: 'PUT',
+                body: { template, prof_id: profId }
+            }),
+            invalidatesTags: ['WhatsApp']
+        })
     }),
     overrideExisting: false,
 });
 
 export const {
     useGetProfessionalsQuery,
+    useGetSpecialtiesQuery,
+    useCreateSpecialtyMutation,
+    useUpdateSpecialtyMutation,
+    useDeleteSpecialtyMutation,
     useCreateProfessionalMutation,
     useUpdateProfessionalMutation,
     useUpdateProfileMutation,
@@ -174,10 +271,14 @@ export const {
     useGetMyAppointmentsQuery,
     useGetPatientsQuery,
     useCreateAppointmentMutation,
+    useUpdateAppointmentMutation,
     useCreatePatientMutation,
     useUpdatePatientMutation,
     useDeletePatientMutation,
     useGetMedicalHistoryQuery,
+    useCreateMedicalHistoryMutation,
+    useUpdateMedicalHistoryMutation,
+    useUploadImageMutation,
     useGetAvailabilityQuery,
     useSaveAvailabilityMutation,
     useGetPublicProfessionalsQuery,
@@ -187,4 +288,9 @@ export const {
     useCreateTransactionMutation,
     useGetTransactionHistoryQuery,
     useUpdateTransactionMutation,
+    useGetWhatsappStatusQuery,
+    useStartWhatsappMutation,
+    useGetWhatsappQrQuery,
+    useDisconnectWhatsappMutation,
+    useSaveWhatsappTemplateMutation
 } = kinesioApi;

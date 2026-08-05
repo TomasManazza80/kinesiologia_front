@@ -3,6 +3,7 @@ import { Clock, Plus, CalendarX, X, ChevronLeft, ChevronRight, Trash2, DollarSig
 import { useGetAvailabilityQuery, useSaveAvailabilityMutation, useGetProfileQuery, useUpdateProfileMutation } from '../../services/api/kinesioApi.js';
 import { toast } from '../ui/use-toast';
 import { QRCodeSVG } from 'qrcode.react';
+import WhatsAppSettings from '../profile/WhatsAppSettings.jsx';
 
 const DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
@@ -323,6 +324,8 @@ const AvailabilityManager = () => {
                             <li>Si un día está desmarcado, nadie podrá reservar en ese día.</li>
                         </ul>
                     </div>
+                    
+                    <WhatsAppSettings />
                 </div>
 
             </div>
