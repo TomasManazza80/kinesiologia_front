@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Filter, CalendarDays, Download, Search, HeadphonesIcon, LayoutGrid, ChevronLeft, ChevronRight, X, Check, List } from "lucide-react";
+import { Filter, CalendarDays, Download, Search, HeadphonesIcon, LayoutGrid, ChevronLeft, ChevronRight, X, Check, List, History } from "lucide-react";
 import {
     useGetProfessionalsQuery,
     useGetAppointmentsQuery,
@@ -283,6 +283,12 @@ const AppointmentCalendar = () => {
                         className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                     >
                         <List size={16} /> Ver listado
+                    </button>
+                    <button
+                        onClick={() => navigate('/historial-turnos')}
+                        className="flex items-center gap-2 px-4 py-2 bg-[#0A58CA] border border-blue-600 rounded-full text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-sm"
+                    >
+                        <History size={16} /> Historial Turnos
                     </button>
                 </div>
                 <div className="flex items-center gap-4 relative">

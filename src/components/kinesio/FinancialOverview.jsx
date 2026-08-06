@@ -15,8 +15,8 @@ const FinancialOverview = () => {
   const [selectedTx, setSelectedTx] = useState(null);
   const [isEditingTx, setIsEditingTx] = useState(false);
   
-  const { data, isLoading, refetch } = useGetBalanceQuery(timeFilter);
-  const { data: historyData, isLoading: isLoadingHistory, isFetching: isFetchingHistory } = useGetTransactionHistoryQuery({ offset: 0, limit: historyLimit }, { skip: !showHistoryModal });
+  const { data, isLoading, refetch } = useGetBalanceQuery(timeFilter, { pollingInterval: 5000 });
+  const { data: historyData, isLoading: isLoadingHistory, isFetching: isFetchingHistory } = useGetTransactionHistoryQuery({ offset: 0, limit: historyLimit }, { skip: !showHistoryModal, pollingInterval: 5000 });
   const [createTransaction, { isLoading: isCreating }] = useCreateTransactionMutation();
   const [updateTransaction, { isLoading: isUpdating }] = useUpdateTransactionMutation();
 

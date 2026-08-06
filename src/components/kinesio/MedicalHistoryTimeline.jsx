@@ -6,9 +6,12 @@ import {
     useCreateMedicalHistoryMutation,
     useUploadImageMutation
 } from '../../services/api/kinesioApi.js';
-import { Activity, Stethoscope, Droplet, User, History, Mic, ShieldPlus as Shield, ClipboardList, Save, Plus, ArrowLeft, Image as ImageIcon, Loader2, X, Camera } from 'lucide-react';
+import { Activity, Stethoscope, Droplet, User, History, Mic, ShieldPlus as Shield, ClipboardList, Save, Plus, ArrowLeft, Image as ImageIcon, Loader2, X, Camera, Settings, Search } from 'lucide-react';
 import { toast } from '../ui/use-toast.tsx';
 import moment from 'moment';
+import TemplateBuilder from './TemplateBuilder.jsx';
+import SpeechToTextButton from '../ui/SpeechToTextButton.jsx';
+import PatientEvolutionTimeline from './PatientEvolutionTimeline.jsx';
 
 const MedicalHistoryEntry = () => {
   const { id } = useParams();
@@ -30,7 +33,8 @@ const MedicalHistoryEntry = () => {
   });
 
   const [isUploadingImage, setIsUploadingImage] = useState(false);
-  const [viewingHistory, setViewingHistory] = useState(false);
+  const [viewMode, setViewMode] = useState('history'); // 'history', 'new', 'template'
+  const [searchTerm, setSearchTerm] = useState('');
 
   const patient = useMemo(() => {
     if (!patients || !id) return null;
@@ -51,6 +55,10 @@ const MedicalHistoryEntry = () => {
   const handleInputChange = (e) => {
       const { name, value } = e.target;
       setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSpeechInput = (name, text) => {
+      setFormData(prev => ({ ...prev, [name]: prev[name] ? prev[name] + ' ' + text : text }));
   };
 
   const handleImageUpload = async (e) => {
@@ -108,7 +116,7 @@ const MedicalHistoryEntry = () => {
               tratamiento: '',
               archivos_adjuntos: []
           });
-          setViewingHistory(true);
+          setViewMode('history');
       } catch (err) {
           toast({ title: 'Error', description: 'Ocurrió un error al guardar.', variant: 'error' });
       }
@@ -121,17 +129,41 @@ const MedicalHistoryEntry = () => {
   return (
     <div className="w-full h-full bg-[#F8FAFC] p-4 md:p-8 flex flex-col gap-6 font-sans overflow-y-auto">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <button onClick={() => navigate(-1)} className="p-2 bg-white border border-gray-200 rounded-full hover:bg-gray-50 text-gray-600 transition-colors">
-            <ArrowLeft size={20} />
-        </button>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#111827]">Historia Clínica</h1>
-          <p className="text-gray-500 mt-1">Registra notas clínicas detalladas y resultados de exámenes.</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <button onClick={() => navigate(-1)} className="p-2 bg-white border border-gray-200 rounded-full hover:bg-gray-50 text-gray-600 transition-colors">
+              <ArrowLeft size={20} />
+          </button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-[#111827]">Historia Clínica</h1>
+            <p className="text-gray-500 mt-1">Gestión de historiales, evoluciones y plantillas.</p>
+          </div>
         </div>
+        <button 
+            onClick={() => setViewMode(viewMode === 'template' ? (id ? 'history' : 'search') : 'template')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm border ${
+              viewMode === 'template' 
+                ? 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100' 
+                : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+            }`}
+        >
+          <Settings size={18} className={viewMode === 'template' ? "text-purple-600" : "text-gray-500"} /> 
+          {viewMode === 'template' ? 'Volver a Historiales' : 'Constructor de Plantillas'}
+        </button>
       </div>
 
-      {/* Patient Summary Card */}
+      {viewMode === 'template' ? (
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                  <Settings className="text-purple-600" /> Constructor de Plantillas Clínicas
+              </h3>
+              <div className="border border-gray-200 rounded-xl overflow-hidden">
+                  <TemplateBuilder />
+              </div>
+          </div>
+      ) : (
+        <>
+          {/* Patient Summary Card */}
       {patient ? (
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -147,21 +179,76 @@ const MedicalHistoryEntry = () => {
               </div>
             </div>
           </div>
-          <button 
-              onClick={() => setViewingHistory(!viewingHistory)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${viewingHistory ? 'bg-[#0A58CA] text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
-          >
-            <History size={16} /> {viewingHistory ? 'Nueva Consulta' : 'Registros Previos'}
-          </button>
+          <div className="flex items-center gap-3">
+            <button 
+                onClick={() => setViewMode(viewMode === 'history' ? 'new' : 'history')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${viewMode === 'history' ? 'bg-[#0A58CA] text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+            >
+              <History size={16} /> {viewMode === 'history' ? 'Nueva Consulta' : 'Registros Previos'}
+            </button>
+          </div>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm text-gray-500 text-sm">
-            Seleccione un paciente de la lista de turnos o pacientes para ver y editar su historia clínica.
+        <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
+            <div className="max-w-2xl mx-auto">
+                <div className="text-center mb-8">
+                    <h2 className="text-2xl font-bold text-gray-900">Buscar Paciente</h2>
+                    <p className="text-gray-500 mt-2">Busque un paciente por nombre o DNI para acceder a su historial médico.</p>
+                </div>
+                
+                <div className="relative mb-6">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                    <input 
+                        type="text" 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Buscar por nombre, apellido o DNI..."
+                        className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-blue-500 focus:border-blue-500 block pl-12 p-4 transition-all outline-none"
+                    />
+                </div>
+
+                <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                    {patients && patients.filter(p => p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || (p.dni && p.dni.includes(searchTerm))).map(p => (
+                        <div 
+                            key={p.id}
+                            onClick={() => navigate(`/historial/${p.id}`)}
+                            className="flex items-center gap-4 p-4 hover:bg-blue-50 rounded-xl cursor-pointer border border-transparent hover:border-blue-100 transition-colors group"
+                        >
+                            <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold shadow-sm">
+                                {getInitials(p.nombre)}
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-gray-900 group-hover:text-blue-700">{p.nombre}</h4>
+                                <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-2">
+                                    <span>DNI: {p.dni || 'No registrado'}</span>
+                                    <span>•</span>
+                                    <span>{calculateAge(p.fecha_nacimiento)} años</span>
+                                </p>
+                            </div>
+                        </div>
+                    ))}
+                    {patients && patients.filter(p => p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || (p.dni && p.dni.includes(searchTerm))).length === 0 && (
+                        <div className="text-center p-8 text-gray-500 bg-gray-50 rounded-xl border border-gray-100">
+                            No se encontraron pacientes que coincidan con su búsqueda.
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
       )}
 
-      {viewingHistory ? (
-          <div className="flex flex-col gap-4">
+      {patient && viewMode === 'history' ? (
+          <div className="flex flex-col gap-6">
+              
+              {/* New Dynamic Records Timeline */}
+              <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                  <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                      <History className="text-[#0A58CA]" /> Historial de Evolución
+                  </h3>
+                  <PatientEvolutionTimeline patientId={patient.id} />
+              </div>
+
+              {/* Old Static Records */}
               {isLoadingHistory ? (
                   <div className="flex justify-center p-8"><Loader2 className="animate-spin text-[#0A58CA]" size={32} /></div>
               ) : historyList.length === 0 ? (
@@ -210,7 +297,7 @@ const MedicalHistoryEntry = () => {
                   ))
               )}
           </div>
-      ) : (
+      ) : patient && viewMode === 'new' ? (
           <>
               {/* Reason for Visit Card */}
               <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
@@ -219,9 +306,7 @@ const MedicalHistoryEntry = () => {
                     <Stethoscope size={20} strokeWidth={2.5} />
                     <h3 className="text-lg font-bold text-gray-900">Motivo de la Consulta</h3>
                   </div>
-                  <button className="text-[#0A58CA] hover:bg-blue-50 p-2 rounded-full transition-colors">
-                    <Mic size={20} />
-                  </button>
+                  <SpeechToTextButton onTranscript={(text) => handleSpeechInput('reason_for_visit', text)} />
                 </div>
                 <textarea 
                   name="reason_for_visit"
@@ -234,9 +319,12 @@ const MedicalHistoryEntry = () => {
 
               {/* Physical Examination Card */}
               <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                <div className="flex items-center gap-2 text-[#0A58CA] mb-5">
-                  <Activity size={20} strokeWidth={2.5} />
-                  <h3 className="text-lg font-bold text-gray-900">Examen Físico</h3>
+                <div className="flex justify-between items-center mb-5">
+                  <div className="flex items-center gap-2 text-[#0A58CA]">
+                    <Activity size={20} strokeWidth={2.5} />
+                    <h3 className="text-lg font-bold text-gray-900">Examen Físico</h3>
+                  </div>
+                  <SpeechToTextButton onTranscript={(text) => handleSpeechInput('physical_findings', text)} />
                 </div>
                 
                 <div className="flex flex-col md:flex-row gap-4 mb-4">
@@ -278,9 +366,12 @@ const MedicalHistoryEntry = () => {
                 
                 {/* Diagnosis Card */}
                 <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                  <div className="flex items-center gap-2 text-[#0A58CA] mb-4">
-                    <Shield size={20} strokeWidth={2.5} />
-                    <h3 className="text-lg font-bold text-gray-900">Diagnóstico</h3>
+                  <div className="flex justify-between items-center mb-4">
+                    <div className="flex items-center gap-2 text-[#0A58CA]">
+                      <Shield size={20} strokeWidth={2.5} />
+                      <h3 className="text-lg font-bold text-gray-900">Diagnóstico</h3>
+                    </div>
+                    <SpeechToTextButton onTranscript={(text) => handleSpeechInput('diagnostico', text)} />
                   </div>
                   <textarea 
                     name="diagnostico"
@@ -293,9 +384,12 @@ const MedicalHistoryEntry = () => {
 
                 {/* Treatment Plan Card */}
                 <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                  <div className="flex items-center gap-2 text-[#0A58CA] mb-4">
-                    <ClipboardList size={20} strokeWidth={2.5} />
-                    <h3 className="text-lg font-bold text-gray-900">Plan de Tratamiento</h3>
+                  <div className="flex justify-between items-center mb-4">
+                    <div className="flex items-center gap-2 text-[#0A58CA]">
+                      <ClipboardList size={20} strokeWidth={2.5} />
+                      <h3 className="text-lg font-bold text-gray-900">Plan de Tratamiento</h3>
+                    </div>
+                    <SpeechToTextButton onTranscript={(text) => handleSpeechInput('tratamiento', text)} />
                   </div>
                   <textarea 
                     name="tratamiento"
@@ -346,6 +440,9 @@ const MedicalHistoryEntry = () => {
                 </button>
               </div>
           </>
+      ) : null}
+      
+        </>
       )}
 
     </div>

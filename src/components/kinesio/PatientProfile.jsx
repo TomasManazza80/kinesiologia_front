@@ -17,10 +17,10 @@ dayjs.locale('es');
 const PatientProfile = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState('turnos');
+    const [activeTab, setActiveTab] = useState('clinica');
 
     const { data: patients, isLoading: isLoadingPatients } = useGetPatientsQuery();
-    const { data: allAppointments, isLoading: isLoadingAppointments } = useGetAppointmentsQuery();
+    const { data: allAppointments, isLoading: isLoadingAppointments } = useGetAppointmentsQuery({ patient_id: id });
     const { data: medicalHistory, isLoading: isLoadingHistory } = useGetMedicalHistoryQuery(id);
 
     const patient = useMemo(() => {
@@ -29,10 +29,9 @@ const PatientProfile = () => {
     }, [patients, id]);
 
     const patientAppointments = useMemo(() => {
-        if (!allAppointments || !id) return [];
-        return allAppointments.filter(a => a.patient_id === parseInt(id))
-            .sort((a, b) => new Date(b.fecha_hora) - new Date(a.fecha_hora));
-    }, [allAppointments, id]);
+        if (!allAppointments) return [];
+        return [...allAppointments].sort((a, b) => new Date(b.fecha_hora) - new Date(a.fecha_hora));
+    }, [allAppointments]);
 
     const calculateAge = (dob) => {
         if (!dob) return 'N/A';
@@ -154,16 +153,16 @@ const PatientProfile = () => {
                     {/* Tabs Navigation */}
                     <div className="flex bg-white rounded-xl border border-gray-100 p-1.5 shadow-sm w-full md:w-fit">
                         <button 
-                            onClick={() => setActiveTab('turnos')}
-                            className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'turnos' ? 'bg-[#0A58CA] text-white shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
-                        >
-                            Historial de Turnos
-                        </button>
-                        <button 
                             onClick={() => setActiveTab('clinica')}
                             className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'clinica' ? 'bg-[#0A58CA] text-white shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
                         >
                             Historia Clínica
+                        </button>
+                        <button 
+                            onClick={() => setActiveTab('turnos')}
+                            className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'turnos' ? 'bg-[#0A58CA] text-white shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
+                        >
+                            Historial de Turnos
                         </button>
                     </div>
 

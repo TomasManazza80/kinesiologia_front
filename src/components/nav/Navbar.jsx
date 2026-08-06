@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {Link, useLocation, useNavigate} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
 import {LogOut, Settings, Bell, LayoutDashboard, Users, Calendar, FileText, Home, Menu, X} from "lucide-react";
-import {logout} from "../../services/auth/authSlice.js";
+import {logoutUser} from "../../services/auth/authActions.js";
 
 const Navbar = ({children}) => {
     const location = useLocation();
@@ -12,8 +12,7 @@ const Navbar = ({children}) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const handleLogout = () => {
-        dispatch(logout());
-        navigate('/login');
+        logoutUser();
     }
 
     const navItems = [
@@ -115,7 +114,7 @@ const Navbar = ({children}) => {
                         <div className="w-px h-6 bg-gray-200 mx-1"></div>
                         <div className="flex items-center gap-3 cursor-pointer group">
                             <div className="h-9 w-9 rounded-full bg-gray-100 overflow-hidden border-2 border-transparent group-hover:border-[#3B82F6] transition-all">
-                                <img src="https://ui-avatars.com/api/?name=Tomas+Manazza&background=random" alt="Avatar" className="w-full h-full object-cover"/>
+                                <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || user?.nombre || 'User')}&background=random`} alt="Avatar" className="w-full h-full object-cover"/>
                             </div>
                             <button onClick={handleLogout} className="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity absolute right-4 mt-14 bg-white shadow-lg px-4 py-2 rounded-lg border border-gray-100 flex items-center gap-2 text-sm font-medium z-50">
                                 <LogOut size={16}/> Salir
