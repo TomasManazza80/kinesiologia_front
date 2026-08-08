@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSelector } from "react-redux";
-import { Search, Plus, RotateCcw, Edit, X, Trash2, User } from 'lucide-react';
+import { Search, Plus, RotateCcw, Edit, X, Trash2, User, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useGetPatientsQuery, useUpdatePatientMutation, useCreatePatientMutation, useDeletePatientMutation, useGetProfessionalsQuery } from '../../services/api/kinesioApi.js';
 import { toast } from '../ui/use-toast';
@@ -141,8 +141,8 @@ const PatientList = () => {
           <h1 className="text-3xl font-bold tracking-tight text-[#111827]">Pacientes</h1>
           <p className="text-gray-500 mt-1">Gestiona el historial y datos de tus pacientes.</p>
         </div>
-        <div className="flex items-center gap-4 w-full md:w-auto">
-          <div className="relative flex-1 md:w-72">
+        <div className="flex items-center gap-3 w-full md:w-auto flex-wrap md:flex-nowrap">
+          <div className="relative flex-1 md:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input 
               type="text" 
@@ -152,6 +152,13 @@ const PatientList = () => {
               className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-none rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#0A58CA] transition-shadow"
             />
           </div>
+          <button 
+            onClick={() => navigate('/historial?mode=template')}
+            className="bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 px-4 py-2.5 rounded-lg font-semibold shadow-xs transition-all flex items-center gap-2 text-sm whitespace-nowrap"
+            title="Editar estructura del historial médico"
+          >
+            <Settings size={18} className="text-purple-600" /> Editar Estructura Historial
+          </button>
           <button 
             onClick={() => handleOpenModal()}
             className="bg-[#0A58CA] hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-semibold shadow-sm transition-all flex items-center gap-2 text-sm whitespace-nowrap"

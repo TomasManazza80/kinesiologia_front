@@ -211,6 +211,13 @@ export const kinesioApi = authApi.injectEndpoints({
             }),
             invalidatesTags: ['Balance']
         }),
+        getExpenses: build.query({
+            query: ({ startDate = '', endDate = '' }) => ({
+                url: `/api/kinesio/expenses?startDate=${startDate}&endDate=${endDate}`,
+                method: 'GET'
+            }),
+            providesTags: ['Balance']
+        }),
         // Public Endpoints
         getPublicProfessionals: build.query({
             query: () => ({ url: '/api/public/professionals', method: 'GET' }),
@@ -274,6 +281,14 @@ export const kinesioApi = authApi.injectEndpoints({
             }),
             invalidatesTags: ['Templates']
         }),
+        updateTemplate: build.mutation({
+            query: ({ id, ...data }) => ({
+                url: `/api/kinesio/templates/${id}`,
+                method: 'PUT',
+                body: data,
+            }),
+            invalidatesTags: ['Templates']
+        }),
         // Medical Records (Dynamic)
         getMedicalRecords: build.query({
             query: (patientId) => `/api/kinesio/medical-records/patient/${patientId}`,
@@ -331,6 +346,7 @@ export const {
     useCreateTransactionMutation,
     useGetTransactionHistoryQuery,
     useUpdateTransactionMutation,
+    useGetExpensesQuery,
     useGetWhatsappStatusQuery,
     useStartWhatsappMutation,
     useGetWhatsappQrQuery,
@@ -338,6 +354,7 @@ export const {
     useSaveWhatsappTemplateMutation,
     useGetTemplatesQuery,
     useCreateTemplateMutation,
+    useUpdateTemplateMutation,
     useGetMedicalRecordsQuery,
     useCreateMedicalRecordMutation,
     useUpdateMedicalRecordMutation

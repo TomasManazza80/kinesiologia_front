@@ -25,10 +25,6 @@ const Navbar = ({children}) => {
             title: 'Pacientes',
         },
         {
-            path: '/historial',
-            title: 'Historial',
-        },
-        {
             path: '/balance',
             title: 'Balance',
         },
@@ -104,21 +100,32 @@ const Navbar = ({children}) => {
                             <span className="text-sm font-semibold hidden sm:inline">Inicio</span>
                         </Link>
                         <div className="w-px h-6 bg-gray-200"></div>
-                        <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                        <button 
+                            onClick={() => navigate('/perfil')} 
+                            className="text-gray-400 hover:text-[#3B82F6] transition-colors"
+                            title="Configuración de Perfil"
+                        >
                             <Settings size={20} />
                         </button>
-                        <button className="text-gray-400 hover:text-gray-600 transition-colors relative">
+                        <button className="text-gray-400 hover:text-gray-600 transition-colors relative" title="Notificaciones">
                             <Bell size={20} />
                             <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
                         </button>
                         <div className="w-px h-6 bg-gray-200 mx-1"></div>
-                        <div className="flex items-center gap-3 cursor-pointer group">
-                            <div className="h-9 w-9 rounded-full bg-gray-100 overflow-hidden border-2 border-transparent group-hover:border-[#3B82F6] transition-all">
-                                <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || user?.nombre || 'User')}&background=random`} alt="Avatar" className="w-full h-full object-cover"/>
+                        
+                        {/* User Avatar Action */}
+                        <div 
+                            onClick={() => navigate('/perfil')}
+                            className="flex items-center gap-2 cursor-pointer group hover:bg-gray-50 px-2 py-1.5 rounded-xl transition-all border border-transparent hover:border-gray-200"
+                            title="Ver mi perfil de usuario"
+                        >
+                            <div className="h-9 w-9 rounded-full bg-blue-100 overflow-hidden border-2 border-transparent group-hover:border-[#3B82F6] transition-all shadow-xs flex items-center justify-center font-bold text-xs text-[#0A58CA]">
+                                <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || user?.nombre || user?.email || 'User')}&background=0A58CA&color=fff`} alt="Avatar" className="w-full h-full object-cover"/>
                             </div>
-                            <button onClick={handleLogout} className="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity absolute right-4 mt-14 bg-white shadow-lg px-4 py-2 rounded-lg border border-gray-100 flex items-center gap-2 text-sm font-medium z-50">
-                                <LogOut size={16}/> Salir
-                            </button>
+                            <div className="hidden lg:flex flex-col text-left">
+                                <span className="text-xs font-bold text-gray-800 leading-tight">{user?.name || user?.nombre || 'Mi Perfil'}</span>
+                                <span className="text-[10px] text-gray-500 font-semibold">{user?.role || 'PROFESIONAL'}</span>
+                            </div>
                         </div>
                     </div>
                 </header>
@@ -166,6 +173,13 @@ const Navbar = ({children}) => {
                             );
                         })}
                         <div className="h-px bg-gray-100 w-full my-4"></div>
+                        <Link 
+                            to="/perfil" 
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="flex items-center gap-3 px-4 py-3 rounded-xl text-[15px] font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                        >
+                            <Settings size={20} /> Mi Perfil
+                        </Link>
                         <Link 
                             to="/reservar" 
                             onClick={() => setIsMobileMenuOpen(false)}

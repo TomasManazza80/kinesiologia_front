@@ -1,10 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Landmark, TrendingUp, TrendingDown, MoreVertical, Syringe, Activity, Monitor, Briefcase, Plus, Stethoscope, Loader2, X, History, Edit2, ArrowLeft } from 'lucide-react';
-import { useGetBalanceQuery, useCreateTransactionMutation, useGetTransactionHistoryQuery, useUpdateTransactionMutation } from '../../services/api/kinesioApi.js';
+import { 
+  Landmark, TrendingUp, TrendingDown, MoreVertical, Syringe, Activity, Monitor, 
+  Briefcase, Plus, Stethoscope, Loader2, X, History, Edit2, ArrowLeft, Search, 
+  Calendar, Filter, Receipt, DollarSign, ArrowDownRight, FileText 
+} from 'lucide-react';
+import { 
+  useGetBalanceQuery, 
+  useCreateTransactionMutation, 
+  useGetTransactionHistoryQuery, 
+  useUpdateTransactionMutation, 
+  useGetExpensesQuery 
+} from '../../services/api/kinesioApi.js';
 import { toast } from '../ui/use-toast.tsx';
 import moment from 'moment';
 
 const FinancialOverview = () => {
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'expenses'
   const [timeFilter, setTimeFilter] = useState('Mes');
   const [showModal, setShowModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
@@ -14,9 +25,16 @@ const FinancialOverview = () => {
   
   const [selectedTx, setSelectedTx] = useState(null);
   const [isEditingTx, setIsEditingTx] = useState(false);
+
+  // Expenses Date Range Search State
+  const [expenseStartDate, setExpenseStartDate] = useState(moment().startOf('month').format('YYYY-MM-DD'));
+  const [expenseEndDate, setExpenseEndDate] = useState(moment().format('YYYY-MM-DD'));
+  const [expenseSearchQuery, setExpenseSearchQuery] = useState('');
   
   const { data, isLoading, refetch } = useGetBalanceQuery(timeFilter, { pollingInterval: 5000 });
   const { data: historyData, isLoading: isLoadingHistory, isFetching: isFetchingHistory } = useGetTransactionHistoryQuery({ offset: 0, limit: historyLimit }, { skip: !showHistoryModal, pollingInterval: 5000 });
+  const { data: expensesData, isLoading: isLoadingExpenses, refetch: refetchExpenses } = useGetExpensesQuery({ startDate: expenseStartDate, endDate: expenseEndDate });
+
   const [createTransaction, { isLoading: isCreating }] = useCreateTransactionMutation();
   const [updateTransaction, { isLoading: isUpdating }] = useUpdateTransactionMutation();
 
@@ -95,30 +113,32 @@ const FinancialOverview = () => {
     <>
     <div className="w-full h-full bg-[#F8FAFC] p-4 md:p-8 flex flex-col gap-6 font-sans overflow-y-auto">
       
-      {/* Header Area */}
+      {/* Header Navigation & Actions */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-[#111827]">Resumen Financiero</h1>
-          <p className="text-gray-500 mt-1">Controla los ingresos y gastos de tu práctica.</p>
+          <p className="text-gray-500 mt-1">Controla los ingresos, gastos y egresos por período.</p>
         </div>
         
         <div className="flex items-center gap-4">
-            {/* Toggle Filters */}
-            <div className="flex bg-gray-100 p-1 rounded-lg">
-            {['Dia', 'Semana', 'Mes'].map((t) => (
-                <button
-                key={t}
-                onClick={() => setTimeFilter(t)}
-                className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-all ${
-                    timeFilter === t
-                    ? 'bg-[#0A58CA] text-white shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-                >
-                {t}
-                </button>
-            ))}
-            </div>
+            {/* Toggle Filters for Overview */}
+            {activeTab === 'overview' && (
+              <div className="flex bg-gray-100 p-1 rounded-lg">
+                {['Dia', 'Semana', 'Mes'].map((t) => (
+                    <button
+                    key={t}
+                    onClick={() => setTimeFilter(t)}
+                    className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-all ${
+                        timeFilter === t
+                        ? 'bg-[#0A58CA] text-white shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                    >
+                    {t}
+                    </button>
+                ))}
+              </div>
+            )}
             
             {/* Historial de Cierres de Caja */}
             <button 
@@ -138,86 +158,334 @@ const FinancialOverview = () => {
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        {/* Total Balance */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-center">
-          <div className="flex justify-between items-center mb-2">
-            <div className="flex items-center gap-2 text-gray-500 font-semibold text-sm">
-              <Landmark size={18} /> Balance Total
-            </div>
-          </div>
-          <div className="text-3xl font-bold text-gray-900">{formatCurrency(totalBalance)}</div>
-        </div>
-
-        {/* Income */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-center">
-          <div className="flex items-center gap-2 text-gray-500 font-semibold text-sm mb-2">
-            <TrendingUp size={18} className="text-[#3B82F6]" /> Ingresos
-          </div>
-          <div className="text-3xl font-bold text-[#3B82F6]">{formatCurrency(totalIncome)}</div>
-        </div>
-
-        {/* Expenses */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-center">
-          <div className="flex items-center gap-2 text-gray-500 font-semibold text-sm mb-2">
-            <TrendingDown size={18} className="text-[#EF4444]" /> Gastos
-          </div>
-          <div className="text-3xl font-bold text-[#EF4444]">{formatCurrency(totalExpense)}</div>
-        </div>
-
+      {/* Tabs Bar */}
+      <div className="flex border-b border-gray-200 gap-6">
+        <button
+          onClick={() => setActiveTab('overview')}
+          className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-all ${
+            activeTab === 'overview'
+              ? 'border-[#0A58CA] text-[#0A58CA]'
+              : 'border-transparent text-gray-500 hover:text-gray-800'
+          }`}
+        >
+          <Landmark size={18} /> Resumen General
+        </button>
+        <button
+          onClick={() => setActiveTab('expenses')}
+          className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-all ${
+            activeTab === 'expenses'
+              ? 'border-red-600 text-red-600'
+              : 'border-transparent text-gray-500 hover:text-gray-800'
+          }`}
+        >
+          <TrendingDown size={18} /> Consulta de Egresos por Rango
+        </button>
       </div>
 
-      {/* Main Content: Recent Transactions */}
-      <div className="flex flex-col flex-1 min-h-[400px]">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col flex-1">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-bold text-gray-900">Transacciones Recientes</h2>
-            <button className="text-sm font-bold text-[#0A58CA] hover:text-blue-800 transition-colors">
-              Ver Todo
-            </button>
-          </div>
-          
-          <div className="flex flex-col gap-5 flex-1 overflow-y-auto pr-2">
-            {data?.transactions?.length === 0 ? (
-                <div className="flex items-center justify-center text-gray-500 py-8 bg-gray-50 rounded-xl border border-gray-200 border-dashed">
-                    No hay movimientos registrados
+      {/* OVERVIEW TAB */}
+      {activeTab === 'overview' && (
+        <>
+          {/* KPI Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            {/* Total Balance */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-center">
+              <div className="flex justify-between items-center mb-2">
+                <div className="flex items-center gap-2 text-gray-500 font-semibold text-sm">
+                  <Landmark size={18} /> Balance Total
                 </div>
-            ) : (
-                data?.transactions?.slice(0, 10).map(tx => {
-                    const txDate = tx.date || tx.created_at;
-                    return (
-                        <div 
-                            key={tx.id} 
-                            onClick={() => { setSelectedTx({...tx}); setIsEditingTx(false); }}
-                            className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-colors border border-gray-100 bg-white shadow-sm mb-3 cursor-pointer"
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className={`p-3 rounded-full ${getIcon(tx.category).bg}`}>
-                                    {getIcon(tx.category).icon}
-                                </div>
-                                <div>
-                                    <p className="font-bold text-gray-800 text-sm md:text-base">{tx.title}</p>
-                                    <div className="flex items-center gap-2">
-                                        <p className="text-xs text-gray-500 font-medium">
-                                            {moment(txDate).format('DD MMM YYYY, HH:mm')}
-                                        </p>
-                                        <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-bold uppercase">{tx.payment_method || 'Efectivo'}</span>
+              </div>
+              <div className="text-3xl font-bold text-gray-900">{formatCurrency(totalBalance)}</div>
+            </div>
+
+            {/* Income */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-center">
+              <div className="flex items-center gap-2 text-gray-500 font-semibold text-sm mb-2">
+                <TrendingUp size={18} className="text-[#3B82F6]" /> Ingresos
+              </div>
+              <div className="text-3xl font-bold text-[#3B82F6]">{formatCurrency(totalIncome)}</div>
+            </div>
+
+            {/* Expenses */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-center">
+              <div className="flex items-center gap-2 text-gray-500 font-semibold text-sm mb-2">
+                <TrendingDown size={18} className="text-[#EF4444]" /> Gastos
+              </div>
+              <div className="text-3xl font-bold text-[#EF4444]">{formatCurrency(totalExpense)}</div>
+            </div>
+
+          </div>
+
+          {/* Main Content: Recent Transactions */}
+          <div className="flex flex-col flex-1 min-h-[400px]">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col flex-1">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-lg font-bold text-gray-900">Transacciones Recientes</h2>
+                <button className="text-sm font-bold text-[#0A58CA] hover:text-blue-800 transition-colors">
+                  Ver Todo
+                </button>
+              </div>
+              
+              <div className="flex flex-col gap-5 flex-1 overflow-y-auto pr-2">
+                {data?.transactions?.length === 0 ? (
+                    <div className="flex items-center justify-center text-gray-500 py-8 bg-gray-50 rounded-xl border border-gray-200 border-dashed">
+                        No hay movimientos registrados
+                    </div>
+                ) : (
+                    data?.transactions?.slice(0, 10).map(tx => {
+                        const txDate = tx.date || tx.created_at;
+                        return (
+                            <div 
+                                key={tx.id} 
+                                onClick={() => { setSelectedTx({...tx}); setIsEditingTx(false); }}
+                                className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-colors border border-gray-100 bg-white shadow-sm mb-3 cursor-pointer"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className={`p-3 rounded-full ${getIcon(tx.category).bg}`}>
+                                        {getIcon(tx.category).icon}
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-gray-800 text-sm md:text-base">{tx.title}</p>
+                                        <div className="flex items-center gap-2">
+                                            <p className="text-xs text-gray-500 font-medium">
+                                                {moment(txDate).format('DD MMM YYYY, HH:mm')}
+                                            </p>
+                                            <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-bold uppercase">{tx.payment_method || 'Efectivo'}</span>
+                                        </div>
                                     </div>
                                 </div>
+                                <div className={`text-base md:text-lg font-black tracking-tight ${tx.type === 'income' ? 'text-[#059669]' : 'text-gray-700'}`}>
+                                    {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
+                                </div>
                             </div>
-                            <div className={`text-base md:text-lg font-black tracking-tight ${tx.type === 'income' ? 'text-[#059669]' : 'text-gray-700'}`}>
-                                {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
-                            </div>
-                        </div>
-                    );
-                })
-            )}
-          </div>
-        </div>
+                        );
+                    })
+                )}
+              </div>
+            </div>
 
-      </div>
+          </div>
+        </>
+      )}
+
+      {/* EXPENSES TAB BY DATE RANGE */}
+      {activeTab === 'expenses' && (() => {
+        const rawExpenses = expensesData?.data || [];
+        const filteredExpenses = rawExpenses.filter(item => {
+          if (!expenseSearchQuery.trim()) return true;
+          const q = expenseSearchQuery.toLowerCase();
+          return (
+            item.title?.toLowerCase().includes(q) ||
+            item.category?.toLowerCase().includes(q) ||
+            item.payment_method?.toLowerCase().includes(q)
+          );
+        });
+
+        const filteredExpensesTotal = filteredExpenses.reduce((sum, item) => sum + Number(item.amount), 0);
+        const avgExpense = filteredExpenses.length ? filteredExpensesTotal / filteredExpenses.length : 0;
+
+        return (
+          <div className="flex flex-col gap-6">
+            {/* Search & Filter Header Card */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col gap-4">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <Receipt className="text-red-600" size={20} /> Búsqueda y Reporte de Egresos
+                  </h2>
+                  <p className="text-xs text-gray-500 mt-1">Selecciona un rango de fechas para consultar todos los egresos del período.</p>
+                </div>
+
+                {/* Quick Date Presets */}
+                <div className="flex items-center gap-2 flex-wrap text-xs">
+                  <button
+                    onClick={() => {
+                      setExpenseStartDate(moment().startOf('day').format('YYYY-MM-DD'));
+                      setExpenseEndDate(moment().endOf('day').format('YYYY-MM-DD'));
+                    }}
+                    className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg transition-colors"
+                  >
+                    Hoy
+                  </button>
+                  <button
+                    onClick={() => {
+                      setExpenseStartDate(moment().startOf('isoWeek').format('YYYY-MM-DD'));
+                      setExpenseEndDate(moment().format('YYYY-MM-DD'));
+                    }}
+                    className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg transition-colors"
+                  >
+                    Esta Semana
+                  </button>
+                  <button
+                    onClick={() => {
+                      setExpenseStartDate(moment().startOf('month').format('YYYY-MM-DD'));
+                      setExpenseEndDate(moment().endOf('month').format('YYYY-MM-DD'));
+                    }}
+                    className="px-3 py-1.5 bg-red-50 text-red-700 font-bold border border-red-100 rounded-lg hover:bg-red-100 transition-colors"
+                  >
+                    Este Mes
+                  </button>
+                  <button
+                    onClick={() => {
+                      setExpenseStartDate(moment().subtract(1, 'month').startOf('month').format('YYYY-MM-DD'));
+                      setExpenseEndDate(moment().subtract(1, 'month').endOf('month').format('YYYY-MM-DD'));
+                    }}
+                    className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg transition-colors"
+                  >
+                    Mes Anterior
+                  </button>
+                </div>
+              </div>
+
+              {/* Date Inputs & Search Query Bar */}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 pt-2 border-t border-gray-100">
+                <div className="md:col-span-3">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
+                    Desde (Fecha Inicio)
+                  </label>
+                  <input
+                    type="date"
+                    value={expenseStartDate}
+                    onChange={(e) => setExpenseStartDate(e.target.value)}
+                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:bg-white focus:ring-2 focus:ring-red-500 outline-none"
+                  />
+                </div>
+
+                <div className="md:col-span-3">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
+                    Hasta (Fecha Fin)
+                  </label>
+                  <input
+                    type="date"
+                    value={expenseEndDate}
+                    onChange={(e) => setExpenseEndDate(e.target.value)}
+                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:bg-white focus:ring-2 focus:ring-red-500 outline-none"
+                  />
+                </div>
+
+                <div className="md:col-span-6">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
+                    Filtrar por concepto o medio de pago
+                  </label>
+                  <div className="relative">
+                    <Search size={18} className="absolute left-3.5 top-3 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Buscar por descripción, tipo o forma de pago..."
+                      value={expenseSearchQuery}
+                      onChange={(e) => setExpenseSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:bg-white focus:ring-2 focus:ring-red-500 outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Expenses Summary KPI Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-gradient-to-br from-red-600 to-rose-700 rounded-2xl p-6 text-white shadow-md flex flex-col justify-center">
+                <div className="flex items-center justify-between mb-1 opacity-90">
+                  <span className="text-xs font-bold uppercase tracking-wider">Total Egresos en Período</span>
+                  <TrendingDown size={22} />
+                </div>
+                <div className="text-3xl font-black">{formatCurrency(filteredExpensesTotal)}</div>
+                <p className="text-xs mt-1.5 opacity-80 font-medium">Del {moment(expenseStartDate).format('DD/MM/YYYY')} al {moment(expenseEndDate).format('DD/MM/YYYY')}</p>
+              </div>
+
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-center">
+                <div className="flex items-center justify-between mb-1 text-gray-500">
+                  <span className="text-xs font-bold uppercase tracking-wider">Registros de Egreso</span>
+                  <Receipt size={20} className="text-red-500" />
+                </div>
+                <div className="text-3xl font-bold text-gray-900">{filteredExpenses.length} <span className="text-sm font-normal text-gray-500">comprobantes</span></div>
+              </div>
+
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-center">
+                <div className="flex items-center justify-between mb-1 text-gray-500">
+                  <span className="text-xs font-bold uppercase tracking-wider">Promedio por Egreso</span>
+                  <DollarSign size={20} className="text-amber-500" />
+                </div>
+                <div className="text-3xl font-bold text-gray-900">{formatCurrency(avgExpense)}</div>
+              </div>
+            </div>
+
+            {/* Expenses Table List */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                  <FileText size={18} className="text-red-600" /> Detalle de Egresos Encontrados ({filteredExpenses.length})
+                </h3>
+                {isLoadingExpenses && <Loader2 className="animate-spin text-red-600" size={18} />}
+              </div>
+
+              {isLoadingExpenses ? (
+                <div className="py-12 flex justify-center items-center text-gray-500">
+                  <Loader2 className="animate-spin text-red-600 mr-2" size={24} /> Cargando egresos...
+                </div>
+              ) : filteredExpenses.length === 0 ? (
+                <div className="py-12 flex flex-col items-center justify-center text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                  <Receipt size={36} className="text-gray-300 mb-2" />
+                  <p className="font-bold text-gray-700 text-sm">No se encontraron egresos en el rango seleccionado</p>
+                  <p className="text-xs text-gray-400 mt-1">Prueba cambiando el rango de fechas o los términos de búsqueda.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-wider bg-gray-50/50">
+                        <th className="py-3 px-4 rounded-l-xl">Fecha y Hora</th>
+                        <th className="py-3 px-4">Concepto / Título</th>
+                        <th className="py-3 px-4">Categoría</th>
+                        <th className="py-3 px-4">Medio de Pago</th>
+                        <th className="py-3 px-4 text-right">Monto</th>
+                        <th className="py-3 px-4 text-center rounded-r-xl">Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {filteredExpenses.map((tx) => {
+                        const txDate = tx.date || tx.created_at;
+                        return (
+                          <tr key={tx.id} className="hover:bg-gray-50/80 transition-colors group">
+                            <td className="py-3.5 px-4 font-semibold text-gray-600">
+                              {moment(txDate).format('DD/MM/YYYY • HH:mm [hs]')}
+                            </td>
+                            <td className="py-3.5 px-4 font-bold text-gray-900">
+                              {tx.title}
+                              {tx.subtitle && <p className="text-xs text-gray-400 font-normal">{tx.subtitle}</p>}
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <span className="px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg text-xs font-bold">
+                                {tx.category || 'VARIOS'}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4 font-medium text-gray-700">
+                              <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md text-xs font-semibold uppercase">
+                                {tx.payment_method || 'Efectivo'}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4 text-right font-black text-red-600 text-base">
+                              -{formatCurrency(tx.amount)}
+                            </td>
+                            <td className="py-3.5 px-4 text-center">
+                              <button
+                                onClick={() => { setSelectedTx({...tx}); setIsEditingTx(false); }}
+                                className="p-1.5 bg-gray-100 hover:bg-amber-100 text-gray-600 hover:text-amber-800 rounded-lg transition-colors inline-flex items-center justify-center"
+                                title="Ver / Editar egreso"
+                              >
+                                <Edit2 size={14} />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
     </div>
 
