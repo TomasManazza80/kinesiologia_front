@@ -481,6 +481,9 @@ const PatientList = () => {
                       </button>
                   </div>
               </div>
+          </div>
+      )}
+
       {/* Share Patient Modal */}
       <SharePatientModal 
         patient={patientToShare} 
