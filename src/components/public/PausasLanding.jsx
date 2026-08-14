@@ -157,16 +157,16 @@ export default function PausasLanding() {
 
     const faqs = [
         {
-            q: "¿Qué es una Pausa Activa Kinesiológica?",
-            a: "Es una rutina breve de ejercicios adaptados y guiados por kinesiólogos durante la jornada. Combina movilidad articular, elongación asistida y descompresión espinal para prevenir contracturas, dolor de espalda y cuello."
+            q: "¿A quiénes están dirigidos sus tratamientos?",
+            a: "Nuestros tratamientos están diseñados para mujeres y hombres que atraviesan la etapa de la menopausia y andropausia, ofreciendo un abordaje integral para mejorar su calidad de vida."
         },
         {
             q: "¿Cómo reservo mi turno online?",
-            a: "Simplemente haz clic en el botón 'Reservar Turno', selecciona la especialidad o tu profesional de preferencia, escoge el día y horario disponible y confirma tus datos en menos de 1 minuto."
+            a: "Simplemente haz clic en el botón 'Reservar Turno', selecciona la especialidad (Endocrinología, Suelo Pélvico, Psicología, etc.) o tu profesional de preferencia, escoge el día y horario disponible y confirma tus datos en menos de 1 minuto."
         },
         {
-            q: "¿Brindan programas de Pausas Activas para empresas?",
-            a: "Sí. Desarrollamos planes corporativos presenciales y virtuales con diagnósticos ergonómicos, pausas guiadas para equipos y prevención de patologías posturales en el trabajo."
+            q: "¿Qué especialistas trabajan en el centro?",
+            a: "Contamos con un equipo multidisciplinario que incluye endocrinólogos, kinesiólogos especializados en suelo pélvico, psicólogas, nutricionistas y ginecólogos enfocados en el climaterio."
         },
         {
             q: "¿Puedo cancelar o modificar la fecha de mi turno?",
@@ -190,17 +190,17 @@ export default function PausasLanding() {
                             {/* Eyebrow badge */}
                             <div className="gsap-hero-item inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-100/70 border border-blue-200/80 text-blue-700 text-xs font-bold tracking-wide">
                                 <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-                                <span>SALUD POSTURAL & PAUSAS ACTIVAS</span>
+                                <span>CENTRO ESPECIALIZADO EN MENOPAUSIA</span>
                             </div>
 
                             {/* Main Title */}
                             <h1 className="gsap-hero-item text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.12]">
-                                Centro Kinesiológico <br />
-                                <span className="text-blue-600 italic font-serif">Innovación & Salud</span>
+                                Cuidado Integral <br />
+                                <span className="text-blue-600 italic font-serif">Climaterio & Plenitud</span>
                             </h1>
 
                             <p className="gsap-hero-item text-base sm:text-lg text-slate-600 max-w-xl font-medium leading-relaxed">
-                                Prevenimos lesiones, eliminamos dolores posturales y optimizamos tu rendimiento con programas de pausas activas y atención kinesiológica de excelencia.
+                                Acompañamos a mujeres y hombres en su etapa de transición hormonal. Especialistas en endocrinología, suelo pélvico y bienestar emocional para una vida plena.
                             </p>
 
                             {/* Hero Action Buttons */}
@@ -262,8 +262,8 @@ export default function PausasLanding() {
                                             <Award className="w-5 h-5" />
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-slate-900 text-sm">Atención de Excelencia</h4>
-                                            <p className="text-xs text-slate-500 font-medium">Evaluación kinésica y pausas posturales</p>
+                                            <h4 className="font-bold text-slate-900 text-sm">Atención Integral</h4>
+                                            <p className="text-xs text-slate-500 font-medium">Endocrinología y Rehabilitación</p>
                                         </div>
                                     </div>
                                 </div>
@@ -277,10 +277,10 @@ export default function PausasLanding() {
             <section className="py-16 bg-blue-50/50 border-y border-blue-100/80">
                 <div className="gsap-statement max-w-4xl mx-auto px-4 text-center space-y-6">
                     <span className="text-xs font-bold uppercase tracking-widest text-blue-600 bg-blue-100/80 px-3.5 py-1.5 rounded-full">
-                        SALUD & BIENESTAR INTEGRAL
+                        CUIDADO MULTIDISCIPLINARIO
                     </span>
                     <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 leading-relaxed max-w-3xl mx-auto">
-                        Combinamos <span className="text-blue-600 italic font-serif">técnicas kinesiológicas</span> con pausas activas para que cada persona recobre la <span className="text-blue-600 italic font-serif">movilidad, energía y bienestar</span>.
+                        Integramos <span className="text-blue-600 italic font-serif">múltiples especialidades</span> para brindar un acompañamiento completo, restaurando el <span className="text-blue-600 italic font-serif">equilibrio, vitalidad y salud pélvica</span>.
                     </h2>
                     <div>
                         <motion.button
@@ -303,9 +303,9 @@ export default function PausasLanding() {
                     
                     <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
                         <div>
-                            <span className="text-xs font-bold uppercase tracking-widest text-blue-600">Nuestros Servicios</span>
+                            <span className="text-xs font-bold uppercase tracking-widest text-blue-600">Especialidades</span>
                             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-1">
-                                Soluciones en Pausas & Kinesiología
+                                Abordaje Integral y Personalizado
                             </h2>
                         </div>
                         <a href="#profesionales" className="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1">
@@ -326,9 +326,9 @@ export default function PausasLanding() {
                                 <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
                                     <Stethoscope className="w-6 h-6" />
                                 </div>
-                                <h3 className="text-xl font-bold text-slate-900">Kinesiología & Rehabilitación</h3>
+                                <h3 className="text-xl font-bold text-slate-900">Endocrinología Especializada</h3>
                                 <p className="text-sm text-slate-600 leading-relaxed font-medium">
-                                    Tratamiento especializado para dolencias articulares, columna vertebral y recuperación funcional post-lesión.
+                                    Control hormonal y metabólico enfocado en el climaterio, menopausia y andropausia para un óptimo bienestar.
                                 </p>
                             </div>
                             <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
@@ -353,9 +353,9 @@ export default function PausasLanding() {
                                     <Zap className="w-3.5 h-3.5 text-blue-300" />
                                     <span>SERVICIO DESTACADO</span>
                                 </div>
-                                <h3 className="text-2xl font-extrabold text-white">Pausas Activas & Ergonomía</h3>
+                                <h3 className="text-2xl font-extrabold text-white">Rehabilitación Suelo Pélvico</h3>
                                 <p className="text-sm text-blue-100 leading-relaxed font-normal">
-                                    Sesiones dirigidas a combatir el sedentarismo laboral, corregir la postura corporal y revitalizar la masa muscular en jornadas continuas.
+                                    Tratamiento kinésico especializado para incontinencia, disfunciones sexuales y fortalecimiento del piso pélvico en mujeres y hombres.
                                 </p>
                             </div>
                             <div className="pt-4 border-t border-blue-800/80 flex items-center justify-between">
@@ -382,9 +382,9 @@ export default function PausasLanding() {
                                 <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
                                     <ShieldCheck className="w-6 h-6" />
                                 </div>
-                                <h3 className="text-xl font-bold text-slate-900">Reeducación Postural (RPG)</h3>
+                                <h3 className="text-xl font-bold text-slate-900">Acompañamiento Psicológico</h3>
                                 <p className="text-sm text-slate-600 leading-relaxed font-medium">
-                                    Evaluación biomecánica y ejercicios correctivos para prevenir desviaciones y dolores severos en la columna.
+                                    Espacio terapéutico para abordar los cambios emocionales, estrés y ansiedad durante la transición hormonal.
                                 </p>
                             </div>
                             <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
@@ -415,7 +415,7 @@ export default function PausasLanding() {
                             Profesionales Disponibles
                         </h2>
                         <p className="text-slate-600 text-sm font-medium">
-                            Selecciona al profesional con quien deseas realizar tu consulta o sesión de Pausas Activas.
+                            Selecciona al especialista con quien deseas realizar tu consulta de evaluación integral.
                         </p>
                     </div>
 
@@ -463,7 +463,7 @@ export default function PausasLanding() {
                                             </div>
 
                                             <p className="text-xs text-slate-600 font-medium line-clamp-3 leading-relaxed">
-                                                {prof.bio || prof.description || 'Especialista certificado en kinesioterapia, tratamiento del dolor postural y seguimiento de pausas activas.'}
+                                                {prof.bio || prof.description || 'Profesional certificado con amplia experiencia en atención integral de la menopausia y andropausia.'}
                                             </p>
                                         </div>
 
@@ -490,9 +490,9 @@ export default function PausasLanding() {
                         // Fallback Professionals Grid
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             {[
-                                { name: "Lic. Martín Gómez", spec: "Kinesiología & RPG", desc: "Especialista en reeducación postural global y tratamiento de dolores de columna." },
-                                { name: "Lic. Carolina Rossi", spec: "Pausas Activas & Ergonomía", desc: "Experta en programas ergonómicos y ejercicios preventivos de lesiones corporales." },
-                                { name: "Lic. Juan Pablo Silva", spec: "Kinesiología Deportiva", desc: "Enfocado en movilidad articular, descompresión y rehabilitación musculotendinosa." }
+                                { name: "Dra. Carolina Rossi", spec: "Endocrinología", desc: "Especialista en climaterio, menopausia y regulación metabólica integral." },
+                                { name: "Lic. Martín Gómez", spec: "Kinesiólogo Pélvico", desc: "Experto en rehabilitación de suelo pélvico, incontinencia y disfunciones sexuales." },
+                                { name: "Lic. Ana Martínez", spec: "Psicología Clínica", desc: "Acompañamiento terapéutico durante las transiciones hormonales y vitales." }
                             ].map((prof, i) => (
                                 <motion.div 
                                     key={i} 
@@ -590,9 +590,9 @@ export default function PausasLanding() {
                                     <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
                                         <Heart className="w-5 h-5" />
                                     </div>
-                                    <h4 className="font-bold text-slate-900 text-base">Planes Personalizados</h4>
+                                    <h4 className="font-bold text-slate-900 text-base">Abordaje Integral</h4>
                                     <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                                        Pausas y ejercicios diseñados específicamente según tus necesidades.
+                                        Tratamientos que contemplan cuerpo, mente y salud hormonal.
                                     </p>
                                 </div>
                             </div>
@@ -607,10 +607,10 @@ export default function PausasLanding() {
                 <div className="gsap-cta-banner bg-[#0a183d] rounded-3xl p-10 sm:p-14 text-center text-white space-y-6 shadow-2xl relative overflow-hidden">
                     <div className="max-w-2xl mx-auto space-y-4">
                         <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-                            ¿Listo para recuperar tu salud y bienestar?
+                            ¿Listo para vivir tu transición con plenitud?
                         </h2>
                         <p className="text-blue-100 text-sm sm:text-base font-normal leading-relaxed">
-                            Reserva tu consulta o sesión de Pausas Activas hoy mismo y comienza tu camino hacia una vida sin dolor postural.
+                            Reserva tu consulta hoy mismo y da el primer paso hacia un bienestar hormonal, físico y emocional.
                         </p>
                     </div>
                     <div>
@@ -682,14 +682,14 @@ export default function PausasLanding() {
                                 <span className="text-lg font-bold text-[#1E293B] tracking-tight">PAUSES</span>
                             </div>
                             <p className="text-slate-500 leading-relaxed font-medium">
-                                Salud postural, prevención ergonómica y atención kinesiológica especializada.
+                                Atención multidisciplinaria especializada en menopausia, andropausia y suelo pélvico.
                             </p>
                         </div>
 
                         <div>
                             <h4 className="font-bold text-slate-900 uppercase tracking-wider mb-3">Navegación</h4>
                             <ul className="space-y-2 font-medium">
-                                <li><a href="#pausas" className="hover:text-blue-600">Pausas Activas</a></li>
+                                <li><a href="#pausas" className="hover:text-blue-600">Especialidades</a></li>
                                 <li><a href="#servicios" className="hover:text-blue-600">Servicios</a></li>
                                 <li><a href="#profesionales" className="hover:text-blue-600">Profesionales</a></li>
                                 <li><Link to="/reservar" className="hover:text-blue-600">Reservar Turno</Link></li>
@@ -729,7 +729,7 @@ export default function PausasLanding() {
                 </a>
                 <a href="#pausas" className="flex flex-col items-center gap-0.5 hover:text-blue-600">
                     <Zap className="w-5 h-5 text-blue-600" />
-                    <span>Pausas</span>
+                    <span>Especialidades</span>
                 </a>
                 <button onClick={() => navigate('/reservar')} className="flex flex-col items-center gap-0.5 text-blue-600">
                     <div className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-md">
