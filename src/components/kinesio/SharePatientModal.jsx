@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-[#redux]' ? useSelector : undefined; // fallback import if needed
+import { useSelector } from 'react-redux';
 import { useGetProfessionalsQuery, useSharePatientMutation } from '../../services/api/kinesioApi.js';
 import { toast } from '../ui/use-toast.tsx';
 import { X, Share2, Send, CheckCircle2, User, Shield, Briefcase, Loader2, Check } from 'lucide-react';
-import { useSelector as useReduxSelector } from 'react-redux';
 
 const SharePatientModal = ({ patient, isOpen, onClose }) => {
-    const currentUser = useReduxSelector(state => state.authSlice.userInfo);
+    const currentUser = useSelector(state => state.authSlice.userInfo);
     const { data: professionalsResponse, isLoading: isLoadingProfs } = useGetProfessionalsQuery(undefined, { skip: !isOpen });
     const [sharePatient, { isLoading: isSharing }] = useSharePatientMutation();
     
