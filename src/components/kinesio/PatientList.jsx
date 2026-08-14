@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSelector } from "react-redux";
-import { Search, Plus, RotateCcw, Edit, X, Trash2, User, Settings, Share2 } from 'lucide-react';
+import { Search, Plus, RotateCcw, Edit, X, Trash2, User, Settings, Share2, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useGetPatientsQuery, useUpdatePatientMutation, useCreatePatientMutation, useDeletePatientMutation, useGetProfessionalsQuery } from '../../services/api/kinesioApi.js';
 import { toast } from '../ui/use-toast';
@@ -238,18 +238,18 @@ const PatientList = () => {
                       <td className="p-4 pr-6 text-right">
                         <div className="flex justify-end gap-2">
                           <button 
-                            onClick={(e) => { e.stopPropagation(); setPatientToShare(patient); }}
-                            className="p-2 rounded-lg text-indigo-600 hover:bg-indigo-50 transition-colors border border-transparent hover:border-indigo-100"
-                            title="Enviar / Compartir Ficha e Historial Médico a otro profesional"
-                          >
-                            <Share2 size={18} />
-                          </button>
-                          <button 
                             onClick={(e) => { e.stopPropagation(); navigate(`/pacientes/${patient.id}`); }}
                             className="p-2 rounded-lg text-[#0A58CA] hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-100"
-                            title="Ver Perfil de Paciente"
+                            title="Ver Perfil / Acceder a la info del Paciente"
                           >
                             <User size={18} />
+                          </button>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); setPatientToShare(patient); }}
+                            className="p-2 rounded-lg text-indigo-600 hover:bg-indigo-50 transition-colors border border-transparent hover:border-indigo-100"
+                            title="Enviar Info / Compartir Historial Médico a otro profesional"
+                          >
+                            <Send size={18} />
                           </button>
                           <button 
                             onClick={(e) => { e.stopPropagation(); handleOpenModal(patient); }}
