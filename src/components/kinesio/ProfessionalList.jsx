@@ -220,8 +220,8 @@ const ProfessionalList = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-[#111827]">Equipo / Profesionales</h1>
-                    <p className="text-gray-500 mt-1">Gestiona los profesionales y usuarios administradores del sistema.</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-[#111827]">Personal / Profesionales</h1>
+                    <p className="text-gray-500 mt-1">Gestiona el personal, profesionales y usuarios administradores del sistema.</p>
                 </div>
                 <button 
                     onClick={() => setIsModalOpen(true)}

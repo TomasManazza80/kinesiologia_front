@@ -1,6 +1,6 @@
 import {createApi} from "@reduxjs/toolkit/query/react";
 import customFetchBase from "./customFetchBase.js";
-import {setAccessToken} from "../auth/authSlice.js";
+import {setAccessToken, setUser} from "../auth/authSlice.js";
 import {toast} from "../../components/ui/use-toast.tsx";
 
 export const authApi = createApi({
@@ -21,6 +21,9 @@ export const authApi = createApi({
                         if (data.data.accessToken) {
                             dispatch(setAccessToken(data?.data.accessToken));
                             localStorage.setItem('refreshToken', data.data.refreshToken)
+                        }
+                        if (data.data.user) {
+                            dispatch(setUser(data.data.user));
                         }
                         toast({
                             title: "Success",

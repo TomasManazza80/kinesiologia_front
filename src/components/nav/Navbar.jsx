@@ -4,12 +4,24 @@ import {useDispatch, useSelector} from "react-redux";
 import {LogOut, Settings, Bell, LayoutDashboard, Users, Calendar, FileText, Home, Menu, X} from "lucide-react";
 import {logoutUser} from "../../services/auth/authActions.js";
 
+const parseJwt = (token) => {
+    try {
+        return JSON.parse(atob(token.split('.')[1]));
+    } catch (e) {
+        return null;
+    }
+};
+
 const Navbar = ({children}) => {
     const location = useLocation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const user = useSelector(state => state.authSlice.userInfo);
+    const token = useSelector(state => state.authSlice.accessToken);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    const tokenPayload = token ? parseJwt(token) : null;
+    const userRole = user?.role || tokenPayload?.role || 'USER';
 
     const handleLogout = () => {
         logoutUser();
@@ -38,10 +50,10 @@ const Navbar = ({children}) => {
         }
     ];
 
-    if (user?.role === 'ADMIN') {
+    if (userRole === 'ADMIN' || userRole === 'SUPERADMIN') {
         navItems.push({
             path: '/profesionales',
-            title: 'Equipo',
+            title: 'Personal',
         });
     }
 
