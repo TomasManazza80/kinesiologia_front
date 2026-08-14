@@ -147,6 +147,14 @@ export const kinesioApi = authApi.injectEndpoints({
             }),
             invalidatesTags: ['Patients'],
         }),
+        sharePatient: build.mutation({
+            query: ({ id, targetProfessionalIds, message }) => ({
+                url: `/api/kinesio/patients/${id}/share`,
+                method: 'POST',
+                body: { targetProfessionalIds, message }
+            }),
+            invalidatesTags: ['Patients']
+        }),
         getMedicalHistory: build.query({
             query: (patientId) => `/api/kinesio/history/patient/${patientId}`,
             providesTags: ['History'],
@@ -341,6 +349,7 @@ export const {
     useCreatePatientMutation,
     useUpdatePatientMutation,
     useDeletePatientMutation,
+    useSharePatientMutation,
     useGetMedicalHistoryQuery,
     useCreateMedicalHistoryMutation,
     useUpdateMedicalHistoryMutation,

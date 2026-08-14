@@ -10,10 +10,11 @@ import {
     ArrowLeft, User, Phone, Mail, Droplet, Activity, 
     Calendar, Clock, FileText, ChevronRight, Stethoscope,
     CheckCircle2, ShieldPlus as Shield, ClipboardList, Image as ImageIcon,
-    Plus, History, Loader2, ChevronDown, ChevronUp, ExternalLink, Pencil 
+    Plus, History, Loader2, ChevronDown, ChevronUp, ExternalLink, Pencil, Share2 
 } from 'lucide-react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
+import SharePatientModal from './SharePatientModal.jsx';
 
 dayjs.locale('es');
 
@@ -24,6 +25,7 @@ const PatientProfile = () => {
     const [showPreviousInProfile, setShowPreviousInProfile] = useState(false);
     const [selectedConsultationId, setSelectedConsultationId] = useState(null);
     const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
     const { data: patients, isLoading: isLoadingPatients } = useGetPatientsQuery();
     const { data: allAppointments, isLoading: isLoadingAppointments } = useGetAppointmentsQuery({ patient_id: id });
@@ -292,17 +294,26 @@ const PatientProfile = () => {
     return (
         <div className="w-full min-h-full bg-[#F8FAFC] p-4 md:p-8 flex flex-col gap-6 font-sans">
             {/* Header / Back Button */}
-            <div className="flex items-center gap-4">
-                <button 
-                    onClick={() => navigate(-1)} 
-                    className="p-2.5 bg-white border border-gray-200 rounded-full hover:bg-gray-50 text-gray-600 transition-colors shadow-sm"
-                >
-                    <ArrowLeft size={20} />
-                </button>
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[#111827]">Perfil del Paciente</h1>
-                    <p className="text-gray-500 text-sm mt-1">Gestión completa de información y registros.</p>
+            <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-4">
+                    <button 
+                        onClick={() => navigate(-1)} 
+                        className="p-2.5 bg-white border border-gray-200 rounded-full hover:bg-gray-50 text-gray-600 transition-colors shadow-sm"
+                    >
+                        <ArrowLeft size={20} />
+                    </button>
+                    <div>
+                        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[#111827]">Perfil del Paciente</h1>
+                        <p className="text-gray-500 text-sm mt-1">Gestión completa de información y registros.</p>
+                    </div>
                 </div>
+                <button 
+                    onClick={() => setIsShareModalOpen(true)}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl font-bold text-xs transition-all shadow-sm flex items-center gap-2"
+                    title="Compartir o enviar ficha e historial médico a otro profesional"
+                >
+                    <Share2 size={16} /> Compartir Ficha / Historial
+                </button>
             </div>
 
             <div className="flex flex-col lg:flex-row gap-6 items-start">
@@ -578,6 +589,13 @@ const PatientProfile = () => {
 
                 </div>
             </div>
+
+            {/* Share Patient Modal */}
+            <SharePatientModal 
+                patient={patient} 
+                isOpen={isShareModalOpen} 
+                onClose={() => setIsShareModalOpen(false)} 
+            />
         </div>
     );
 };
