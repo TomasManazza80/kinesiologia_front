@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   DndContext, 
   closestCenter,
@@ -20,7 +20,7 @@ import {
   List, Image as ImageIcon, Activity, Eye, Edit3, Save, ArrowUp, 
   ArrowDown, Sparkles, Check, HelpCircle, Layers, RefreshCw, AlertCircle
 } from 'lucide-react';
-import { useCreateTemplateMutation } from '../../services/api/kinesioApi';
+import { useCreateTemplateMutation, useUpdateTemplateMutation } from '../../services/api/kinesioApi';
 import { toast } from '../ui/use-toast.tsx';
 
 // Sortable Field Item Component in Builder Mode

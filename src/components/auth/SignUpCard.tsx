@@ -160,9 +160,6 @@ export const SignUpCard = () => {
                         <Button variant="link" type="button" className="text-gray-500 hover:text-[#0a47d4] font-medium" onClick={() => navigate("/login")}>
                             ¿Ya tienes una cuenta? Inicia sesión
                         </Button>
-                        <Button variant="link" type="button" className="text-gray-400 text-xs hover:text-[#0a47d4]" onClick={() => navigate("/signup-admin")}>
-                            Crear cuenta de Administrador
-                        </Button>
                     </div>
                 </form>
             </Form>

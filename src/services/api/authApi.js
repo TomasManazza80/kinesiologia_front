@@ -6,7 +6,7 @@ import {toast} from "../../components/ui/use-toast.tsx";
 export const authApi = createApi({
     reducerPath: 'authApi',
     baseQuery: customFetchBase,
-    tagTypes: ['User', 'Patients', 'Appointments', 'History', 'Professionals', 'Specialties', 'WhatsApp', 'Templates', 'MedicalRecords'],
+    tagTypes: ['User', 'Patients', 'Appointments', 'History', 'Professionals', 'Specialties', 'WhatsApp', 'Templates', 'MedicalRecords', 'Balance', 'Availability', 'Properties', 'Units', 'Tenants', 'Leases', 'Payments', 'Expenses', 'Maintenance', 'UserList', 'Product', 'Category'],
     endpoints: (build) => ({
         login: build.mutation({
             query: (credentials) => ({
@@ -66,7 +66,6 @@ export const authApi = createApi({
             }
         }),
     }),
-    tagTypes: ['User', 'Properties', 'Units', 'Tenants', 'Leases', "Payments", "Expenses", "Maintenance", "UserList", "Product", "Category", "Patients", "Appointments", "Professionals", "Balance", "Availability", "WhatsApp"]
 })
 
 export const {

@@ -44,6 +44,8 @@ function App() {
 import { useState, useEffect } from "react";
 import Loader from "./components/public/Loader.jsx";
 
+import AdminRoute from "./components/auth/ProtectedRoute.jsx";
+
 const AppContent = () => {
     const location = useLocation();
     const [isAppLoading, setIsAppLoading] = useState(true);
@@ -64,22 +66,26 @@ const AppContent = () => {
     return (
         <SocketContext.Provider value={socket}>
             <TooltipProvider>
-                {showNavbar && (<Navbar>
-                    <Routes>
-                        <Route path="*" element={<NotFound/>} />
-                        <Route path="/dashboard" element={<Dashboard/>} />
-                        <Route path="/turnos" element={<AppointmentCalendar/>} />
-                        <Route path="/pacientes" element={<PatientList/>} />
-                        <Route path="/pacientes/:id" element={<PatientProfile/>} />
-                        <Route path="/balance" element={<FinancialOverview/>} />
-                        <Route path="/tareas" element={<TaskList/>} />
-                        <Route path="/disponibilidad" element={<AvailabilityManager/>} />
-                        <Route path="/profesionales" element={<ProfessionalList/>} />
-                        <Route path="/historial/:id?" element={<MedicalHistoryTimeline/>} />
-                        <Route path="/historial-turnos" element={<AppointmentHistory/>} />
-                        <Route path="/perfil" element={<UserProfile/>} />
-                    </Routes>
-                </Navbar>)}
+                {showNavbar && (
+                    <AdminRoute>
+                        <Navbar>
+                            <Routes>
+                                <Route path="*" element={<NotFound/>} />
+                                <Route path="/dashboard" element={<Dashboard/>} />
+                                <Route path="/turnos" element={<AppointmentCalendar/>} />
+                                <Route path="/pacientes" element={<PatientList/>} />
+                                <Route path="/pacientes/:id" element={<PatientProfile/>} />
+                                <Route path="/balance" element={<FinancialOverview/>} />
+                                <Route path="/tareas" element={<TaskList/>} />
+                                <Route path="/disponibilidad" element={<AvailabilityManager/>} />
+                                <Route path="/profesionales" element={<ProfessionalList/>} />
+                                <Route path="/historial/:id?" element={<MedicalHistoryTimeline/>} />
+                                <Route path="/historial-turnos" element={<AppointmentHistory/>} />
+                                <Route path="/perfil" element={<UserProfile/>} />
+                            </Routes>
+                        </Navbar>
+                    </AdminRoute>
+                )}
                 {!showNavbar && (
                     <Routes>
                         <Route path="/" element={<Navigate to="/login" replace />} />
