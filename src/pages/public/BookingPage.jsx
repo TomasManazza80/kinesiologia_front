@@ -16,6 +16,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import moment from 'moment';
 import 'moment/locale/es';
+import PublicNavbar from '../../components/nav/PublicNavbar.jsx';
 
 moment.locale('es');
 
@@ -104,6 +105,21 @@ export default function BookingPage() {
         }
     }, [allSpecialties, selectedService]);
 
+    // Preselect professional if query param 'profesional' or 'professional_id' is present
+    React.useEffect(() => {
+        const profIdParam = searchParams.get('profesional') || searchParams.get('professional_id');
+        if (profIdParam && professionals.length > 0) {
+            const foundProf = professionals.find(p => String(p.id) === String(profIdParam));
+            if (foundProf) {
+                setSelectedSpecialistId(foundProf.id);
+                if (foundProf.specialty) {
+                    const spec = Array.isArray(foundProf.specialty) ? foundProf.specialty[0] : foundProf.specialty;
+                    setSelectedService(spec);
+                }
+            }
+        }
+    }, [searchParams, professionals]);
+
     const filteredProfessionals = useMemo(() => {
         if (!selectedService) return [];
         return professionals.filter(p => {
@@ -186,92 +202,10 @@ export default function BookingPage() {
     const isReadyToConfirm = selectedSpecialistId && selectedDate && selectedTime;
 
     return (
-        <div className="bg-[#f7f9fc] md:bg-white min-h-screen font-sans text-gray-800 pb-20 md:pb-0">
+        <div className="bg-[#f7f9fc] min-h-screen font-sans text-gray-800 pb-20 md:pb-0">
+            <PublicNavbar />
             {/* Main Container */}
             <div className="max-w-md md:max-w-[1400px] mx-auto bg-white min-h-screen relative flex flex-col md:px-6 lg:px-12">
-                
-                {/* Header Navbar */}
-                <header className="flex items-center justify-between px-6 py-4 bg-white sticky top-0 z-10 md:px-10 md:py-6 md:border-b md:border-gray-100">
-                    <div className="flex items-center gap-4">
-                        <button 
-                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                            className="p-2 -ml-2 text-gray-500 hover:text-gray-900 transition-colors md:hidden"
-                        >
-                            <Menu size={24} />
-                        </button>
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-[#3B82F6] rounded-lg flex flex-wrap gap-0.5 p-1.5 items-center justify-center transform rotate-45">
-                                 <div className="w-2 h-2 bg-white rounded-full"></div>
-                                 <div className="w-2 h-2 bg-white rounded-full"></div>
-                                 <div className="w-2 h-2 bg-white rounded-full"></div>
-                                 <div className="w-2 h-2 bg-white rounded-full"></div>
-                            </div>
-                            <span className="text-xl md:text-2xl font-bold text-[#1E293B] tracking-tight">PAUSES</span>
-                        </div>
-                    </div>
-                    
-                    {/* Desktop Navigation */}
-                    <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-gray-500">
-                        <button className="text-[#0a47d4]">Reservar Turno</button>
-                        <button onClick={() => navigate('/mis-turnos')} className="hover:text-[#0a47d4] transition-colors">Mis Turnos</button>
-                        
-                        {userInfo?.role === 'ADMIN' || userInfo?.role === 'EMPLOYEE' ? (
-                            <button 
-                                onClick={() => navigate('/dashboard')}
-                                className="text-[#0a47d4] font-bold bg-blue-50 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors"
-                            >
-                                Panel Admin
-                            </button>
-                        ) : null}
-
-                        {!accessToken && (
-                            <button 
-                                onClick={() => navigate('/login')}
-                                className="hover:text-[#0a47d4] transition-colors"
-                            >
-                                Iniciar Sesión
-                            </button>
-                        )}
-                    </nav>
-
-                    {/* User Profile / Dropdown */}
-                    <div className="relative">
-                        <button 
-                            onClick={() => {
-                                if (!accessToken) {
-                                    navigate('/login');
-                                } else {
-                                    setIsUserMenuOpen(!isUserMenuOpen);
-                                }
-                            }}
-                            className="w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden border border-gray-200 bg-gray-100 flex justify-center items-center hover:bg-gray-200 transition-colors cursor-pointer"
-                        >
-                            <User size={20} className="text-gray-400" />
-                        </button>
-                        
-                        {isUserMenuOpen && accessToken && (
-                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
-                                <div className="px-4 py-3 border-b border-gray-50 mb-1">
-                                    <p className="text-sm font-bold text-gray-900 truncate">
-                                        {userInfo?.firstName || userInfo?.lastName ? `${userInfo.firstName || ''} ${userInfo.lastName || ''}`.trim() : userInfo?.email}
-                                    </p>
-                                    {(userInfo?.firstName || userInfo?.lastName) && (
-                                        <p className="text-xs text-gray-500 truncate mt-0.5">{userInfo?.email}</p>
-                                    )}
-                                </div>
-                                <button 
-                                    onClick={() => {
-                                        setIsUserMenuOpen(false);
-                                        handleLogout();
-                                    }}
-                                    className="w-full text-left px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
-                                >
-                                    Cerrar Sesión
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </header>
 
                 {/* Mobile Navigation Drawer & Overlay */}
                 <div 

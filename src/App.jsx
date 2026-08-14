@@ -12,6 +12,7 @@ import {useSocket} from "./services/hooks/useSocket.js";
 import SocketContext from "./services/contexts/SocketContext.js";
 import {ThemeProvider} from "./services/contexts/ThemeContext.tsx";
 import BookingPage from "./pages/public/BookingPage.jsx";
+import PublicLanding from "./pages/public/PublicLanding.jsx";
 import MyAppointments from "./components/kinesio/MyAppointments.jsx";
 
 import Dashboard from "./components/kinesio/Dashboard.jsx";
@@ -20,6 +21,7 @@ import MedicalHistoryTimeline from "./components/kinesio/MedicalHistoryTimeline.
 import PatientList from "./components/kinesio/PatientList.jsx";
 import PatientProfile from "./components/kinesio/PatientProfile.jsx";
 import FinancialOverview from "./components/kinesio/FinancialOverview.jsx";
+import GroupFinancialOverview from "./components/kinesio/GroupFinancialOverview.jsx";
 import TaskList from "./components/kinesio/TaskList.jsx";
 import ProfessionalList from "./components/kinesio/ProfessionalList.jsx";
 import AvailabilityManager from "./components/kinesio/AvailabilityManager.jsx";
@@ -53,11 +55,11 @@ const AppContent = () => {
     useEffect(() => {
         const timer = setTimeout(() => {
             setIsAppLoading(false);
-        }, 1500);
+        }, 400);
         return () => clearTimeout(timer);
     }, []);
 
-    const isPublicRoute = location.pathname === '/' || location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/signup-admin' || location.pathname === '/reservar' || location.pathname === '/mis-turnos';
+    const isPublicRoute = location.pathname === '/' || location.pathname === '/pausas' || location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/signup-admin' || location.pathname === '/reservar' || location.pathname === '/mis-turnos';
     const showNavbar = !isPublicRoute;
 
     const token = useSelector(state => state.authSlice.accessToken)
@@ -76,6 +78,7 @@ const AppContent = () => {
                                 <Route path="/pacientes" element={<PatientList/>} />
                                 <Route path="/pacientes/:id" element={<PatientProfile/>} />
                                 <Route path="/balance" element={<FinancialOverview/>} />
+                                <Route path="/balance-grupal" element={<GroupFinancialOverview/>} />
                                 <Route path="/tareas" element={<TaskList/>} />
                                 <Route path="/disponibilidad" element={<AvailabilityManager/>} />
                                 <Route path="/profesionales" element={<ProfessionalList/>} />
@@ -88,7 +91,8 @@ const AppContent = () => {
                 )}
                 {!showNavbar && (
                     <Routes>
-                        <Route path="/" element={<Navigate to="/login" replace />} />
+                        <Route path="/" element={<PublicLanding />} />
+                        <Route path="/pausas" element={<PublicLanding />} />
                         <Route path="/login" element={<LoginCard/>} />
                         <Route path="/signup" element={<SignUpCard/>}/>
                         <Route path="/signup-admin" element={<SignUpAdminCard/>}/>

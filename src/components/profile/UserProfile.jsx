@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useGetProfileQuery, useUpdateProfileMutation } from '../../services/api/kinesioApi.js';
-import { User, Mail, Shield, Award, DollarSign, Key, Save, Loader2, LogOut, CheckCircle2, Stethoscope, ArrowLeft } from 'lucide-react';
+import { User, Mail, Shield, Award, DollarSign, Key, Save, Loader2, LogOut, CheckCircle2, Stethoscope, ArrowLeft, Calendar } from 'lucide-react';
+import dayjs from 'dayjs';
 import { toast } from '../ui/use-toast.tsx';
 import { logoutUser } from '../../services/auth/authActions.js';
 import { useNavigate } from 'react-router-dom';
@@ -111,7 +112,10 @@ export default function UserProfile() {
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold rounded-full flex items-center gap-1.5" title="Fecha de registro en la plataforma">
+                <Calendar size={14} className="text-slate-500" /> Miembro desde {user.createdAt ? dayjs(user.createdAt).format('DD/MM/YYYY') : 'Reciente'}
+              </span>
               <span className="px-3 py-1 bg-blue-50 text-[#0A58CA] border border-blue-100 text-xs font-extrabold rounded-full uppercase tracking-wider flex items-center gap-1.5">
                 <Shield size={14} /> {user.role || 'PROFESIONAL'}
               </span>

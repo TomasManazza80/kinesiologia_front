@@ -12,7 +12,8 @@ import {
     useDeleteSpecialtyMutation
 } from '../../services/api/kinesioApi.js';
 import { toast } from '../ui/use-toast.tsx';
-import { Plus, User, Mail, Shield, ShieldAlert, Loader2, X, Briefcase, Search, Filter, Camera, Check, Users, Edit2, Trash2 } from 'lucide-react';
+import { Plus, User, Mail, Shield, ShieldAlert, Loader2, X, Briefcase, Search, Filter, Camera, Check, Users, Edit2, Trash2, Calendar } from 'lucide-react';
+import dayjs from 'dayjs';
 
 
 const ProfessionalList = () => {
@@ -303,6 +304,7 @@ const ProfessionalList = () => {
                                     <th className="px-6 py-4">Profesional</th>
                                     <th className="px-6 py-4">Contacto</th>
                                     <th className="px-6 py-4">Rol</th>
+                                    <th className="px-6 py-4">Registrado El</th>
                                     <th className="px-6 py-4 text-center">Público (Web)</th>
                                     <th className="px-6 py-4 text-right">Acciones</th>
                                 </tr>
@@ -339,6 +341,12 @@ const ProfessionalList = () => {
                                                     <Shield size={12} />
                                                     {prof.role}
                                                 </span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600">
+                                                    <Calendar size={14} className="text-gray-400" />
+                                                    {prof.createdAt ? dayjs(prof.createdAt).format('DD/MM/YYYY') : '-'}
+                                                </div>
                                             </td>
                                             <td className="px-6 py-4 text-center">
                                                 <label className="relative inline-flex items-center cursor-pointer">

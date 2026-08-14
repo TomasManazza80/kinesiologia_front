@@ -41,6 +41,7 @@ const AppointmentCalendar = () => {
     const [newAppt, setNewAppt] = useState({ patient_id: '', fecha_hora: '', end_time: '', motivo: '' });
     const [isCreatingPatient, setIsCreatingPatient] = useState(false);
     const [newPatientName, setNewPatientName] = useState('');
+    const [isAllApptsModalOpen, setIsAllApptsModalOpen] = useState(false);
 
     const [viewMode, setViewMode] = useState('Semanal');
     const [isCompact, setIsCompact] = useState(false);
@@ -83,6 +84,12 @@ const AppointmentCalendar = () => {
         skip: !activeProfessionalId
     });
 
+    const { data: allAppointments, isLoading: isAllApptsLoading } = useGetAppointmentsQuery({
+        professional_id: activeProfessionalId
+    }, {
+        skip: !isAllApptsModalOpen || !activeProfessionalId
+    });
+
     const displayDays = viewMode === 'Semanal'
         ? Array.from({ length: 7 }, (_, i) => {
             const d = new Date(startOfWeek);
@@ -99,8 +106,10 @@ const AppointmentCalendar = () => {
             // Filters
             if (statusFilter && appt.estado !== statusFilter) return;
             if (searchQuery) {
+                const searchLower = searchQuery.toLowerCase();
                 const patientName = appt.patient?.nombre?.toLowerCase() || '';
-                if (!patientName.includes(searchQuery.toLowerCase())) return;
+                const patientDni = appt.patient?.dni?.toLowerCase() || '';
+                if (!patientName.includes(searchLower) && !patientDni.includes(searchLower)) return;
             }
 
             const date = new Date(appt.fecha_hora);
@@ -221,31 +230,42 @@ const AppointmentCalendar = () => {
         ];
         const color = colors[appt.id % colors.length] || colors[0];
 
+        const isCompleted = appt.estado === 'completado';
         const patientName = appt.patient ? appt.patient.nombre : '';
 
+        const showPatient = height >= 36;
+        const showTime = height >= 52;
+        const paddingStyle = height < 36 ? '2px 6px' : (height < 52 ? '4px 6px' : '6px 8px');
+
         return (
-            <div key={appt.id} className="absolute left-2 right-2 p-2 rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition-shadow cursor-pointer z-20"
+            <div key={appt.id} className={`absolute left-1 right-1 rounded-xl border overflow-hidden transition-all cursor-pointer z-20 flex flex-col ${isCompleted ? 'opacity-70 shadow-none grayscale-[0.3]' : 'shadow-sm hover:shadow-md hover:scale-[1.02] hover:z-30'}`}
                 onClick={() => setSelectedApptDetail(appt)}
                 style={{
                     top: `${top}px`,
                     height: `${height}px`,
-                    backgroundColor: color.bg,
-                    borderColor: color.border
+                    minHeight: '26px',
+                    padding: paddingStyle,
+                    backgroundColor: isCompleted ? '#F3F4F6' : color.bg,
+                    borderColor: isCompleted ? '#D1D5DB' : color.border,
+                    borderStyle: isCompleted ? 'dashed' : 'solid'
                 }}>
-                <div className="flex justify-between items-start">
-                    <div className="text-sm font-bold truncate" style={{ color: color.text }}>{appt.motivo || 'Turno'}</div>
+                <div className="flex justify-between items-start gap-1">
+                    <div className={`font-bold truncate ${isCompleted ? 'line-through text-gray-500' : ''} ${height < 36 ? 'text-[10px] leading-[20px]' : 'text-xs sm:text-sm leading-tight'}`} style={{ color: isCompleted ? undefined : color.text }}>{appt.motivo || 'Turno'}</div>
                     <button 
                         onClick={(e) => { e.stopPropagation(); handleCompleteAppointment(appt.id); }}
-                        className={`p-1 rounded-full transition-colors ${appt.estado === 'completado' ? 'text-green-600 bg-green-100' : 'text-gray-400 hover:text-green-600 hover:bg-white/50'}`}
-                        title="Marcar como completado"
+                        className={`shrink-0 flex items-center justify-center rounded-full transition-colors ${isCompleted ? 'text-white bg-green-500 hover:bg-green-600 shadow-sm' : 'text-gray-400 hover:text-green-600 hover:bg-white/50'} ${height < 36 ? 'w-4 h-4 mt-0.5' : 'w-5 h-5 p-0.5 mt-0'}`}
+                        title={isCompleted ? "Completado" : "Marcar como completado"}
                     >
-                        <Check size={14} />
+                        <Check size={height < 36 ? 10 : 12} strokeWidth={isCompleted ? 3 : 2} />
                     </button>
                 </div>
-                {patientName && <div className="text-xs font-semibold truncate" style={{ color: color.text }}>{patientName}</div>}
-                <div className="text-xs font-medium mt-0.5" style={{ color: color.timeText }}>
-                    {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </div>
+                {showPatient && patientName && <div className={`text-[10px] font-semibold truncate mt-0.5 ${isCompleted ? 'text-gray-500' : ''}`} style={{ color: isCompleted ? undefined : color.text }}>{patientName}</div>}
+                {showTime && (
+                    <div className={`text-[9px] font-medium mt-auto pt-0.5 flex justify-between items-center ${isCompleted ? 'text-gray-400' : ''}`} style={{ color: isCompleted ? undefined : color.timeText }}>
+                        <span>{date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        {isCompleted && <span className="text-[8px] uppercase tracking-wider font-bold text-green-600 bg-green-100 px-1.5 py-0.5 rounded-full">Hecho</span>}
+                    </div>
+                )}
             </div>
         );
     };
@@ -285,6 +305,12 @@ const AppointmentCalendar = () => {
                         <List size={16} /> Ver listado
                     </button>
                     <button
+                        onClick={() => setIsAllApptsModalOpen(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-purple-50 border border-purple-200 rounded-full text-sm font-medium text-purple-700 hover:bg-purple-100 transition-colors"
+                    >
+                        <History size={16} /> Todos los turnos
+                    </button>
+                    <button
                         onClick={() => navigate('/historial-turnos')}
                         className="flex items-center gap-2 px-4 py-2 bg-[#0A58CA] border border-blue-600 rounded-full text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-sm"
                     >
@@ -295,7 +321,7 @@ const AppointmentCalendar = () => {
                     {isSearchOpen && (
                         <input
                             type="text"
-                            placeholder="Buscar paciente..."
+                            placeholder="Buscar paciente o DNI..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="absolute right-[240px] px-3 py-1.5 border border-gray-200 rounded-full text-sm outline-none focus:border-[#0a47d4] shadow-sm animate-in fade-in slide-in-from-right-4 w-[200px]"
@@ -652,7 +678,7 @@ const AppointmentCalendar = () => {
                                             </span>
                                             <button 
                                                 onClick={(e) => { e.stopPropagation(); handleCompleteAppointment(appt.id); }}
-                                                className={`p-1.5 rounded-full transition-colors ${appt.estado === 'completado' ? 'text-green-600 bg-green-100' : 'text-gray-400 hover:text-green-600 hover:bg-gray-100'}`}
+                                                className={`p-1.5 rounded-full transition-colors ${appt.estado === 'completado' ? 'text-white bg-green-500' : 'text-gray-400 hover:text-green-600 hover:bg-gray-100'}`}
                                                 title="Marcar como completado"
                                             >
                                                 <Check size={16} />
@@ -661,6 +687,96 @@ const AppointmentCalendar = () => {
                                     </div>
                                 ));
                             })()}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Todos los Turnos */}
+            {isAllApptsModalOpen && (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div className="bg-white rounded-2xl shadow-xl w-[800px] max-w-[95vw] h-[80vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        <div className="flex justify-between items-center p-5 border-b border-gray-100 shrink-0 bg-gray-50">
+                            <h3 className="font-bold text-xl text-gray-900 flex items-center gap-2">
+                                <History size={24} className="text-purple-600" />
+                                Historial Completo de Turnos
+                            </h3>
+                            <button onClick={() => setIsAllApptsModalOpen(false)} className="text-gray-400 hover:text-gray-600 bg-white p-1.5 rounded-full shadow-sm"><X size={20} /></button>
+                        </div>
+                        <div className="flex-1 overflow-hidden flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-gray-200 bg-white">
+                            {isAllApptsLoading ? (
+                                <div className="p-8 flex justify-center items-center w-full h-full">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                                </div>
+                            ) : (
+                                <>
+                                    {/* Past Appointments */}
+                                    <div className="flex-1 flex flex-col overflow-hidden">
+                                        <div className="p-4 bg-gray-50/80 border-b border-gray-100 shrink-0">
+                                            <h4 className="font-bold text-gray-700 flex items-center gap-2">
+                                                <div className="w-2 h-2 rounded-full bg-gray-400"></div>
+                                                Turnos Pasados
+                                                <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full ml-auto">
+                                                    {allAppointments?.filter(a => new Date(a.fecha_hora) < new Date()).length || 0}
+                                                </span>
+                                            </h4>
+                                        </div>
+                                        <div className="p-4 overflow-y-auto flex-1 flex flex-col gap-3">
+                                            {(() => {
+                                                const past = allAppointments?.filter(a => new Date(a.fecha_hora) < new Date()).sort((a,b) => new Date(b.fecha_hora) - new Date(a.fecha_hora)) || [];
+                                                if (past.length === 0) return <p className="text-sm text-gray-500 text-center py-4">No hay turnos pasados.</p>;
+                                                return past.map(appt => (
+                                                    <div key={appt.id} className="flex justify-between items-start p-3 border border-gray-100 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors" onClick={() => { setSelectedApptDetail(appt); setIsAllApptsModalOpen(false); }}>
+                                                        <div className="flex-1 min-w-0 pr-4">
+                                                            <p className="text-sm font-bold text-gray-900 truncate">{appt.patient?.nombre || 'Sin nombre'}</p>
+                                                            <p className="text-xs text-gray-500 mt-0.5 truncate">{appt.motivo}</p>
+                                                            <p className="text-xs font-medium text-gray-400 mt-1">{new Date(appt.fecha_hora).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                                                        </div>
+                                                        <div className="shrink-0 flex flex-col items-end gap-2">
+                                                            <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-md ${appt.estado === 'completado' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                                                                {appt.estado || 'Pasado'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ));
+                                            })()}
+                                        </div>
+                                    </div>
+
+                                    {/* Future Appointments */}
+                                    <div className="flex-1 flex flex-col overflow-hidden">
+                                        <div className="p-4 bg-blue-50/50 border-b border-gray-100 shrink-0">
+                                            <h4 className="font-bold text-blue-800 flex items-center gap-2">
+                                                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                                Próximos Turnos
+                                                <span className="text-xs bg-blue-200 text-blue-700 px-2 py-0.5 rounded-full ml-auto">
+                                                    {allAppointments?.filter(a => new Date(a.fecha_hora) >= new Date()).length || 0}
+                                                </span>
+                                            </h4>
+                                        </div>
+                                        <div className="p-4 overflow-y-auto flex-1 flex flex-col gap-3">
+                                            {(() => {
+                                                const future = allAppointments?.filter(a => new Date(a.fecha_hora) >= new Date()).sort((a,b) => new Date(a.fecha_hora) - new Date(b.fecha_hora)) || [];
+                                                if (future.length === 0) return <p className="text-sm text-gray-500 text-center py-4">No hay próximos turnos.</p>;
+                                                return future.map(appt => (
+                                                    <div key={appt.id} className="flex justify-between items-start p-3 border border-blue-100 bg-white rounded-lg hover:border-blue-300 hover:shadow-sm cursor-pointer transition-all" onClick={() => { setSelectedApptDetail(appt); setIsAllApptsModalOpen(false); }}>
+                                                        <div className="flex-1 min-w-0 pr-4">
+                                                            <p className="text-sm font-bold text-gray-900 truncate">{appt.patient?.nombre || 'Sin nombre'}</p>
+                                                            <p className="text-xs text-gray-600 mt-0.5 truncate">{appt.motivo}</p>
+                                                            <p className="text-xs font-semibold text-blue-600 mt-1">{new Date(appt.fecha_hora).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                                                        </div>
+                                                        <div className="shrink-0 flex flex-col items-end gap-2">
+                                                            <span className="text-[10px] uppercase font-bold px-2 py-1 rounded-md bg-blue-100 text-blue-700">
+                                                                {appt.estado || 'Confirmado'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ));
+                                            })()}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>

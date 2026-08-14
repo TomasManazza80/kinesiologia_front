@@ -200,7 +200,17 @@ export const kinesioApi = authApi.injectEndpoints({
         }),
         // Balance Endpoints
         getBalance: build.query({
-            query: (filter) => ({ url: `/api/kinesio/balance?filter=${filter}`, method: 'GET' }),
+            query: (arg) => {
+                let filter = 'Mes';
+                let scope = 'personal';
+                if (typeof arg === 'string') {
+                    filter = arg;
+                } else if (typeof arg === 'object' && arg !== null) {
+                    filter = arg.filter || 'Mes';
+                    scope = arg.scope || 'personal';
+                }
+                return { url: `/api/kinesio/balance?filter=${filter}&scope=${scope}`, method: 'GET' };
+            },
             providesTags: ['Balance']
         }),
         createTransaction: build.mutation({
@@ -212,8 +222,8 @@ export const kinesioApi = authApi.injectEndpoints({
             invalidatesTags: ['Balance']
         }),
         getTransactionHistory: build.query({
-            query: ({ offset = 0, limit = 50 }) => ({
-                url: `/api/kinesio/transactions/history?offset=${offset}&limit=${limit}`,
+            query: ({ offset = 0, limit = 50, scope = 'personal' } = {}) => ({
+                url: `/api/kinesio/transactions/history?offset=${offset}&limit=${limit}&scope=${scope}`,
                 method: 'GET'
             }),
             providesTags: ['Balance']
@@ -227,8 +237,8 @@ export const kinesioApi = authApi.injectEndpoints({
             invalidatesTags: ['Balance']
         }),
         getExpenses: build.query({
-            query: ({ startDate = '', endDate = '' }) => ({
-                url: `/api/kinesio/expenses?startDate=${startDate}&endDate=${endDate}`,
+            query: ({ startDate = '', endDate = '', scope = 'personal' } = {}) => ({
+                url: `/api/kinesio/expenses?startDate=${startDate}&endDate=${endDate}&scope=${scope}`,
                 method: 'GET'
             }),
             providesTags: ['Balance']

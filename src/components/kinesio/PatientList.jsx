@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSelector } from "react-redux";
-import { Search, Plus, RotateCcw, Edit, X, Trash2, User, Settings, Share2, Send } from 'lucide-react';
+import { Search, Plus, RotateCcw, Edit, X, Trash2, User, Settings, Share2, Send, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useGetPatientsQuery, useUpdatePatientMutation, useCreatePatientMutation, useDeletePatientMutation, useGetProfessionalsQuery } from '../../services/api/kinesioApi.js';
 import { toast } from '../ui/use-toast';
@@ -45,8 +45,63 @@ const PatientList = () => {
   const filters = ['Todos los Pacientes', 'Visitas Recientes', 'Requiere Seguimiento', 'Nuevos esta Semana'];
 
   const filteredPatients = patients.filter(p => {
-      if (!p.nombre) return false;
-      return p.nombre.toLowerCase().includes(searchQuery.toLowerCase()) || p.id.toString().includes(searchQuery);
+      if (!p || !p.nombre) return false;
+
+      // 1. Text Search Filter
+      const query = searchQuery.trim().toLowerCase();
+      if (query) {
+          const matchesName = p.nombre.toLowerCase().includes(query);
+          const matchesId = p.id.toString().includes(query);
+          const matchesDni = p.dni ? p.dni.includes(query) : false;
+          const matchesEmail = p.datos_contacto?.email ? p.datos_contacto.email.toLowerCase().includes(query) : false;
+          const matchesPhone = p.datos_contacto?.phone ? p.datos_contacto.phone.includes(query) : false;
+          
+          if (!matchesName && !matchesId && !matchesDni && !matchesEmail && !matchesPhone) {
+              return false;
+          }
+      }
+
+      // 2. Active Filter Chips
+      if (activeFilter === 'Todos los Pacientes') {
+          return true;
+      }
+
+      const now = new Date();
+      const createdAt = p.createdAt ? new Date(p.createdAt) : p.created_at ? new Date(p.created_at) : null;
+      const updatedAt = p.updatedAt ? new Date(p.updatedAt) : p.updated_at ? new Date(p.updated_at) : null;
+      const statusLower = (p.status || '').toLowerCase();
+
+      if (activeFilter === 'Visitas Recientes') {
+          // Visita o actualización dentro de los últimos 30 días, o estado activo/reciente/tratamiento
+          const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          const isRecentlyUpdated = updatedAt && updatedAt >= thirtyDaysAgo;
+          const isRecentlyCreated = createdAt && createdAt >= thirtyDaysAgo;
+          const isActiveStatus = statusLower.includes('activo') || statusLower.includes('tratamiento') || statusLower.includes('visita');
+          
+          return isRecentlyUpdated || isRecentlyCreated || isActiveStatus;
+      }
+
+      if (activeFilter === 'Requiere Seguimiento') {
+          // Si el estado indica seguimiento o pendiente, o si han pasado más de 14 días desde la última actualización sin estar de alta/inactivo
+          const isSeguimientoStatus = statusLower.includes('seguimiento') || 
+                                      statusLower.includes('pendiente') || 
+                                      statusLower.includes('evalua') || 
+                                      statusLower.includes('revision');
+          
+          const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+          const isStale = (updatedAt && updatedAt <= fourteenDaysAgo) || (!updatedAt && createdAt && createdAt <= fourteenDaysAgo);
+          const isNotInactive = !statusLower.includes('alta') && !statusLower.includes('inactivo') && !statusLower.includes('completado');
+
+          return isSeguimientoStatus || (isStale && isNotInactive);
+      }
+
+      if (activeFilter === 'Nuevos esta Semana') {
+          // Creado en los últimos 7 días
+          const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          return createdAt && createdAt >= sevenDaysAgo;
+      }
+
+      return true;
   });
 
   const calculateAge = (dob) => {
@@ -189,6 +244,18 @@ const PatientList = () => {
 
       {isLoading ? (
           <div className="text-center py-10 text-gray-500">Cargando pacientes...</div>
+      ) : filteredPatients.length === 0 ? (
+          <div className="bg-white border border-gray-100 rounded-2xl p-12 text-center text-gray-500 shadow-xs">
+              <User className="w-12 h-12 text-purple-300 mx-auto mb-3" />
+              <p className="font-semibold text-gray-800 text-base">No se encontraron pacientes</p>
+              <p className="text-xs text-gray-400 mt-1">No hay pacientes que coincidan con el filtro "{activeFilter}"{searchQuery ? ` y la búsqueda "${searchQuery}"` : ''}.</p>
+              <button 
+                  onClick={() => { setActiveFilter('Todos los Pacientes'); setSearchQuery(''); }}
+                  className="mt-4 px-4 py-2 bg-purple-50 text-[#6D28D9] rounded-lg text-xs font-bold hover:bg-purple-100 transition-colors"
+              >
+                  Ver todos los pacientes
+              </button>
+          </div>
       ) : (
           <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-[0_4px_20px_rgb(0,0,0,0.03)]">
             <div className="overflow-x-auto">
@@ -228,12 +295,42 @@ const PatientList = () => {
                         <div className="text-sm text-gray-900">{calculateAge(patient.fecha_nacimiento)} años</div>
                         <div className="text-xs text-gray-500">{patient.gender || '-'} • {patient.blood_type || '-'}</div>
                       </td>
-                      <td className="p-4">
-                        {patient.status ? (
-                          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">
-                            {patient.status}
-                          </span>
-                        ) : <span className="text-gray-400 text-xs">-</span>}
+                      <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                        <div className="relative inline-flex items-center">
+                          <select 
+                            value={patient.status || ''} 
+                            onChange={async (e) => {
+                              const newStatus = e.target.value;
+                              try {
+                                await updatePatient({ id: patient.id, status: newStatus }).unwrap();
+                                toast({ title: 'Estado Actualizado', description: `El estado de ${patient.nombre} se actualizó a "${newStatus || 'Sin Estado'}".`, variant: 'success' });
+                              } catch (err) {
+                                toast({ title: 'Error', description: 'Error al actualizar el estado.', variant: 'destructive' });
+                              }
+                            }}
+                            className={`appearance-none cursor-pointer text-xs font-semibold px-3 py-1 pr-6 rounded-full border transition-all outline-none ${
+                              !patient.status 
+                                ? 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200' 
+                                : patient.status.toLowerCase().includes('activo') 
+                                ? 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200'
+                                : patient.status.toLowerCase().includes('tratamiento')
+                                ? 'bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200'
+                                : patient.status.toLowerCase().includes('seguimiento') || patient.status.toLowerCase().includes('pendiente')
+                                ? 'bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-200'
+                                : patient.status.toLowerCase().includes('alta')
+                                ? 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200'
+                                : 'bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100'
+                            }`}
+                          >
+                            <option value="">- Sin Estado -</option>
+                            <option value="Activo">Activo</option>
+                            <option value="En tratamiento">En tratamiento</option>
+                            <option value="Requiere Seguimiento">Requiere Seguimiento</option>
+                            <option value="Alta">Alta</option>
+                            <option value="Inactivo">Inactivo</option>
+                          </select>
+                          <ChevronDown size={12} className="pointer-events-none absolute right-2 text-current opacity-70" />
+                        </div>
                       </td>
                       <td className="p-4 pr-6 text-right">
                         <div className="flex justify-end gap-2">
@@ -384,13 +481,18 @@ const PatientList = () => {
                           </div>
                           <div>
                               <label className="block text-sm font-semibold text-gray-700 mb-1">Estado</label>
-                              <input 
-                                  type="text" 
-                                  placeholder="Ej. Estable, En tratamiento"
-                                  className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:border-blue-500"
+                              <select 
+                                  className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:border-blue-500 bg-white"
                                   value={editingPatient?.status || ''}
                                   onChange={(e) => setEditingPatient({...editingPatient, status: e.target.value})}
-                              />
+                              >
+                                  <option value="">- Sin Estado -</option>
+                                  <option value="Activo">Activo</option>
+                                  <option value="En tratamiento">En tratamiento</option>
+                                  <option value="Requiere Seguimiento">Requiere Seguimiento</option>
+                                  <option value="Alta">Alta</option>
+                                  <option value="Inactivo">Inactivo</option>
+                              </select>
                           </div>
                       </div>
 

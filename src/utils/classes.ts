@@ -1,12 +1,13 @@
-import {
-    AccountStatus,
-    AmenitiesOnRealEstate,
-    CurrencyCode,
-    Image, ListingStatus, Message,
-    PreferencesOnRealEstate,
-    RealEstateType,
-    Realtor, UserRole,
-} from "@prisma/client";
+type AccountStatus = any;
+type AmenitiesOnRealEstate = any;
+type CurrencyCode = any;
+type Image = any;
+type ListingStatus = any;
+type Message = any;
+type PreferencesOnRealEstate = any;
+type RealEstateType = any;
+type Realtor = any;
+type UserRole = any;
 
 export class LeasePaymentSchedule {
     id: number;

@@ -4,6 +4,7 @@ import { Calendar, Clock, Stethoscope, CheckCircle2, XCircle, Clock4, ArrowLeft 
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
+import PublicNavbar from '../nav/PublicNavbar.jsx';
 
 dayjs.locale('es');
 
@@ -52,6 +53,7 @@ const MyAppointments = () => {
 
     return (
         <div className="bg-[#f7f9fc] min-h-screen font-sans text-gray-800">
+            <PublicNavbar />
             <div className="max-w-4xl mx-auto px-4 py-8 md:py-12">
                 
                 {/* Header */}

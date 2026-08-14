@@ -38,7 +38,7 @@ const Navbar = ({children}) => {
         },
         {
             path: '/balance',
-            title: 'Balance',
+            title: 'Balance Personal',
         },
         {
             path: '/tareas',
@@ -51,6 +51,10 @@ const Navbar = ({children}) => {
     ];
 
     if (userRole === 'ADMIN' || userRole === 'SUPERADMIN') {
+        navItems.splice(3, 0, {
+            path: '/balance-grupal',
+            title: 'Balance Grupal',
+        });
         navItems.push({
             path: '/profesionales',
             title: 'Personal',

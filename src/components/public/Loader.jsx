@@ -7,8 +7,8 @@ export default function Loader({ fullScreen = false, isLoading = true }) {
     if (isLoading) {
       setRender(true);
     } else {
-      // Time the unmount to match the transition duration (700ms)
-      const timer = setTimeout(() => setRender(false), 700);
+      // Time the unmount to match the transition duration (300ms)
+      const timer = setTimeout(() => setRender(false), 300);
       return () => clearTimeout(timer);
     }
   }, [isLoading]);
@@ -18,7 +18,7 @@ export default function Loader({ fullScreen = false, isLoading = true }) {
   const isExiting = !isLoading && fullScreen;
 
   const containerClasses = fullScreen
-    ? `fixed inset-0 z-[9999] bg-[#f7f9fc] flex flex-col items-center justify-center min-h-screen pointer-events-none transition-transform duration-700 ease-in-out ${isExiting ? 'translate-y-full' : 'translate-y-0'}`
+    ? `fixed inset-0 z-[9999] bg-[#f7f9fc] flex flex-col items-center justify-center min-h-screen pointer-events-none transition-transform duration-300 ease-in-out ${isExiting ? 'translate-y-full' : 'translate-y-0'}`
     : "flex flex-col items-center justify-center p-10 w-full h-full min-h-[300px] bg-blue-50/50 rounded-3xl transition-all duration-300";
 
   return (

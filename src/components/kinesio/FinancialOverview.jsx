@@ -41,7 +41,7 @@ const FinancialOverview = () => {
   const handleCreate = async () => {
     if (!newTx.title || !newTx.amount) return;
     try {
-        await createTransaction(newTx).unwrap();
+        await createTransaction({ ...newTx, isGroup: false }).unwrap();
         toast({ title: 'Éxito', description: 'Transacción creada', variant: 'success' });
         setShowModal(false);
         setNewTx({ title: '', amount: '', type: 'income', category: 'OTHER', paymentMethod: 'Efectivo' });
@@ -116,8 +116,8 @@ const FinancialOverview = () => {
       {/* Header Navigation & Actions */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#111827]">Resumen Financiero</h1>
-          <p className="text-gray-500 mt-1">Controla los ingresos, gastos y egresos por período.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-[#111827]">Balance Personal</h1>
+          <p className="text-gray-500 mt-1">Controla tus ingresos, gastos y egresos personales por período.</p>
         </div>
         
         <div className="flex items-center gap-4">
