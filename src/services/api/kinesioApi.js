@@ -59,6 +59,13 @@ export const kinesioApi = authApi.injectEndpoints({
             }),
             invalidatesTags: ['Professionals']
         }),
+        deleteProfessional: build.mutation({
+            query: (id) => ({
+                url: `/api/kinesio/professionals/${id}`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: ['Professionals']
+        }),
         updateProfile: build.mutation({
             query: (data) => ({
                 url: '/user',
@@ -322,6 +329,7 @@ export const {
     useDeleteSpecialtyMutation,
     useCreateProfessionalMutation,
     useUpdateProfessionalMutation,
+    useDeleteProfessionalMutation,
     useUpdateProfileMutation,
     useGetProfileQuery,
     useGetAppointmentsQuery,

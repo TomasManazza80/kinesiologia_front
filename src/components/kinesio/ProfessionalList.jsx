@@ -4,6 +4,7 @@ import {
     useGetProfessionalsQuery, 
     useCreateProfessionalMutation, 
     useUpdateProfessionalMutation, 
+    useDeleteProfessionalMutation,
     useUploadImageMutation,
     useGetSpecialtiesQuery,
     useCreateSpecialtyMutation,
@@ -18,7 +19,31 @@ const ProfessionalList = () => {
     const { data, isLoading, error } = useGetProfessionalsQuery();
     const [createProfessional, { isLoading: isCreating }] = useCreateProfessionalMutation();
     const [updateProfessional, { isLoading: isUpdating }] = useUpdateProfessionalMutation();
+    const [deleteProfessional, { isLoading: isDeleting }] = useDeleteProfessionalMutation();
     const [uploadImage] = useUploadImageMutation();
+
+    const handleDeleteProfessional = async (id, name) => {
+        if (!window.confirm(`¿Estás seguro de que deseas eliminar a "${name || 'este profesional'}" del sistema? Esta acción eliminará sus asignaciones y turnos.`)) {
+            return;
+        }
+        try {
+            await deleteProfessional(id).unwrap();
+            toast({
+                title: 'Éxito',
+                description: 'Profesional eliminado correctamente.',
+                variant: 'success'
+            });
+            if (selectedProfessional?.id === id) {
+                setSelectedProfessional(null);
+            }
+        } catch (err) {
+            toast({
+                title: 'Error',
+                description: err?.data?.message || 'Error al eliminar el profesional.',
+                variant: 'error'
+            });
+        }
+    };
 
     const { data: specData, isLoading: isLoadingSpecs } = useGetSpecialtiesQuery();
     const [createSpecialtyMutation] = useCreateSpecialtyMutation();
@@ -334,17 +359,27 @@ const ProfessionalList = () => {
                                                 </label>
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <button 
-                                                    onClick={() => {
-                                                        setSelectedProfessional(prof);
-                                                        setEditFormData(prof);
-                                                        setIsEditing(false);
-                                                    }}
-                                                    className="text-blue-500 hover:text-blue-700 font-semibold text-sm"
-                                                >
-                                                    Ver Detalle
-                                                </button>
-                                            </td>
+                                                 <div className="flex items-center justify-end gap-3">
+                                                     <button 
+                                                         onClick={() => {
+                                                             setSelectedProfessional(prof);
+                                                             setEditFormData(prof);
+                                                             setIsEditing(false);
+                                                         }}
+                                                         className="text-blue-500 hover:text-blue-700 font-semibold text-sm"
+                                                     >
+                                                         Ver Detalle
+                                                     </button>
+                                                     <button 
+                                                         onClick={() => handleDeleteProfessional(prof.id, prof.name)}
+                                                         className="text-red-500 hover:text-red-700 font-semibold text-sm flex items-center gap-1"
+                                                         title="Eliminar profesional"
+                                                     >
+                                                         <Trash2 size={15} />
+                                                         Eliminar
+                                                     </button>
+                                                 </div>
+                                             </td>
                                         </tr>
                                     ))
                                 ) : (
@@ -659,9 +694,19 @@ const ProfessionalList = () => {
                                     <button 
                                         type="button" 
                                         onClick={() => setSelectedProfessional(null)}
-                                        className="flex-1 py-2.5 bg-white text-gray-700 rounded-xl font-bold border border-gray-300 hover:bg-gray-50 transition-colors"
+                                        className="py-2.5 px-4 bg-white text-gray-700 rounded-xl font-bold border border-gray-300 hover:bg-gray-50 transition-colors"
                                     >
                                         Cerrar
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => handleDeleteProfessional(selectedProfessional.id, selectedProfessional.name)}
+                                        disabled={isDeleting}
+                                        className="py-2.5 px-4 bg-red-50 text-red-600 rounded-xl font-bold border border-red-200 hover:bg-red-100 transition-colors flex items-center justify-center gap-1.5"
+                                        title="Eliminar profesional del equipo"
+                                    >
+                                        <Trash2 size={16} />
+                                        Eliminar
                                     </button>
                                     <button 
                                         type="button" 
