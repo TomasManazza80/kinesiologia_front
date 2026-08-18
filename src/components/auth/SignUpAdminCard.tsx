@@ -72,8 +72,8 @@ export const SignUpAdminCard = () => {
     return (
         <PublicAuthLayout>
             <div className="text-center mb-6">
-                <h1 className="text-3xl font-serif text-white mb-2">Crear Administrador</h1>
-                <p className="text-white/60 text-sm">Registra una nueva cuenta con permisos administrativos</p>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">Crear Administrador</h1>
+                <p className="text-gray-500 text-sm">Registra una nueva cuenta con permisos administrativos</p>
             </div>
 
             <Form {...form} >
@@ -83,15 +83,15 @@ export const SignUpAdminCard = () => {
                         name="email"
                         render={({field}) => (
                             <FormItem>
-                                <FormLabel className="text-white/90">Correo electrónico</FormLabel>
+                                <FormLabel className="text-gray-700 font-semibold">Correo electrónico</FormLabel>
                                 <FormControl>
                                     <Input 
                                         placeholder="tu@email.com" 
-                                        className="bg-black/40 border-white/20 text-white placeholder:text-white/40 focus-visible:ring-[#b91c1c]" 
+                                        className="bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-[#b91c1c] focus-visible:border-[#b91c1c] rounded-xl px-4 py-3 h-auto" 
                                         {...field} 
                                     />
                                 </FormControl>
-                                <FormMessage className="text-red-400" />
+                                <FormMessage className="text-red-500 text-xs" />
                             </FormItem>
                         )}
                     />
@@ -101,15 +101,15 @@ export const SignUpAdminCard = () => {
                             name="first_name"
                             render={({field}) => (
                                 <FormItem>
-                                    <FormLabel className="text-white/90">Nombre</FormLabel>
+                                    <FormLabel className="text-gray-700 font-semibold">Nombre</FormLabel>
                                     <FormControl>
                                         <Input 
                                             placeholder="Juan" 
-                                            className="bg-black/40 border-white/20 text-white placeholder:text-white/40 focus-visible:ring-[#b91c1c]" 
+                                            className="bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-[#b91c1c] focus-visible:border-[#b91c1c] rounded-xl px-4 py-3 h-auto" 
                                             {...field} 
                                         />
                                     </FormControl>
-                                    <FormMessage className="text-red-400" />
+                                    <FormMessage className="text-red-500 text-xs" />
                                 </FormItem>
                             )}
                         />
@@ -118,15 +118,15 @@ export const SignUpAdminCard = () => {
                             name="last_name"
                             render={({field}) => (
                                 <FormItem>
-                                    <FormLabel className="text-white/90">Apellido</FormLabel>
+                                    <FormLabel className="text-gray-700 font-semibold">Apellido</FormLabel>
                                     <FormControl>
                                         <Input 
                                             placeholder="Pérez" 
-                                            className="bg-black/40 border-white/20 text-white placeholder:text-white/40 focus-visible:ring-[#b91c1c]" 
+                                            className="bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-[#b91c1c] focus-visible:border-[#b91c1c] rounded-xl px-4 py-3 h-auto" 
                                             {...field} 
                                         />
                                     </FormControl>
-                                    <FormMessage className="text-red-400" />
+                                    <FormMessage className="text-red-500 text-xs" />
                                 </FormItem>
                             )}
                         />
@@ -136,26 +136,26 @@ export const SignUpAdminCard = () => {
                         name="password"
                         render={({field}) => (
                             <FormItem>
-                                <FormLabel className="text-white/90">Contraseña</FormLabel>
+                                <FormLabel className="text-gray-700 font-semibold">Contraseña</FormLabel>
                                 <FormControl>
                                     <Input 
                                         type="password" 
                                         placeholder="••••••••" 
-                                        className="bg-black/40 border-white/20 text-white placeholder:text-white/40 focus-visible:ring-[#b91c1c]" 
+                                        className="bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-[#b91c1c] focus-visible:border-[#b91c1c] rounded-xl px-4 py-3 h-auto" 
                                         {...field} 
                                     />
                                 </FormControl>
-                                <FormMessage className="text-red-400" />
+                                <FormMessage className="text-red-500 text-xs" />
                             </FormItem>
                         )}
                     />
 
-                    <Button type="submit" className="w-full bg-[#b91c1c] hover:bg-[#991b1b] text-white font-semibold mt-4" disabled={isLoading || loginIsLoading}>
+                    <Button type="submit" className="w-full bg-[#b91c1c] hover:bg-[#991b1b] text-white font-bold py-6 rounded-xl mt-4 transition-colors shadow-md shadow-red-500/20" disabled={isLoading || loginIsLoading}>
                         {(isLoading || loginIsLoading) ? "Procesando..." : "Crear Administrador"}
                     </Button>
 
-                    <div className="mt-4 text-center">
-                        <Button variant="link" type="button" className="text-white/60 hover:text-[#b91c1c]" onClick={() => navigate("/login")}>
+                    <div className="mt-6 text-center space-y-3 flex flex-col items-center">
+                        <Button variant="link" type="button" className="text-gray-500 hover:text-[#b91c1c] font-medium" onClick={() => navigate("/login")}>
                             Volver al Inicio de Sesión
                         </Button>
                     </div>

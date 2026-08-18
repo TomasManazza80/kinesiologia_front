@@ -28,15 +28,7 @@ export default function Loader({ fullScreen = false, isLoading = true }) {
         <div className="absolute inset-0 bg-[#0a47d4] rounded-full blur-[80px] opacity-20 animate-pulse"></div>
         
         {/* New CSS Logo with pulsing animation */}
-        <div className="relative z-10 flex items-center gap-4 md:gap-6 animate-pulse">
-            <div className="w-12 h-12 md:w-16 md:h-16 bg-[#3B82F6] rounded-xl md:rounded-2xl flex flex-wrap gap-1 p-2.5 md:p-3.5 items-center justify-center transform rotate-45 shadow-lg shadow-blue-500/30">
-                 <div className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 bg-white rounded-full"></div>
-                 <div className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 bg-white rounded-full"></div>
-                 <div className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 bg-white rounded-full"></div>
-                 <div className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 bg-white rounded-full"></div>
-            </div>
-            <span className="text-4xl md:text-5xl font-bold text-[#1E293B] tracking-tight">PAUSES</span>
-        </div>
+            <img src="/images/pausesLogo.png" alt="Pauses Logo" className="h-28 md:h-40 w-auto object-contain drop-shadow-lg relative z-10 animate-pulse scale-125" />
       </div>
     </div>
   );

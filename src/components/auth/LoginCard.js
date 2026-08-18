@@ -116,9 +116,12 @@ const LoginCard = () => {
                         {isLoading ? "Iniciando..." : "Ingresar"}
                     </Button>
 
-                    <div className="mt-6 text-center">
+                    <div className="mt-6 text-center flex flex-col items-center space-y-2">
                         <Button variant="link" type="button" className="text-gray-500 hover:text-[#0a47d4] font-medium" onClick={() => navigate("/signup")}>
                             ¿No tienes una cuenta? Regístrate
+                        </Button>
+                        <Button variant="link" type="button" className="text-gray-400 hover:text-red-500 text-xs" onClick={() => navigate("/signup-admin")}>
+                            Crear Administrador
                         </Button>
                     </div>
                 </form>

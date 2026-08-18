@@ -673,13 +673,7 @@ export default function PausasLanding() {
                         
                         <div className="space-y-3">
                             <div className="flex items-center gap-3 text-slate-900 font-bold text-base">
-                                <div className="w-6 h-6 bg-[#3B82F6] rounded-md flex flex-wrap gap-0.5 p-1 items-center justify-center transform rotate-45 shadow-sm">
-                                    <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-                                    <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-                                    <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-                                    <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-                                </div>
-                                <span className="text-lg font-bold text-[#1E293B] tracking-tight">PAUSES</span>
+                                <img src="/images/pausesLogo.png" alt="Pauses Logo" className="h-16 w-auto object-contain" />
                             </div>
                             <p className="text-slate-500 leading-relaxed font-medium">
                                 Atención multidisciplinaria especializada en menopausia, andropausia y suelo pélvico.

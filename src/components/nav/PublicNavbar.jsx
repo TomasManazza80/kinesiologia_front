@@ -41,19 +41,13 @@ export default function PublicNavbar({ className = '' }) {
                     
                     {/* Logo / Brand */}
                     <Link to="/" className="flex items-center gap-3 group">
-                        <motion.div 
-                            whileHover={{ scale: 1.08 }}
+                        <motion.img 
+                            whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            className="w-8 h-8 bg-[#3B82F6] rounded-lg flex flex-wrap gap-0.5 p-1.5 items-center justify-center transform rotate-45 shadow-md shadow-blue-500/20"
-                        >
-                            <div className="w-2 h-2 bg-white rounded-full"></div>
-                            <div className="w-2 h-2 bg-white rounded-full"></div>
-                            <div className="w-2 h-2 bg-white rounded-full"></div>
-                            <div className="w-2 h-2 bg-white rounded-full"></div>
-                        </motion.div>
-                        <span className="text-xl md:text-2xl font-bold text-[#1E293B] tracking-tight">
-                            PAUSES
-                        </span>
+                            src="/images/pausesLogo.png" 
+                            alt="Pauses Logo" 
+                            className="h-16 md:h-[70px] w-auto object-contain scale-150 ml-6 md:ml-8"
+                        />
                     </Link>
 
                     {/* Desktop Nav Links */}

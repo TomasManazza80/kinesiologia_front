@@ -76,13 +76,7 @@ const Navbar = ({children}) => {
                         >
                             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
                         </button>
-                        <div className="w-8 h-8 bg-[#3B82F6] rounded-lg flex flex-wrap gap-0.5 p-1.5 items-center justify-center transform rotate-45">
-                             <div className="w-2 h-2 bg-white rounded-full"></div>
-                             <div className="w-2 h-2 bg-white rounded-full"></div>
-                             <div className="w-2 h-2 bg-white rounded-full"></div>
-                             <div className="w-2 h-2 bg-white rounded-full"></div>
-                        </div>
-                        <span className="text-xl font-bold text-[#1E293B] tracking-tight">PAUSES</span>
+                        <img src="/images/pausesLogo.png" alt="Pauses Logo" className="h-16 w-auto object-contain scale-150 ml-4" />
                     </div>
 
                     {/* Centered Navigation */}
@@ -158,13 +152,7 @@ const Navbar = ({children}) => {
                 >
                     <div className="flex items-center justify-between p-6 border-b border-gray-100">
                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-[#3B82F6] rounded-lg flex flex-wrap gap-0.5 p-1.5 items-center justify-center transform rotate-45">
-                                 <div className="w-2 h-2 bg-white rounded-full"></div>
-                                 <div className="w-2 h-2 bg-white rounded-full"></div>
-                                 <div className="w-2 h-2 bg-white rounded-full"></div>
-                                 <div className="w-2 h-2 bg-white rounded-full"></div>
-                            </div>
-                            <span className="text-xl font-bold text-[#1E293B] tracking-tight">PAUSES</span>
+                            <img src="/images/pausesLogo.png" alt="Pauses Logo" className="h-16 w-auto object-contain scale-150 ml-4" />
                         </div>
                         <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-500 hover:text-gray-900 transition-colors">
                             <X size={24} />
