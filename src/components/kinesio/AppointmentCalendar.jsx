@@ -9,11 +9,18 @@ import {
     useCreateAppointmentMutation,
     useUpdateAppointmentMutation,
     useCreatePatientMutation,
-    useGetAvailabilityQuery
+    useGetAvailabilityQuery,
+    useCancelAppointmentMutation,
+    useNotifyAppointmentMutation
 } from '../../services/api/kinesioApi.js';
 import { toast } from '../ui/use-toast';
 
 // Date Helpers
+const parseLocalDate = (dateString) => {
+    if (!dateString) return new Date();
+    return new Date(dateString);
+};
+
 const getStartOfWeek = (date) => {
     const d = new Date(date);
     const day = d.getDay();
@@ -38,10 +45,14 @@ const AppointmentCalendar = () => {
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isListModalOpen, setIsListModalOpen] = useState(false);
-    const [newAppt, setNewAppt] = useState({ patient_id: '', fecha_hora: '', end_time: '', motivo: '' });
+    const [newAppt, setNewAppt] = useState({ patient_id: '', fecha_hora: '', duration: 30, motivo: '' });
     const [isCreatingPatient, setIsCreatingPatient] = useState(false);
     const [newPatientName, setNewPatientName] = useState('');
     const [isAllApptsModalOpen, setIsAllApptsModalOpen] = useState(false);
+    
+    // Cancellation State
+    const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+    const [cancelReason, setCancelReason] = useState('ausencia_paciente');
 
     const [viewMode, setViewMode] = useState('Semanal');
     const [isCompact, setIsCompact] = useState(false);
@@ -59,6 +70,8 @@ const AppointmentCalendar = () => {
 
     const [createAppointment, { isLoading: isCreating }] = useCreateAppointmentMutation();
     const [updateAppointment] = useUpdateAppointmentMutation();
+    const [cancelAppointmentMutation] = useCancelAppointmentMutation();
+    const [notifyAppointment, { isLoading: isNotifying }] = useNotifyAppointmentMutation();
     const [createPatient, { isLoading: isCreatingPatientLoading }] = useCreatePatientMutation();
 
     const handleCompleteAppointment = async (id) => {
@@ -68,6 +81,22 @@ const AppointmentCalendar = () => {
         } catch (err) {
             console.error(err);
             toast({ title: 'Error', description: 'No se pudo actualizar el turno', variant: 'destructive' });
+        }
+    };
+
+    const handleCancelAppointment = async () => {
+        if (!selectedApptDetail) return;
+        try {
+            await cancelAppointmentMutation({ 
+                id: selectedApptDetail.id, 
+                cancel_reason: cancelReason 
+            }).unwrap();
+            toast({ title: 'Éxito', description: 'Turno cancelado correctamente' });
+            setIsCancelModalOpen(false);
+            setSelectedApptDetail(null);
+        } catch (err) {
+            console.error(err);
+            toast({ title: 'Error', description: 'No se pudo cancelar el turno', variant: 'destructive' });
         }
     };
 
@@ -104,6 +133,7 @@ const AppointmentCalendar = () => {
             if (!appt.fecha_hora) return;
 
             // Filters
+            if (appt.estado === 'cancelado') return;
             if (statusFilter && appt.estado !== statusFilter) return;
             if (searchQuery) {
                 const searchLower = searchQuery.toLowerCase();
@@ -112,7 +142,7 @@ const AppointmentCalendar = () => {
                 if (!patientName.includes(searchLower) && !patientDni.includes(searchLower)) return;
             }
 
-            const date = new Date(appt.fecha_hora);
+            const date = parseLocalDate(appt.fecha_hora);
 
             if (viewMode === 'Semanal') {
                 const dayOfWeek = date.getDay();
@@ -188,23 +218,39 @@ const AppointmentCalendar = () => {
     const handleCreateAppointment = async (e) => {
         e.preventDefault();
         try {
+            let calculatedEndTime = null;
+            if (newAppt.fecha_hora && newAppt.duration) {
+                const date = new Date(newAppt.fecha_hora);
+                date.setMinutes(date.getMinutes() + parseInt(newAppt.duration));
+                calculatedEndTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+            }
+
             await createAppointment({
                 patient_id: newAppt.patient_id,
                 professional_id: activeProfessionalId,
                 fecha_hora: newAppt.fecha_hora,
-                end_time: newAppt.end_time || null,
+                end_time: calculatedEndTime,
                 motivo: newAppt.motivo
             }).unwrap();
             setIsModalOpen(false);
-            setNewAppt({ patient_id: '', fecha_hora: '', end_time: '', motivo: '' });
+            setNewAppt({ patient_id: '', fecha_hora: '', duration: 30, motivo: '' });
         } catch (err) {
             console.error("Failed to create appointment", err);
             toast({ title: 'Error', description: 'Error al crear el turno', variant: 'destructive' });
         }
     };
 
+    const handleNotify = async (id) => {
+        try {
+            await notifyAppointment(id).unwrap();
+            toast({ title: 'Éxito', description: 'Notificación enviada correctamente por WhatsApp' });
+        } catch (err) {
+            toast({ title: 'Error', description: err.data?.error || 'Error al enviar notificación', variant: 'destructive' });
+        }
+    };
+
     const renderAppointment = (appt) => {
-        const date = new Date(appt.fecha_hora);
+        const date = parseLocalDate(appt.fecha_hora);
         const hours = date.getHours();
         const minutes = date.getMinutes();
 
@@ -215,7 +261,7 @@ const AppointmentCalendar = () => {
 
         let height = hourHeight;
         if (appt.end_time) {
-            const endDate = new Date(appt.end_time);
+            const endDate = parseLocalDate(appt.end_time);
             const durationMinutes = (endDate - date) / (1000 * 60);
             if (durationMinutes > 15) height = (durationMinutes / 60) * hourHeight;
         }
@@ -562,13 +608,19 @@ const AppointmentCalendar = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Fin</label>
-                                    <input
-                                        type="datetime-local"
-                                        className="w-full border border-gray-200 rounded-lg p-2 text-sm focus:outline-none focus:border-blue-500"
-                                        value={newAppt.end_time}
-                                        onChange={(e) => setNewAppt({ ...newAppt, end_time: e.target.value })}
-                                    />
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Duración (minutos)</label>
+                                    <select
+                                        className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:border-blue-500"
+                                        value={newAppt.duration}
+                                        onChange={(e) => setNewAppt({ ...newAppt, duration: e.target.value })}
+                                    >
+                                        <option value="15">15 minutos</option>
+                                        <option value="30">30 minutos</option>
+                                        <option value="45">45 minutos</option>
+                                        <option value="60">1 hora</option>
+                                        <option value="90">1 hora 30 min</option>
+                                        <option value="120">2 horas</option>
+                                    </select>
                                 </div>
                             </div>
                             <div>
@@ -624,18 +676,36 @@ const AppointmentCalendar = () => {
                                 <div>
                                     <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Inicio</p>
                                     <p className="text-sm font-medium text-gray-800">
-                                        {new Date(selectedApptDetail.fecha_hora).toLocaleString()}
+                                        {parseLocalDate(selectedApptDetail.fecha_hora).toLocaleString()}
                                     </p>
                                 </div>
                                 {selectedApptDetail.end_time && (
                                     <div>
                                         <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Fin</p>
                                         <p className="text-sm font-medium text-gray-800">
-                                            {new Date(selectedApptDetail.end_time).toLocaleString()}
+                                            {parseLocalDate(selectedApptDetail.end_time).toLocaleString()}
                                         </p>
                                     </div>
                                 )}
                             </div>
+
+                            {selectedApptDetail.estado !== 'cancelado' && selectedApptDetail.estado !== 'completado' && (
+                                <div className="mt-2 flex flex-col gap-2">
+                                    <button
+                                        onClick={() => handleNotify(selectedApptDetail.id)}
+                                        disabled={isNotifying}
+                                        className="w-full bg-[#25D366] hover:bg-[#20bd5a] disabled:opacity-50 text-white px-4 py-2.5 rounded-lg font-bold shadow-sm transition-colors text-sm flex items-center justify-center gap-2"
+                                    >
+                                        {isNotifying ? 'Enviando...' : 'Notificar por WhatsApp'}
+                                    </button>
+                                    <button
+                                        onClick={() => setIsCancelModalOpen(true)}
+                                        className="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-4 py-2.5 rounded-lg font-bold shadow-sm transition-colors text-sm flex items-center justify-center gap-2"
+                                    >
+                                        Cancelar Turno
+                                    </button>
+                                </div>
+                            )}
 
                             {selectedApptDetail.patient && (
                                 <div className="mt-4 pt-4 border-t border-gray-100">
@@ -652,6 +722,46 @@ const AppointmentCalendar = () => {
                 </div>
             )}
 
+            {/* Modal Cancelar Turno */}
+            {isCancelModalOpen && (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[60]">
+                    <div className="bg-white rounded-2xl shadow-xl w-[400px] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        <div className="flex justify-between items-center p-4 border-b border-gray-100 bg-red-50">
+                            <h3 className="font-bold text-lg text-red-700">Cancelar Turno</h3>
+                            <button onClick={() => setIsCancelModalOpen(false)} className="text-red-400 hover:text-red-600"><X size={20} /></button>
+                        </div>
+                        <div className="p-5 flex flex-col gap-4">
+                            <p className="text-sm text-gray-600">Por favor, seleccione el motivo de la cancelación. Si el paciente falta, se registrará una inasistencia en su historial.</p>
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">Motivo de cancelación</label>
+                                <select 
+                                    value={cancelReason}
+                                    onChange={(e) => setCancelReason(e.target.value)}
+                                    className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                                >
+                                    <option value="ausencia_paciente">Falta de asistencia del paciente</option>
+                                    <option value="cancelacion_profesional">Cancelación por parte del profesional / clínica</option>
+                                </select>
+                            </div>
+                            <div className="mt-4 flex justify-end gap-2">
+                                <button
+                                    onClick={() => setIsCancelModalOpen(false)}
+                                    className="px-4 py-2 text-gray-600 font-semibold hover:bg-gray-100 rounded-lg text-sm"
+                                >
+                                    Volver
+                                </button>
+                                <button
+                                    onClick={handleCancelAppointment}
+                                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg text-sm"
+                                >
+                                    Confirmar Cancelación
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Modal Listado de Turnos del Día */}
             {isListModalOpen && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
@@ -662,15 +772,15 @@ const AppointmentCalendar = () => {
                         </div>
                         <div className="p-4 overflow-y-auto flex-1 flex flex-col gap-3">
                             {(() => {
-                                const dayAppts = appointments ? appointments.filter(a => new Date(a.fecha_hora).toDateString() === currentDate.toDateString()) : [];
+                                const dayAppts = appointments ? appointments.filter(a => parseLocalDate(a.fecha_hora).toDateString() === currentDate.toDateString()) : [];
                                 if (dayAppts.length === 0) {
                                     return <p className="text-sm text-gray-500 text-center py-4">No hay turnos para este día.</p>;
                                 }
-                                return dayAppts.sort((a,b) => new Date(a.fecha_hora) - new Date(b.fecha_hora)).map(appt => (
+                                return dayAppts.sort((a,b) => parseLocalDate(a.fecha_hora) - parseLocalDate(b.fecha_hora)).map(appt => (
                                     <div key={appt.id} className="flex justify-between items-center p-3 border border-gray-100 rounded-lg hover:bg-gray-50 cursor-pointer" onClick={() => { setSelectedApptDetail(appt); setIsListModalOpen(false); }}>
                                         <div>
                                             <p className="text-sm font-bold text-gray-900">{appt.patient?.nombre || 'Sin nombre'}</p>
-                                            <p className="text-xs text-gray-500">{new Date(appt.fecha_hora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {appt.motivo}</p>
+                                            <p className="text-xs text-gray-500">{parseLocalDate(appt.fecha_hora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {appt.motivo}</p>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <span className={`text-xs px-2 py-1 rounded-full ${appt.estado === 'completado' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
@@ -717,20 +827,20 @@ const AppointmentCalendar = () => {
                                                 <div className="w-2 h-2 rounded-full bg-gray-400"></div>
                                                 Turnos Pasados
                                                 <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full ml-auto">
-                                                    {allAppointments?.filter(a => new Date(a.fecha_hora) < new Date()).length || 0}
+                                                    {allAppointments?.filter(a => parseLocalDate(a.fecha_hora) < new Date()).length || 0}
                                                 </span>
                                             </h4>
                                         </div>
                                         <div className="p-4 overflow-y-auto flex-1 flex flex-col gap-3">
                                             {(() => {
-                                                const past = allAppointments?.filter(a => new Date(a.fecha_hora) < new Date()).sort((a,b) => new Date(b.fecha_hora) - new Date(a.fecha_hora)) || [];
+                                                const past = allAppointments?.filter(a => parseLocalDate(a.fecha_hora) < new Date()).sort((a,b) => parseLocalDate(b.fecha_hora) - parseLocalDate(a.fecha_hora)) || [];
                                                 if (past.length === 0) return <p className="text-sm text-gray-500 text-center py-4">No hay turnos pasados.</p>;
                                                 return past.map(appt => (
                                                     <div key={appt.id} className="flex justify-between items-start p-3 border border-gray-100 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors" onClick={() => { setSelectedApptDetail(appt); setIsAllApptsModalOpen(false); }}>
                                                         <div className="flex-1 min-w-0 pr-4">
                                                             <p className="text-sm font-bold text-gray-900 truncate">{appt.patient?.nombre || 'Sin nombre'}</p>
                                                             <p className="text-xs text-gray-500 mt-0.5 truncate">{appt.motivo}</p>
-                                                            <p className="text-xs font-medium text-gray-400 mt-1">{new Date(appt.fecha_hora).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                                                            <p className="text-xs font-medium text-gray-400 mt-1">{parseLocalDate(appt.fecha_hora).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p>
                                                         </div>
                                                         <div className="shrink-0 flex flex-col items-end gap-2">
                                                             <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-md ${appt.estado === 'completado' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
@@ -750,20 +860,20 @@ const AppointmentCalendar = () => {
                                                 <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                                                 Próximos Turnos
                                                 <span className="text-xs bg-blue-200 text-blue-700 px-2 py-0.5 rounded-full ml-auto">
-                                                    {allAppointments?.filter(a => new Date(a.fecha_hora) >= new Date()).length || 0}
+                                                    {allAppointments?.filter(a => parseLocalDate(a.fecha_hora) >= new Date()).length || 0}
                                                 </span>
                                             </h4>
                                         </div>
                                         <div className="p-4 overflow-y-auto flex-1 flex flex-col gap-3">
                                             {(() => {
-                                                const future = allAppointments?.filter(a => new Date(a.fecha_hora) >= new Date()).sort((a,b) => new Date(a.fecha_hora) - new Date(b.fecha_hora)) || [];
+                                                const future = allAppointments?.filter(a => parseLocalDate(a.fecha_hora) >= new Date()).sort((a,b) => parseLocalDate(a.fecha_hora) - parseLocalDate(b.fecha_hora)) || [];
                                                 if (future.length === 0) return <p className="text-sm text-gray-500 text-center py-4">No hay próximos turnos.</p>;
                                                 return future.map(appt => (
                                                     <div key={appt.id} className="flex justify-between items-start p-3 border border-blue-100 bg-white rounded-lg hover:border-blue-300 hover:shadow-sm cursor-pointer transition-all" onClick={() => { setSelectedApptDetail(appt); setIsAllApptsModalOpen(false); }}>
                                                         <div className="flex-1 min-w-0 pr-4">
                                                             <p className="text-sm font-bold text-gray-900 truncate">{appt.patient?.nombre || 'Sin nombre'}</p>
                                                             <p className="text-xs text-gray-600 mt-0.5 truncate">{appt.motivo}</p>
-                                                            <p className="text-xs font-semibold text-blue-600 mt-1">{new Date(appt.fecha_hora).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                                                            <p className="text-xs font-semibold text-blue-600 mt-1">{parseLocalDate(appt.fecha_hora).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p>
                                                         </div>
                                                         <div className="shrink-0 flex flex-col items-end gap-2">
                                                             <span className="text-[10px] uppercase font-bold px-2 py-1 rounded-md bg-blue-100 text-blue-700">

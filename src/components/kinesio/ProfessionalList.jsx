@@ -23,20 +23,30 @@ const ProfessionalList = () => {
     const [deleteProfessional, { isLoading: isDeleting }] = useDeleteProfessionalMutation();
     const [uploadImage] = useUploadImageMutation();
 
-    const handleDeleteProfessional = async (id, name) => {
-        if (!window.confirm(`¿Estás seguro de que deseas eliminar a "${name || 'este profesional'}" del sistema? Esta acción eliminará sus asignaciones y turnos.`)) {
+    const handleDeleteProfessional = (id, name) => {
+        setProfessionalToDelete({ id, name });
+        setDeletePassword('');
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDeleteProfessional = async () => {
+        if (!deletePassword) {
+            toast({ title: 'Error', description: 'Debe ingresar su contraseña.', variant: 'error' });
             return;
         }
         try {
-            await deleteProfessional(id).unwrap();
+            await deleteProfessional({ id: professionalToDelete.id, adminPassword: deletePassword }).unwrap();
             toast({
                 title: 'Éxito',
                 description: 'Profesional eliminado correctamente.',
                 variant: 'success'
             });
-            if (selectedProfessional?.id === id) {
+            setIsDeleteModalOpen(false);
+            if (selectedProfessional?.id === professionalToDelete.id) {
                 setSelectedProfessional(null);
             }
+            setProfessionalToDelete(null);
+            setDeletePassword('');
         } catch (err) {
             toast({
                 title: 'Error',
@@ -96,6 +106,9 @@ const ProfessionalList = () => {
     };
     
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [professionalToDelete, setProfessionalToDelete] = useState(null);
+    const [deletePassword, setDeletePassword] = useState('');
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -725,6 +738,55 @@ const ProfessionalList = () => {
                                     </button>
                                 </>
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Modal de Confirmación de Eliminación */}
+            {isDeleteModalOpen && (
+                <div className="fixed inset-0 bg-black/50 z-[60] flex justify-center items-center p-4 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col">
+                        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2 text-red-600">
+                                <ShieldAlert size={24} />
+                                Confirmar Eliminación
+                            </h2>
+                            <button onClick={() => setIsDeleteModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1 rounded-lg transition-colors hover:bg-gray-100">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-6">
+                            <p className="text-gray-600 mb-4">
+                                ¿Estás seguro de que deseas eliminar a <strong>{professionalToDelete?.name || 'este profesional'}</strong>? Esta acción eliminará permanentemente sus asignaciones y turnos.
+                            </p>
+                            <p className="text-sm text-gray-500 mb-2 font-semibold">
+                                Para continuar, por favor ingresa tu contraseña de acceso:
+                            </p>
+                            <input 
+                                type="password" 
+                                value={deletePassword} 
+                                onChange={(e) => setDeletePassword(e.target.value)}
+                                placeholder="Tu contraseña..."
+                                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500" 
+                            />
+                        </div>
+                        <div className="p-6 border-t border-gray-100 flex gap-3 bg-gray-50 mt-auto">
+                            <button 
+                                type="button" 
+                                onClick={() => setIsDeleteModalOpen(false)}
+                                className="flex-1 py-2.5 bg-white text-gray-700 rounded-xl font-bold border border-gray-300 hover:bg-gray-50 transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button 
+                                type="button"
+                                onClick={confirmDeleteProfessional}
+                                disabled={isDeleting}
+                                className="flex-1 py-2.5 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                            >
+                                {isDeleting && <Loader2 className="animate-spin" size={18} />}
+                                Eliminar Definitivamente
+                            </button>
                         </div>
                     </div>
                 </div>

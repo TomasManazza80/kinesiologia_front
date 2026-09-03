@@ -60,9 +60,10 @@ export const kinesioApi = authApi.injectEndpoints({
             invalidatesTags: ['Professionals']
         }),
         deleteProfessional: build.mutation({
-            query: (id) => ({
+            query: ({ id, adminPassword }) => ({
                 url: `/api/kinesio/professionals/${id}`,
                 method: 'DELETE',
+                body: { adminPassword }
             }),
             invalidatesTags: ['Professionals']
         }),
@@ -109,6 +110,12 @@ export const kinesioApi = authApi.injectEndpoints({
             }),
             invalidatesTags: ['Appointments']
         }),
+        notifyAppointment: build.mutation({
+            query: (id) => ({
+                url: `/api/kinesio/appointments/${id}/notify`,
+                method: 'POST',
+            }),
+        }),
         updateAppointment: build.mutation({
             query: ({ id, ...data }) => ({
                 url: `/api/kinesio/appointments/${id}`,
@@ -116,6 +123,14 @@ export const kinesioApi = authApi.injectEndpoints({
                 body: data,
             }),
             invalidatesTags: ['Appointments']
+        }),
+        cancelAppointment: build.mutation({
+            query: ({ id, cancel_reason }) => ({
+                url: `/api/kinesio/appointments/${id}/cancel`,
+                method: 'PUT',
+                body: { cancel_reason },
+            }),
+            invalidatesTags: ['Appointments'],
         }),
         deleteAppointment: build.mutation({
             query: (id) => ({
@@ -236,12 +251,12 @@ export const kinesioApi = authApi.injectEndpoints({
             }),
             invalidatesTags: ['Balance']
         }),
-        getExpenses: build.query({
-            query: ({ startDate = '', endDate = '', scope = 'personal' } = {}) => ({
-                url: `/api/kinesio/expenses?startDate=${startDate}&endDate=${endDate}&scope=${scope}`,
-                method: 'GET'
+        deleteTransaction: build.mutation({
+            query: ({ id, scope = 'personal' }) => ({
+                url: `/api/kinesio/transactions/${id}?scope=${scope}`,
+                method: 'DELETE',
             }),
-            providesTags: ['Balance']
+            invalidatesTags: ['Balance']
         }),
         // Public Endpoints
         getPublicProfessionals: build.query({
@@ -355,6 +370,7 @@ export const {
     useGetPatientsQuery,
     useCreateAppointmentMutation,
     useUpdateAppointmentMutation,
+    useCancelAppointmentMutation,
     useDeleteAppointmentMutation,
     useCreatePatientMutation,
     useUpdatePatientMutation,
@@ -366,6 +382,7 @@ export const {
     useUploadImageMutation,
     useGetAvailabilityQuery,
     useSaveAvailabilityMutation,
+    useNotifyAppointmentMutation,
     useGetPublicProfessionalsQuery,
     useGetAvailableSlotsQuery,
     useCreatePublicAppointmentMutation,
@@ -373,7 +390,7 @@ export const {
     useCreateTransactionMutation,
     useGetTransactionHistoryQuery,
     useUpdateTransactionMutation,
-    useGetExpensesQuery,
+    useDeleteTransactionMutation,
     useGetWhatsappStatusQuery,
     useStartWhatsappMutation,
     useGetWhatsappQrQuery,

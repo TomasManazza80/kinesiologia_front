@@ -56,6 +56,8 @@ const MedicalHistoryEntry = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showPrevious, setShowPrevious] = useState(false);
 
+  const [historySearchTerm, setHistorySearchTerm] = useState('');
+
   useEffect(() => {
     if (isTemplateMode) {
       setViewMode('template');
@@ -116,7 +118,7 @@ const MedicalHistoryEntry = () => {
       historyList.forEach(h => {
         list.push({
           id: `static-${h.id}`,
-          date: new Date(h.fecha),
+          date: new Date(h.createdAt || h.created_at || h.fecha),
           type: 'static',
           raw: h,
           reason_for_visit: h.reason_for_visit,
@@ -134,6 +136,27 @@ const MedicalHistoryEntry = () => {
     list.sort((a, b) => b.date.getTime() - a.date.getTime());
     return list;
   }, [records, historyList]);
+
+  const filteredConsultations = useMemo(() => {
+    if (!historySearchTerm) return allConsultations;
+    const term = historySearchTerm.toLowerCase();
+    
+    return allConsultations.filter(c => {
+      const dateStr = moment(c.date).format('DD MMMM YYYY HH:mm').toLowerCase();
+      if (dateStr.includes(term)) return true;
+      
+      if (c.type === 'static') {
+         return (c.reason_for_visit?.toLowerCase().includes(term) ||
+                 c.diagnostico?.toLowerCase().includes(term) ||
+                 c.tratamiento?.toLowerCase().includes(term) ||
+                 c.physical_findings?.toLowerCase().includes(term));
+      } else {
+         return Object.values(c.data || {}).some(val => 
+            typeof val === 'string' && val.toLowerCase().includes(term)
+         );
+      }
+    });
+  }, [allConsultations, historySearchTerm]);
 
   const calculateAge = (dob) => {
       if (!dob) return 'N/A';
@@ -584,6 +607,12 @@ const MedicalHistoryEntry = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <button
+                onClick={() => navigate(`/pacientes/${patient.id}`)}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200"
+            >
+              <User size={16} /> Ver / Editar Perfil
+            </button>
             <button 
                 onClick={() => setViewMode(viewMode === 'history' ? 'new' : 'history')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${viewMode === 'history' ? 'bg-[#0A58CA] text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}

@@ -31,8 +31,11 @@ export default function BookingPage() {
 
     const [showModal, setShowModal] = useState(false);
     const [patientName, setPatientName] = useState('');
+    const [patientDni, setPatientDni] = useState('');
     const [patientPhone, setPatientPhone] = useState('');
     const [patientEmail, setPatientEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [isSuccess, setIsSuccess] = useState(false);
 
     const navigate = useNavigate();
@@ -63,6 +66,9 @@ export default function BookingPage() {
             }
             if (userInfo.email) {
                 setPatientEmail(userInfo.email);
+            }
+            if (userInfo.dni) {
+                setPatientDni(userInfo.dni);
             }
         }
     }, [userInfo]);
@@ -164,16 +170,23 @@ export default function BookingPage() {
     };
 
     const handleSubmitAppointment = async () => {
-        if (!patientName || !patientPhone) return;
+        if (!patientName || !patientDni || !patientPhone) return;
         try {
+            if (!accessToken && password && password !== confirmPassword) {
+                toast({ title: 'Error', description: 'Las contraseñas no coinciden', variant: 'destructive' });
+                return;
+            }
+
             const response = await createAppointment({
                 professional_id: selectedSpecialistId,
                 date: selectedDate.date,
                 time: selectedTime,
                 service: selectedService,
                 patient_name: patientName,
+                patient_dni: patientDni,
                 patient_phone: patientPhone,
-                patient_email: patientEmail
+                patient_email: patientEmail,
+                password: password || undefined
             }).unwrap();
 
             if (response.init_point) {
@@ -188,7 +201,10 @@ export default function BookingPage() {
                 setIsSuccess(false);
                 setSelectedTime(null); // reset selected time
                 setPatientName('');
+                setPatientDni('');
                 setPatientPhone('');
+                setPassword('');
+                setConfirmPassword('');
             }, 3000);
         } catch (error) {
             toast({ title: 'Error', description: error?.data?.message || 'Error al confirmar el turno', variant: 'destructive' });
@@ -458,15 +474,27 @@ export default function BookingPage() {
                                 <p className="text-gray-500 text-sm mb-6">Ingresa tus datos para finalizar la confirmación del turno.</p>
                                 
                                 <div className="flex flex-col gap-4 mb-6">
-                                    <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-1">Nombre Completo</label>
-                                        <input 
-                                            type="text" 
-                                            value={patientName}
-                                            onChange={(e) => setPatientName(e.target.value)}
-                                            placeholder="Ej. Juan Pérez"
-                                            className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-[#0a47d4] focus:ring-1 focus:ring-[#0a47d4]" 
-                                        />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-1">Nombre Completo</label>
+                                            <input 
+                                                type="text" 
+                                                value={patientName}
+                                                onChange={(e) => setPatientName(e.target.value)}
+                                                placeholder="Ej. Juan Pérez"
+                                                className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-[#0a47d4] focus:ring-1 focus:ring-[#0a47d4]" 
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-1">DNI</label>
+                                            <input 
+                                                type="text" 
+                                                value={patientDni}
+                                                onChange={(e) => setPatientDni(e.target.value)}
+                                                placeholder="Ej. 12345678"
+                                                className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-[#0a47d4] focus:ring-1 focus:ring-[#0a47d4]" 
+                                            />
+                                        </div>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
@@ -490,6 +518,36 @@ export default function BookingPage() {
                                             />
                                         </div>
                                     </div>
+                                    {!accessToken && (
+                                        <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mt-2">
+                                            <p className="text-xs text-gray-500 mb-3 font-medium flex items-start gap-1.5">
+                                                <span className="text-[#0a47d4] mt-0.5"><CheckCircle2 size={14}/></span>
+                                                Crea una contraseña (opcional) para poder acceder a la sección "Mis Turnos" y gestionar tus reservas.
+                                            </p>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-xs font-semibold text-gray-700 mb-1">Contraseña</label>
+                                                    <input 
+                                                        type="password" 
+                                                        value={password}
+                                                        onChange={(e) => setPassword(e.target.value)}
+                                                        placeholder="Mínimo 6 caracteres"
+                                                        className="w-full border border-gray-300 rounded-xl px-3 py-2 outline-none focus:border-[#0a47d4] focus:ring-1 focus:ring-[#0a47d4] text-sm" 
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-semibold text-gray-700 mb-1">Confirmar Contraseña</label>
+                                                    <input 
+                                                        type="password" 
+                                                        value={confirmPassword}
+                                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                                        placeholder="Mínimo 6 caracteres"
+                                                        className="w-full border border-gray-300 rounded-xl px-3 py-2 outline-none focus:border-[#0a47d4] focus:ring-1 focus:ring-[#0a47d4] text-sm" 
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {requiresPayment && (
@@ -510,7 +568,7 @@ export default function BookingPage() {
                                     </button>
                                     <button 
                                         onClick={handleSubmitAppointment}
-                                        disabled={isCreating || !patientName || !patientPhone}
+                                        disabled={isCreating || !patientName || !patientDni || !patientPhone}
                                         className="flex-1 py-3 bg-[#0a47d4] text-white rounded-xl font-bold hover:bg-blue-700 transition-colors disabled:opacity-50 flex justify-center items-center gap-2"
                                     >
                                         {isCreating ? <Loader2 className="animate-spin" size={18} /> : (requiresPayment ? 'Proceder al Pago' : 'Finalizar')}

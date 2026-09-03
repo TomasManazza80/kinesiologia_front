@@ -120,6 +120,7 @@ const PatientList = () => {
           setEditingPatient({
               id: patient.id,
               nombre: patient.nombre || '',
+              dni: patient.dni || '',
               fecha_nacimiento: patient.fecha_nacimiento ? patient.fecha_nacimiento.split('T')[0] : '',
               gender: patient.gender || '',
               blood_type: patient.blood_type || '',
@@ -131,6 +132,7 @@ const PatientList = () => {
       } else {
           setEditingPatient({
               nombre: '',
+              dni: '',
               fecha_nacimiento: '',
               gender: '',
               blood_type: '',
@@ -148,6 +150,7 @@ const PatientList = () => {
       try {
           const payload = {
               nombre: editingPatient.nombre,
+              dni: editingPatient.dni || null,
               fecha_nacimiento: editingPatient.fecha_nacimiento || null,
               gender: editingPatient.gender,
               blood_type: editingPatient.blood_type,

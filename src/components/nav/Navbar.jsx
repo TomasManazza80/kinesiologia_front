@@ -59,6 +59,10 @@ const Navbar = ({children}) => {
             path: '/profesionales',
             title: 'Personal',
         });
+        navItems.push({
+            path: '/contenido',
+            title: 'Contenido',
+        });
     }
 
     return (

@@ -27,6 +27,7 @@ import ProfessionalList from "./components/kinesio/ProfessionalList.jsx";
 import AvailabilityManager from "./components/kinesio/AvailabilityManager.jsx";
 import AppointmentHistory from "./components/kinesio/AppointmentHistory.jsx";
 import UserProfile from "./components/profile/UserProfile.jsx";
+import LiveViewPage from "./pages/admin/LiveViewPage.jsx";
 
 function App() {
     return (
@@ -85,6 +86,7 @@ const AppContent = () => {
                                 <Route path="/historial/:id?" element={<MedicalHistoryTimeline/>} />
                                 <Route path="/historial-turnos" element={<AppointmentHistory/>} />
                                 <Route path="/perfil" element={<UserProfile/>} />
+                                <Route path="/contenido" element={<LiveViewPage/>} />
                             </Routes>
                         </Navbar>
                     </AdminRoute>

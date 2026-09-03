@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
-import { useGetMyAppointmentsQuery } from '../../services/api/kinesioApi.js';
-import { Calendar, Clock, Stethoscope, CheckCircle2, XCircle, Clock4, ArrowLeft } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { useGetMyAppointmentsQuery, useCancelAppointmentMutation } from '../../services/api/kinesioApi.js';
+import { toast } from '../../components/ui/use-toast';
+import { Calendar, Clock, Stethoscope, CheckCircle2, XCircle, Clock4, ArrowLeft, Loader2, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
@@ -10,7 +11,22 @@ dayjs.locale('es');
 
 const MyAppointments = () => {
     const { data: appointments, isLoading, error } = useGetMyAppointmentsQuery();
+    const [cancelAppointment] = useCancelAppointmentMutation();
     const navigate = useNavigate();
+    const [cancellingId, setCancellingId] = useState(null);
+
+    const handleCancel = async (id) => {
+        if (!window.confirm('¿Estás seguro de que deseas cancelar este turno?')) return;
+        setCancellingId(id);
+        try {
+            await cancelAppointment({ id, cancel_reason: 'ausencia_paciente' }).unwrap();
+            toast({ title: 'Turno cancelado', description: 'El turno ha sido cancelado exitosamente.' });
+        } catch (err) {
+            toast({ title: 'Error', description: err?.data?.error || 'No se pudo cancelar el turno.', variant: 'destructive' });
+        } finally {
+            setCancellingId(null);
+        }
+    };
 
     const { upcoming, past } = useMemo(() => {
         if (!appointments) return { upcoming: [], past: [] };
@@ -98,7 +114,7 @@ const MyAppointments = () => {
                             ) : (
                                 <div className="grid gap-4">
                                     {upcoming.map(appt => (
-                                        <AppointmentCard key={appt.id} appt={appt} getStatusStyle={getStatusStyle} getStatusIcon={getStatusIcon} />
+                                        <AppointmentCard key={appt.id} appt={appt} getStatusStyle={getStatusStyle} getStatusIcon={getStatusIcon} handleCancel={handleCancel} isCancelling={cancellingId === appt.id} isUpcoming={true} />
                                     ))}
                                 </div>
                             )}
@@ -128,7 +144,7 @@ const MyAppointments = () => {
     );
 };
 
-const AppointmentCard = ({ appt, getStatusStyle, getStatusIcon }) => {
+const AppointmentCard = ({ appt, getStatusStyle, getStatusIcon, handleCancel, isCancelling, isUpcoming }) => {
     const date = dayjs(appt.fecha_hora);
     return (
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex flex-col sm:flex-row items-start sm:items-center gap-5 transition-transform hover:-translate-y-0.5">
@@ -163,6 +179,19 @@ const AppointmentCard = ({ appt, getStatusStyle, getStatusIcon }) => {
                     )}
                 </div>
             </div>
+            
+            {isUpcoming && appt.estado !== 'cancelado' && (
+                <div className="shrink-0 sm:ml-4 flex items-center justify-end w-full sm:w-auto pt-4 sm:pt-0 border-t border-gray-100 sm:border-0 mt-2 sm:mt-0">
+                    <button 
+                        onClick={() => handleCancel && handleCancel(appt.id)}
+                        disabled={isCancelling}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 transition-colors disabled:opacity-50 w-full sm:w-auto justify-center"
+                    >
+                        {isCancelling ? <Loader2 size={16} className="animate-spin" /> : <X size={16} />}
+                        Cancelar Turno
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

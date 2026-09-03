@@ -3,15 +3,16 @@ import { useSelector } from 'react-redux';
 import { 
   Landmark, TrendingUp, TrendingDown, MoreVertical, Syringe, Activity, Monitor, 
   Briefcase, Plus, Stethoscope, Loader2, X, History, Edit2, ArrowLeft, Search, 
-  Calendar, Filter, Receipt, DollarSign, ArrowDownRight, FileText, Users, ShieldAlert 
+  Calendar, Filter, Receipt, DollarSign, ArrowDownRight, FileText, Users, ShieldAlert, Trash2
 } from 'lucide-react';
 import { 
   useGetBalanceQuery, 
   useCreateTransactionMutation, 
-  useGetTransactionHistoryQuery, 
-  useUpdateTransactionMutation, 
-  useGetExpensesQuery 
+  useGetTransactionHistoryQuery,
+  useUpdateTransactionMutation,
+  useDeleteTransactionMutation
 } from '../../services/api/kinesioApi.js';
+import { useGetExpensesQuery } from '../../services/api/financialsApi.js';
 import { toast } from '../ui/use-toast.tsx';
 import moment from 'moment';
 
@@ -47,6 +48,22 @@ const GroupFinancialOverview = () => {
 
   const [createTransaction, { isLoading: isCreating }] = useCreateTransactionMutation();
   const [updateTransaction, { isLoading: isUpdating }] = useUpdateTransactionMutation();
+  const [deleteTransaction, { isLoading: isDeleting }] = useDeleteTransactionMutation();
+
+  const handleDelete = async (tx) => {
+      if (window.confirm('¿Estás seguro de que deseas eliminar este movimiento grupal? Esta acción no se puede deshacer.')) {
+          try {
+              await deleteTransaction({ id: tx.id, scope: 'group' }).unwrap();
+              toast({ title: 'Éxito', description: 'Transacción grupal eliminada correctamente' });
+              if (selectedTx?.id === tx.id) {
+                  setSelectedTx(null);
+                  setIsEditingTx(false);
+              }
+          } catch (error) {
+              toast({ title: 'Error', description: 'No se pudo eliminar la transacción grupal', variant: 'destructive' });
+          }
+      }
+  };
 
   if (userRole !== 'ADMIN' && userRole !== 'SUPERADMIN') {
     return (
@@ -509,13 +526,22 @@ const GroupFinancialOverview = () => {
                               -{formatCurrency(tx.amount)}
                             </td>
                             <td className="py-3.5 px-4 text-center">
-                              <button
-                                onClick={() => { setSelectedTx({...tx}); setIsEditingTx(false); }}
-                                className="p-1.5 bg-gray-100 hover:bg-amber-100 text-gray-600 hover:text-amber-800 rounded-lg transition-colors inline-flex items-center justify-center"
-                                title="Ver / Editar egreso"
-                              >
-                                <Edit2 size={14} />
-                              </button>
+                              <div className="flex justify-center items-center gap-2">
+                                  <button
+                                    onClick={() => { setSelectedTx({...tx}); setIsEditingTx(false); }}
+                                    className="p-1.5 bg-gray-100 hover:bg-amber-100 text-gray-600 hover:text-amber-800 rounded-lg transition-colors inline-flex items-center justify-center"
+                                    title="Ver / Editar egreso"
+                                  >
+                                    <Edit2 size={14} />
+                                  </button>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleDelete(tx); }}
+                                    className="p-1.5 bg-gray-100 hover:bg-red-100 text-gray-600 hover:text-red-800 rounded-lg transition-colors inline-flex items-center justify-center"
+                                    title="Eliminar movimiento grupal"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                              </div>
                             </td>
                           </tr>
                         );
@@ -686,6 +712,7 @@ const GroupFinancialOverview = () => {
                                                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Profesional</th>
                                                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Medio Pago</th>
                                                 <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Monto</th>
+                                                <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Acción</th>
                                             </tr>
                                         </thead>
                                         <tbody className="bg-white divide-y divide-gray-100">
@@ -712,6 +739,15 @@ const GroupFinancialOverview = () => {
                                                     </td>
                                                     <td className={`px-6 py-3 whitespace-nowrap text-sm font-bold text-right ${tx.type === 'income' ? 'text-[#059669]' : 'text-[#EF4444]'}`}>
                                                         {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
+                                                    </td>
+                                                    <td className="px-6 py-3 whitespace-nowrap text-right text-sm font-medium" onClick={e => e.stopPropagation()}>
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); handleDelete(tx); }}
+                                                            className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-1.5 rounded-md transition-colors"
+                                                            title="Eliminar movimiento"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
                                                     </td>
                                                 </tr>
                                                 );
@@ -887,6 +923,14 @@ const GroupFinancialOverview = () => {
                                 className="flex-1 bg-[#0a47d4] text-white p-3 rounded-xl font-bold hover:bg-blue-700 flex items-center justify-center gap-2"
                             >
                                 {isUpdating ? <Loader2 className="animate-spin" size={20} /> : 'Guardar Cambios'}
+                            </button>
+                            <button 
+                                onClick={() => handleDelete(selectedTx)}
+                                disabled={isDeleting}
+                                className="px-5 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+                                title="Eliminar Movimiento"
+                            >
+                                {isDeleting ? <Loader2 className="animate-spin" size={20} /> : <Trash2 size={20} />}
                             </button>
                             <button 
                                 onClick={() => setIsEditingTx(false)}

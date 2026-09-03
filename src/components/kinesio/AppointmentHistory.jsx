@@ -4,7 +4,7 @@ import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale/index.js';
 import { Search, Calendar as CalendarIcon, Filter, User, Stethoscope, ChevronLeft, ChevronRight, Loader2, Edit2, Trash2, Phone, X, AlertTriangle } from 'lucide-react';
 import { useSelector } from 'react-redux';
-import { useDeleteAppointmentMutation, useUpdateAppointmentMutation } from '../../services/api/kinesioApi.js';
+import { useDeleteAppointmentMutation, useUpdateAppointmentMutation, useCancelAppointmentMutation } from '../../services/api/kinesioApi.js';
 import { toast } from '../ui/use-toast.tsx';
 
 const AppointmentHistory = () => {
@@ -20,6 +20,11 @@ const AppointmentHistory = () => {
     const [updateAppointment] = useUpdateAppointmentMutation();
     const [editingAppt, setEditingAppt] = useState(null);
     const [deletingAppt, setDeletingAppt] = useState(null);
+    
+    // Cancelation state
+    const [cancelingAppt, setCancelingAppt] = useState(null);
+    const [cancelReason, setCancelReason] = useState('ausencia_paciente');
+    const [cancelAppointmentMutation] = useCancelAppointmentMutation();
 
     const filteredAppointments = useMemo(() => {
         if (!appointments) return [];
@@ -75,6 +80,20 @@ const AppointmentHistory = () => {
             setDeletingAppt(null);
         } catch (error) {
             toast({ title: 'Error', description: 'No se pudo eliminar el turno', variant: 'destructive' });
+        }
+    };
+
+    const handleCancel = async () => {
+        if (!cancelingAppt) return;
+        try {
+            await cancelAppointmentMutation({
+                id: cancelingAppt.id,
+                cancel_reason: cancelReason
+            }).unwrap();
+            toast({ title: 'Éxito', description: 'Turno cancelado correctamente' });
+            setCancelingAppt(null);
+        } catch (error) {
+            toast({ title: 'Error', description: 'No se pudo cancelar el turno', variant: 'destructive' });
         }
     };
 
@@ -240,6 +259,15 @@ const AppointmentHistory = () => {
                                                 >
                                                     <Edit2 size={18} />
                                                 </button>
+                                                {appt.estado !== 'cancelado' && appt.estado !== 'completado' && (
+                                                    <button 
+                                                        onClick={() => setCancelingAppt(appt)}
+                                                        className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                                                        title="Cancelar turno"
+                                                    >
+                                                        <X size={18} />
+                                                    </button>
+                                                )}
                                                 <button 
                                                     onClick={() => setDeletingAppt(appt)}
                                                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -358,6 +386,46 @@ const AppointmentHistory = () => {
                             <button onClick={handleDelete} className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-colors shadow-sm">
                                 Eliminar
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Cancel Modal */}
+            {cancelingAppt && (
+                <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 animate-in fade-in">
+                    <div className="bg-white rounded-2xl shadow-xl w-[400px] overflow-hidden animate-in zoom-in-95">
+                        <div className="flex justify-between items-center p-4 border-b border-gray-100 bg-orange-50">
+                            <h3 className="font-bold text-lg text-orange-700">Cancelar Turno</h3>
+                            <button onClick={() => setCancelingAppt(null)} className="text-orange-400 hover:text-orange-600"><X size={20} /></button>
+                        </div>
+                        <div className="p-5 flex flex-col gap-4">
+                            <p className="text-sm text-gray-600">Por favor, seleccione el motivo de la cancelación. Si el paciente falta, se registrará una inasistencia.</p>
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">Motivo de cancelación</label>
+                                <select 
+                                    value={cancelReason}
+                                    onChange={(e) => setCancelReason(e.target.value)}
+                                    className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
+                                >
+                                    <option value="ausencia_paciente">Falta de asistencia del paciente</option>
+                                    <option value="cancelacion_profesional">Cancelación por parte del profesional / clínica</option>
+                                </select>
+                            </div>
+                            <div className="mt-4 flex gap-3">
+                                <button
+                                    onClick={() => setCancelingAppt(null)}
+                                    className="flex-1 px-4 py-2 text-gray-600 font-semibold hover:bg-gray-100 rounded-lg text-sm transition-colors"
+                                >
+                                    Volver
+                                </button>
+                                <button
+                                    onClick={handleCancel}
+                                    className="flex-1 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg text-sm transition-colors"
+                                >
+                                    Confirmar
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
