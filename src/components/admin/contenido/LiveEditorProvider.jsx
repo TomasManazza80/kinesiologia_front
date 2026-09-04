@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 
 const LiveEditorContext = createContext();
 
@@ -72,6 +72,28 @@ export const LiveEditorProvider = ({ children }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [pageData, setPageData] = useState(initialPageData);
   const [originalData, setOriginalData] = useState(initialPageData); // To discard changes
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load initial data from the backend
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/settings/content`);
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            setPageData(result.data);
+            setOriginalData(result.data);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading page content:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchContent();
+  }, []);
 
   const toggleEdit = () => {
     setIsEditing(!isEditing);
@@ -86,9 +108,6 @@ export const LiveEditorProvider = ({ children }) => {
       for (let i = 0; i < keys.length - 1; i++) {
         if (!current[keys[i]]) current[keys[i]] = {};
         
-        // If the next key is a number, we should make sure we're accessing an array properly
-        // In JS, arrays are objects so current[keys[i]] will work if it's an array
-        // However, cloning nested arrays requires care to not mutate the original state
         if (Array.isArray(current[keys[i]])) {
            current[keys[i]] = [...current[keys[i]]];
         } else if (typeof current[keys[i]] === 'object') {
@@ -152,14 +171,27 @@ export const LiveEditorProvider = ({ children }) => {
   }, []);
 
   const saveChanges = async () => {
-    // Simulating API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/settings/content`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        body: JSON.stringify({ pageData })
+      });
+      
+      if (response.ok) {
         setOriginalData(pageData); // Update original to new saved state
         setIsEditing(false);
-        resolve(true);
-      }, 1000);
-    });
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error saving page content:", error);
+      return false;
+    }
   };
 
   const discardChanges = () => {
