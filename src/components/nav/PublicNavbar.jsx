@@ -52,29 +52,29 @@ export default function PublicNavbar({ className = '' }) {
 
                     {/* Desktop Nav Links */}
                     <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
-                        <a href="/#inicio" onClick={(e) => handleNavClick(e, '#inicio')} className="hover:text-blue-600 transition-colors">Inicio</a>
-                        <a href="/#pausas" onClick={(e) => handleNavClick(e, '#pausas')} className="hover:text-blue-600 transition-colors">Pausas Activas</a>
-                        <a href="/#servicios" onClick={(e) => handleNavClick(e, '#servicios')} className="hover:text-blue-600 transition-colors">Servicios</a>
-                        <a href="/#profesionales" onClick={(e) => handleNavClick(e, '#profesionales')} className="hover:text-blue-600 transition-colors">Profesionales</a>
-                        <a href="/#faq" onClick={(e) => handleNavClick(e, '#faq')} className="hover:text-blue-600 transition-colors">FAQ</a>
+                        <a href="/#inicio" onClick={(e) => handleNavClick(e, '#inicio')} className="hover:text-[#B59970] transition-colors">Inicio</a>
+                        <a href="/#pausas" onClick={(e) => handleNavClick(e, '#pausas')} className="hover:text-[#B59970] transition-colors">Pausas Activas</a>
+                        <a href="/#servicios" onClick={(e) => handleNavClick(e, '#servicios')} className="hover:text-[#B59970] transition-colors">Servicios</a>
+                        <a href="/#profesionales" onClick={(e) => handleNavClick(e, '#profesionales')} className="hover:text-[#B59970] transition-colors">Profesionales</a>
+                        <a href="/#faq" onClick={(e) => handleNavClick(e, '#faq')} className="hover:text-[#B59970] transition-colors">FAQ</a>
                     </nav>
 
                     {/* Action Buttons */}
                     <div className="hidden lg:flex items-center gap-3">
                         <Link 
                             to="/mis-turnos"
-                            className="text-xs font-bold text-slate-600 hover:text-blue-600 px-3 py-2 rounded-xl transition-colors flex items-center gap-1.5"
+                            className="text-xs font-bold text-slate-600 hover:text-[#B59970] px-3 py-2 rounded-xl transition-colors flex items-center gap-1.5"
                         >
-                            <CalendarCheck className="w-4 h-4 text-blue-600" />
+                            <CalendarCheck className="w-4 h-4 text-[#B59970]" />
                             Mis Turnos
                         </Link>
 
                         {isAdminOrStaff && (
                             <Link 
                                 to="/dashboard"
-                                className="text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-xl transition-colors flex items-center gap-1.5"
+                                className="text-xs font-bold text-[#B59970] bg-[#B59970]/5 hover:bg-[#B59970]/15 px-3 py-2 rounded-xl transition-colors flex items-center gap-1.5"
                             >
-                                <LayoutDashboard className="w-4 h-4 text-blue-600" />
+                                <LayoutDashboard className="w-4 h-4 text-[#B59970]" />
                                 Panel Admin
                             </Link>
                         )}
@@ -103,7 +103,7 @@ export default function PublicNavbar({ className = '' }) {
                                 whileTap={{ scale: 0.96 }}
                                 transition={springConfig}
                                 onClick={() => navigate('/reservar')}
-                                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-6 py-2.5 rounded-full shadow-lg shadow-blue-600/25 hover:shadow-blue-600/35 transition-all"
+                                className="flex items-center gap-2 bg-[#13263E] hover:bg-[#B59970] text-white font-bold text-sm px-6 py-2.5 rounded-full shadow-lg shadow-[#13263E]/25 hover:shadow-[#13263E]/35 transition-all"
                             >
                                 <span>Reservar Turno</span>
                                 <ArrowUpRight className="w-4 h-4" />
@@ -117,7 +117,7 @@ export default function PublicNavbar({ className = '' }) {
                             <motion.button
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => navigate('/reservar')}
-                                className="bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-full shadow-md shadow-blue-500/20"
+                                className="bg-[#13263E] text-white text-xs font-bold px-4 py-2 rounded-full shadow-md shadow-[#13263E]/20"
                             >
                                 Turnos
                             </motion.button>
@@ -151,11 +151,11 @@ export default function PublicNavbar({ className = '' }) {
                         </nav>
                         <div className="pt-4 border-t border-slate-100 flex flex-col gap-2">
                             <Link to="/mis-turnos" onClick={() => setMobileMenuOpen(false)} className="text-sm font-semibold text-slate-700 py-2 flex items-center gap-2">
-                                <CalendarCheck className="w-4 h-4 text-blue-600" /> Mis Turnos
+                                <CalendarCheck className="w-4 h-4 text-[#B59970]" /> Mis Turnos
                             </Link>
                             {isAdminOrStaff && (
-                                <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className="text-sm font-semibold text-blue-600 py-2 flex items-center gap-2">
-                                    <LayoutDashboard className="w-4 h-4 text-blue-600" /> Panel Admin
+                                <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className="text-sm font-semibold text-[#B59970] py-2 flex items-center gap-2">
+                                    <LayoutDashboard className="w-4 h-4 text-[#B59970]" /> Panel Admin
                                 </Link>
                             )}
                             {!token ? (

@@ -261,28 +261,28 @@ export default function PausasLanding() {
     ];
 
     return (
-        <div ref={containerRef} className="min-h-screen bg-[#f8fafc] text-slate-800 font-sans selection:bg-blue-500/20 selection:text-blue-900 pb-16 md:pb-0 overflow-x-clip">
+        <div ref={containerRef} className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-[#B59970]/50/20 selection:text-[#13263E] pb-16 md:pb-0 overflow-x-clip">
             
             {/* TOP HEADER / NAVBAR */}
             <PublicNavbar />
 
             {/* HERO SECTION */}
-            <section id="inicio" className="relative pt-8 pb-20 md:pt-16 md:pb-28 overflow-hidden bg-gradient-to-b from-blue-50/40 via-white to-[#f8fafc]">
+            <section id="inicio" className="relative pt-8 pb-20 md:pt-16 md:pb-28 overflow-hidden bg-gradient-to-b from-[#B59970]/10 via-white to-[#f8fafc]">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                         
                         {/* Left Column Text */}
                         <div className="lg:col-span-7 space-y-6 text-left">
                             {/* Eyebrow badge */}
-                            <div className="gsap-hero-item inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-100/70 border border-blue-200/80 text-blue-700 text-xs font-bold tracking-wide">
-                                <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                            <div className="gsap-hero-item inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#B59970]/15/70 border border-[#B59970]/30/80 text-[#13263E] text-xs font-bold tracking-wide">
+                                <Sparkles className="w-3.5 h-3.5 text-[#B59970]" />
                                 <span>{pageData.hero.badge}</span>
                             </div>
 
                             {/* Main Title */}
                             <h1 className="gsap-hero-item text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.12]">
                                 {pageData.hero.title1} <br />
-                                <span className="text-blue-600 italic font-serif">{pageData.hero.title2}</span>
+                                <span className="text-[#B59970] italic font-serif">{pageData.hero.title2}</span>
                             </h1>
 
                             <p className="gsap-hero-item text-base sm:text-lg text-slate-600 max-w-xl font-medium leading-relaxed">
@@ -296,7 +296,7 @@ export default function PausasLanding() {
                                     whileTap={{ scale: 0.96 }}
                                     transition={springConfig}
                                     onClick={() => navigate('/reservar')}
-                                    className="flex items-center justify-center gap-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-base px-8 py-4 rounded-full shadow-xl shadow-blue-600/30 transition-all"
+                                    className="flex items-center justify-center gap-3 bg-[#13263E] hover:bg-[#B59970] text-white font-bold text-base px-8 py-4 rounded-full shadow-xl shadow-[#13263E]/30 transition-all"
                                 >
                                     <span>{pageData.hero.ctaPrimary}</span>
                                     <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
@@ -307,7 +307,7 @@ export default function PausasLanding() {
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                     href="#profesionales"
-                                    className="flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-800 font-bold text-base px-7 py-4 rounded-full border border-slate-200 shadow-sm hover:border-slate-300 transition-all"
+                                    className="flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-900 font-bold text-base px-7 py-4 rounded-full border border-slate-200 shadow-sm hover:border-slate-300 transition-all"
                                 >
                                     <span>{pageData.hero.ctaSecondary}</span>
                                     <ChevronDown className="w-4 h-4 text-slate-500" />
@@ -338,7 +338,7 @@ export default function PausasLanding() {
                                 {/* Floating Overlay Badge */}
                                 <div className="gsap-floating-badge absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-xl border border-white/40 space-y-2">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
+                                        <div className="w-10 h-10 rounded-xl bg-[#B59970]/15 flex items-center justify-center text-[#B59970]">
                                             <Award className="w-5 h-5" />
                                         </div>
                                         <div>
@@ -354,13 +354,13 @@ export default function PausasLanding() {
             </section>
 
             {/* STATEMENT SECTION */}
-            <section className="py-16 bg-blue-50/50 border-y border-blue-100/80">
+            <section className="py-16 bg-[#B59970]/5/50 border-y border-blue-100/80">
                 <div className="gsap-statement max-w-4xl mx-auto px-4 text-center space-y-6">
-                    <span className="text-xs font-bold uppercase tracking-widest text-blue-600 bg-blue-100/80 px-3.5 py-1.5 rounded-full">
+                    <span className="text-xs font-bold uppercase tracking-widest text-[#B59970] bg-[#B59970]/15/80 px-3.5 py-1.5 rounded-full">
                         {pageData.statement.badge}
                     </span>
                     <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 leading-relaxed max-w-3xl mx-auto">
-                        {pageData.statement.title1} <span className="text-blue-600 italic font-serif">{pageData.statement.title2}</span> {pageData.statement.title3} <span className="text-blue-600 italic font-serif">{pageData.statement.title4}</span>.
+                        {pageData.statement.title1} <span className="text-[#B59970] italic font-serif">{pageData.statement.title2}</span> {pageData.statement.title3} <span className="text-[#B59970] italic font-serif">{pageData.statement.title4}</span>.
                     </h2>
                     <div>
                         <motion.button
@@ -368,7 +368,7 @@ export default function PausasLanding() {
                             whileTap={{ scale: 0.95 }}
                             transition={springConfig}
                             onClick={() => navigate('/reservar')}
-                            className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 hover:bg-blue-200 font-bold text-xs px-5 py-2.5 rounded-full transition-colors"
+                            className="inline-flex items-center gap-2 bg-[#B59970]/15 text-[#13263E] hover:bg-blue-200 font-bold text-xs px-5 py-2.5 rounded-full transition-colors"
                         >
                             <span>{pageData.statement.cta}</span>
                             <ArrowUpRight className="w-3.5 h-3.5" />
@@ -383,12 +383,12 @@ export default function PausasLanding() {
                     
                     <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
                         <div>
-                            <span className="text-xs font-bold uppercase tracking-widest text-blue-600">{pageData.services.badge}</span>
+                            <span className="text-xs font-bold uppercase tracking-widest text-[#B59970]">{pageData.services.badge}</span>
                             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-1">
                                 {pageData.services.title}
                             </h2>
                         </div>
-                        <a href="#profesionales" className="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                        <a href="#profesionales" className="text-sm font-bold text-[#B59970] hover:text-[#13263E] flex items-center gap-1">
                             <span>{pageData.services.linkText}</span>
                             <ArrowUpRight className="w-4 h-4" />
                         </a>
@@ -403,26 +403,26 @@ export default function PausasLanding() {
                                     <motion.div 
                                         key={item.id || index}
                                         whileHover={{ y: -8, transition: springConfig }}
-                                        className="gsap-service-card bg-[#0f2b6e] text-white rounded-3xl p-8 border border-blue-900 shadow-2xl flex flex-col justify-between space-y-6 transform lg:-translate-y-2"
+                                        className="gsap-service-card bg-[#13263E] text-white rounded-3xl p-8 border border-[#13263E] shadow-2xl flex flex-col justify-between space-y-6 transform lg:-translate-y-2"
                                     >
                                         <div className="space-y-4">
-                                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-200 text-xs font-bold">
-                                                <IconComp className="w-3.5 h-3.5 text-blue-300" />
+                                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#B59970]/50/20 border border-[#B59970]/30 text-[#B59970] text-xs font-bold">
+                                                <IconComp className="w-3.5 h-3.5 text-[#B59970]" />
                                                 <span>{item.badge}</span>
                                             </div>
                                             <h3 className="text-2xl font-extrabold text-white">{item.title}</h3>
-                                            <p className="text-sm text-blue-100 leading-relaxed font-normal">
+                                            <p className="text-sm text-white/80 leading-relaxed font-normal">
                                                 {item.description}
                                             </p>
                                         </div>
-                                        <div className="pt-4 border-t border-blue-800/80 flex items-center justify-between">
-                                            <span className="text-xs text-blue-200 font-semibold">{item.footerText}</span>
+                                        <div className="pt-4 border-t border-white/10 flex items-center justify-between">
+                                            <span className="text-xs text-[#B59970] font-semibold">{item.footerText}</span>
                                             <motion.button
                                                 whileHover={{ scale: 1.05 }}
                                                 whileTap={{ scale: 0.95 }}
                                                 transition={springConfig}
                                                 onClick={() => navigate('/reservar')}
-                                                className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-1.5"
+                                                className="bg-[#13263E] hover:bg-[#B59970]/50 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-1.5"
                                             >
                                                 <span>{item.btnText}</span>
                                                 <ArrowUpRight className="w-3.5 h-3.5" />
@@ -435,10 +435,10 @@ export default function PausasLanding() {
                                     <motion.div 
                                         key={item.id || index}
                                         whileHover={{ y: -8, transition: springConfig }}
-                                        className="gsap-service-card bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all flex flex-col justify-between space-y-6"
+                                        className="gsap-service-card bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-[#B59970]/30 transition-all flex flex-col justify-between space-y-6"
                                     >
                                         <div className="space-y-4">
-                                            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                                            <div className="w-12 h-12 rounded-2xl bg-[#B59970]/5 text-[#B59970] flex items-center justify-center">
                                                 <IconComp className="w-6 h-6" />
                                             </div>
                                             <h3 className="text-xl font-bold text-slate-900">{item.title}</h3>
@@ -451,7 +451,7 @@ export default function PausasLanding() {
                                             <motion.button
                                                 whileTap={{ scale: 0.95 }}
                                                 onClick={() => navigate('/reservar')}
-                                                className="bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 text-xs font-bold px-4 py-2 rounded-xl transition-all"
+                                                className="bg-slate-100 hover:bg-[#13263E] hover:text-white text-slate-700 text-xs font-bold px-4 py-2 rounded-xl transition-all"
                                             >
                                                 {item.btnText}
                                             </motion.button>
@@ -469,7 +469,7 @@ export default function PausasLanding() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     
                     <div className="text-center max-w-2xl mx-auto space-y-3 mb-16">
-                        <span className="text-xs font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-3.5 py-1.5 rounded-full">
+                        <span className="text-xs font-bold uppercase tracking-widest text-[#B59970] bg-[#B59970]/5 px-3.5 py-1.5 rounded-full">
                             NUESTRO EQUIPO
                         </span>
                         <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
@@ -502,11 +502,11 @@ export default function PausasLanding() {
                                         viewport={{ once: true }}
                                         transition={{ duration: 0.35, ease: "easeOut" }}
                                         whileHover={{ y: -6, transition: springConfig }}
-                                        className="bg-[#f8fafc] rounded-3xl p-6 border border-slate-200 hover:border-blue-300 hover:shadow-xl transition-all flex flex-col justify-between group"
+                                        className="bg-[#f8fafc] rounded-3xl p-6 border border-slate-200 hover:border-[#B59970]/40 hover:shadow-xl transition-all flex flex-col justify-between group"
                                     >
                                         <div className="space-y-4">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-16 h-16 rounded-2xl bg-blue-100 border border-blue-200 overflow-hidden flex-shrink-0 flex items-center justify-center text-blue-600 group-hover:scale-105 transition-transform">
+                                                <div className="w-16 h-16 rounded-2xl bg-[#B59970]/15 border border-[#B59970]/30 overflow-hidden flex-shrink-0 flex items-center justify-center text-[#B59970] group-hover:scale-105 transition-transform">
                                                     {prof.avatar_url || prof.image ? (
                                                         <img src={prof.avatar_url || prof.image} alt={prof.name} className="w-full h-full object-cover" />
                                                     ) : (
@@ -514,10 +514,10 @@ export default function PausasLanding() {
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <h3 className="font-bold text-slate-900 text-lg group-hover:text-blue-600 transition-colors">
+                                                    <h3 className="font-bold text-slate-900 text-lg group-hover:text-[#B59970] transition-colors">
                                                         {prof.name}
                                                     </h3>
-                                                    <span className="inline-block text-xs font-bold text-blue-600 bg-blue-100/70 px-3 py-1 rounded-full mt-1 border border-blue-200">
+                                                    <span className="inline-block text-xs font-bold text-[#B59970] bg-[#B59970]/15/70 px-3 py-1 rounded-full mt-1 border border-[#B59970]/30">
                                                         {specialtiesList}
                                                     </span>
                                                 </div>
@@ -537,7 +537,7 @@ export default function PausasLanding() {
                                                 whileHover={{ scale: 1.05 }}
                                                 whileTap={{ scale: 0.95 }}
                                                 onClick={() => navigate(`/reservar?profesional=${prof.id}`)}
-                                                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1"
+                                                className="bg-[#13263E] hover:bg-[#B59970] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1"
                                             >
                                                 <span>Reservar</span>
                                                 <ArrowUpRight className="w-3.5 h-3.5" />
@@ -566,12 +566,12 @@ export default function PausasLanding() {
                                 >
                                     <div className="space-y-4">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-14 h-14 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                                            <div className="w-14 h-14 rounded-2xl bg-[#B59970]/15 text-[#B59970] flex items-center justify-center font-bold">
                                                 <User className="w-7 h-7" />
                                             </div>
                                             <div>
                                                 <h3 className="font-bold text-slate-900 text-base">{prof.name}</h3>
-                                                <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2.5 py-0.5 rounded-full">
+                                                <span className="text-xs font-bold text-[#B59970] bg-[#B59970]/15 px-2.5 py-0.5 rounded-full">
                                                     {prof.spec}
                                                 </span>
                                             </div>
@@ -580,7 +580,7 @@ export default function PausasLanding() {
                                     </div>
                                     <div className="pt-6 border-t border-slate-200 mt-6 flex items-center justify-between">
                                         <span className="text-xs font-bold text-emerald-600">Turnos Disponibles</span>
-                                        <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/reservar')} className="bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-xl">
+                                        <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/reservar')} className="bg-[#13263E] text-white text-xs font-bold px-4 py-2 rounded-xl">
                                             Reservar
                                         </motion.button>
                                     </div>
@@ -610,7 +610,7 @@ export default function PausasLanding() {
                         {/* Features Right */}
                         <div className="lg:col-span-7 space-y-8">
                             <div>
-                                <span className="text-xs font-bold uppercase tracking-widest text-blue-600">POR QUÉ ELEGIRNOS</span>
+                                <span className="text-xs font-bold uppercase tracking-widest text-[#B59970]">POR QUÉ ELEGIRNOS</span>
                                 <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-1">
                                     Excelencia en cada atención
                                 </h2>
@@ -618,7 +618,7 @@ export default function PausasLanding() {
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div className="gsap-why-item space-y-2">
-                                    <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                                    <div className="w-10 h-10 rounded-xl bg-[#B59970]/15 text-[#B59970] flex items-center justify-center">
                                         <Stethoscope className="w-5 h-5" />
                                     </div>
                                     <h4 className="font-bold text-slate-900 text-base">Equipamiento Moderno</h4>
@@ -628,7 +628,7 @@ export default function PausasLanding() {
                                 </div>
 
                                 <div className="gsap-why-item space-y-2">
-                                    <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                                    <div className="w-10 h-10 rounded-xl bg-[#B59970]/15 text-[#B59970] flex items-center justify-center">
                                         <Users className="w-5 h-5" />
                                     </div>
                                     <h4 className="font-bold text-slate-900 text-base">Kinesiologos Certificados</h4>
@@ -638,7 +638,7 @@ export default function PausasLanding() {
                                 </div>
 
                                 <div className="gsap-why-item space-y-2">
-                                    <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                                    <div className="w-10 h-10 rounded-xl bg-[#B59970]/15 text-[#B59970] flex items-center justify-center">
                                         <Clock className="w-5 h-5" />
                                     </div>
                                     <h4 className="font-bold text-slate-900 text-base">Turnos Online 24/7</h4>
@@ -648,7 +648,7 @@ export default function PausasLanding() {
                                 </div>
 
                                 <div className="gsap-why-item space-y-2">
-                                    <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                                    <div className="w-10 h-10 rounded-xl bg-[#B59970]/15 text-[#B59970] flex items-center justify-center">
                                         <Heart className="w-5 h-5" />
                                     </div>
                                     <h4 className="font-bold text-slate-900 text-base">Abordaje Integral</h4>
@@ -665,7 +665,7 @@ export default function PausasLanding() {
 
             {/* SECCIÓN BANNER CTA FINAL */}
             <section className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="gsap-cta-banner bg-[#0a183d] rounded-3xl p-10 sm:p-14 text-center text-white space-y-6 shadow-2xl relative overflow-hidden">
+                <div className="gsap-cta-banner bg-[#13263E] rounded-3xl p-10 sm:p-14 text-center text-white space-y-6 shadow-2xl relative overflow-hidden">
                     <div className="max-w-2xl mx-auto space-y-4">
                         <h2 className="text-white text-3xl sm:text-4xl font-extrabold tracking-tight">
                             ¿Listo para vivir tu transición con plenitud?
@@ -680,7 +680,7 @@ export default function PausasLanding() {
                             whileTap={{ scale: 0.95 }}
                             transition={springConfig}
                             onClick={() => navigate('/reservar')}
-                            className="inline-flex items-center gap-3 bg-blue-600 hover:bg-blue-500 text-white font-bold text-base px-9 py-4 rounded-full shadow-xl shadow-blue-600/40 transition-all"
+                            className="inline-flex items-center gap-3 bg-[#13263E] hover:bg-[#B59970]/50 text-white font-bold text-base px-9 py-4 rounded-full shadow-xl shadow-[#13263E]/40 transition-all"
                         >
                             <span>Reservar Mi Turno Ahora</span>
                             <ArrowUpRight className="w-5 h-5" />
@@ -693,7 +693,7 @@ export default function PausasLanding() {
             <section id="faq" className="py-16 bg-white border-t border-slate-200">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center space-y-2 mb-12">
-                        <span className="text-xs font-bold uppercase tracking-widest text-blue-600">FAQS</span>
+                        <span className="text-xs font-bold uppercase tracking-widest text-[#B59970]">FAQS</span>
                         <h2 className="text-3xl font-extrabold text-slate-900">Preguntas Frecuentes</h2>
                     </div>
 
@@ -702,10 +702,10 @@ export default function PausasLanding() {
                             <div key={idx} className="gsap-faq-item bg-[#f8fafc] rounded-2xl border border-slate-200 overflow-hidden">
                                 <button
                                     onClick={() => toggleFaq(idx)}
-                                    className="w-full p-5 text-left flex items-center justify-between font-bold text-slate-900 hover:text-blue-600 transition-colors text-base"
+                                    className="w-full p-5 text-left flex items-center justify-between font-bold text-slate-900 hover:text-[#B59970] transition-colors text-base"
                                 >
                                     <span>{faq.q}</span>
-                                    <ChevronDown className={`w-5 h-5 text-blue-600 transition-transform duration-300 ${activeFaq === idx ? 'rotate-180' : ''}`} />
+                                    <ChevronDown className={`w-5 h-5 text-[#B59970] transition-transform duration-300 ${activeFaq === idx ? 'rotate-180' : ''}`} />
                                 </button>
                                 
                                 <AnimatePresence>
@@ -744,10 +744,10 @@ export default function PausasLanding() {
                         <div>
                             <h4 className="font-bold text-slate-900 uppercase tracking-wider mb-3">Navegación</h4>
                             <ul className="space-y-2 font-medium">
-                                <li><a href="#pausas" className="hover:text-blue-600">Especialidades</a></li>
-                                <li><a href="#servicios" className="hover:text-blue-600">Servicios</a></li>
-                                <li><a href="#profesionales" className="hover:text-blue-600">Profesionales</a></li>
-                                <li><Link to="/reservar" className="hover:text-blue-600">Reservar Turno</Link></li>
+                                <li><a href="#pausas" className="hover:text-[#B59970]">Especialidades</a></li>
+                                <li><a href="#servicios" className="hover:text-[#B59970]">Servicios</a></li>
+                                <li><a href="#profesionales" className="hover:text-[#B59970]">Profesionales</a></li>
+                                <li><Link to="/reservar" className="hover:text-[#B59970]">Reservar Turno</Link></li>
                             </ul>
                         </div>
 
@@ -762,8 +762,8 @@ export default function PausasLanding() {
 
                         <div>
                             <h4 className="font-bold text-slate-900 uppercase tracking-wider mb-3">Acceso Staff</h4>
-                            <Link to="/login" className="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-4 py-2 rounded-xl transition-colors">
-                                <LogIn className="w-4 h-4 text-blue-600" /> Personal Login
+                            <Link to="/login" className="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold px-4 py-2 rounded-xl transition-colors">
+                                <LogIn className="w-4 h-4 text-[#B59970]" /> Personal Login
                             </Link>
                         </div>
 
@@ -778,22 +778,22 @@ export default function PausasLanding() {
 
             {/* MOBILE BOTTOM NAVIGATION BAR */}
             <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 px-6 py-2 flex items-center justify-around text-[10px] font-bold text-slate-600 shadow-lg">
-                <a href="#inicio" className="flex flex-col items-center gap-0.5 hover:text-blue-600">
-                    <Activity className="w-5 h-5 text-blue-600" />
+                <a href="#inicio" className="flex flex-col items-center gap-0.5 hover:text-[#B59970]">
+                    <Activity className="w-5 h-5 text-[#B59970]" />
                     <span>Inicio</span>
                 </a>
-                <a href="#pausas" className="flex flex-col items-center gap-0.5 hover:text-blue-600">
-                    <Zap className="w-5 h-5 text-blue-600" />
+                <a href="#pausas" className="flex flex-col items-center gap-0.5 hover:text-[#B59970]">
+                    <Zap className="w-5 h-5 text-[#B59970]" />
                     <span>Especialidades</span>
                 </a>
-                <button onClick={() => navigate('/reservar')} className="flex flex-col items-center gap-0.5 text-blue-600">
-                    <div className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-md">
+                <button onClick={() => navigate('/reservar')} className="flex flex-col items-center gap-0.5 text-[#B59970]">
+                    <div className="w-9 h-9 rounded-full bg-[#13263E] text-white flex items-center justify-center shadow-md">
                         <Calendar className="w-4 h-4" />
                     </div>
                     <span>Turnos</span>
                 </button>
-                <a href="#profesionales" className="flex flex-col items-center gap-0.5 hover:text-blue-600">
-                    <Users className="w-5 h-5 text-blue-600" />
+                <a href="#profesionales" className="flex flex-col items-center gap-0.5 hover:text-[#B59970]">
+                    <Users className="w-5 h-5 text-[#B59970]" />
                     <span>Equipo</span>
                 </a>
             </div>

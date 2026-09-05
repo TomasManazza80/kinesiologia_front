@@ -93,7 +93,7 @@ const Navbar = ({children}) => {
                                     to={item.path}
                                     className={`px-5 py-2.5 rounded-full text-[14px] font-semibold transition-all duration-200 ${
                                         isActive
-                                            ? 'bg-[#3B82F6] text-white shadow-md shadow-blue-500/20'
+                                            ? 'bg-[#13263E] text-white shadow-md shadow-[#13263E]/20'
                                             : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
                                     }`}
                                 >
@@ -133,7 +133,7 @@ const Navbar = ({children}) => {
                             className="flex items-center gap-2 cursor-pointer group hover:bg-gray-50 px-2 py-1.5 rounded-xl transition-all border border-transparent hover:border-gray-200"
                             title="Ver mi perfil de usuario"
                         >
-                            <div className="h-9 w-9 rounded-full bg-blue-100 overflow-hidden border-2 border-transparent group-hover:border-[#3B82F6] transition-all shadow-xs flex items-center justify-center font-bold text-xs text-[#0A58CA]">
+                            <div className="h-9 w-9 rounded-full bg-[#B59970]/15 overflow-hidden border-2 border-transparent group-hover:border-[#B59970] transition-all shadow-xs flex items-center justify-center font-bold text-xs text-[#13263E]">
                                 <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || user?.nombre || user?.email || 'User')}&background=0A58CA&color=fff`} alt="Avatar" className="w-full h-full object-cover"/>
                             </div>
                             <div className="hidden lg:flex flex-col text-left">
@@ -172,7 +172,7 @@ const Navbar = ({children}) => {
                                     onClick={() => setIsMobileMenuOpen(false)}
                                     className={`px-4 py-3 rounded-xl text-[15px] font-semibold transition-all ${
                                         isActive
-                                            ? 'bg-[#3B82F6] text-white shadow-md shadow-blue-500/20'
+                                            ? 'bg-[#13263E] text-white shadow-md shadow-[#13263E]/20'
                                             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                     }`}
                                 >
