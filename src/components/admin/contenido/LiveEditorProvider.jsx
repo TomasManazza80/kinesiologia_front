@@ -172,7 +172,7 @@ export const LiveEditorProvider = ({ children }) => {
 
   const saveChanges = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/settings/content`, {
         method: 'PUT',
         headers: {

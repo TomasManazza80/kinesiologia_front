@@ -18,11 +18,97 @@ gsap.registerPlugin(ScrollTrigger);
 // Framer Motion spring presets for interactive elements
 const springConfig = { type: "spring", stiffness: 300, damping: 24 };
 
+const initialPageData = {
+  hero: {
+    badge: 'CENTRO ESPECIALIZADO EN MENOPAUSIA',
+    title1: 'Cuidado Integral',
+    title2: 'Climaterio & Plenitud',
+    subtitle: 'Acompañamos a mujeres y hombres en su etapa de transición hormonal. Especialistas en endocrinología, suelo pélvico y bienestar emocional para una vida plena.',
+    ctaPrimary: 'Reservar Turno',
+    ctaSecondary: 'Conocer Profesionales',
+    stats: [
+      { value: '15+', label: 'Años de Experiencia' },
+      { value: '10k+', label: 'Pacientes Atendidos' },
+      { value: '100%', label: 'Atención Personalizada' }
+    ],
+    imageBadge: {
+      title: 'Atención Integral',
+      subtitle: 'Endocrinología y Rehabilitación'
+    }
+  },
+  statement: {
+    badge: 'CUIDADO MULTIDISCIPLINARIO',
+    title1: 'Integramos',
+    title2: 'múltiples especialidades',
+    title3: 'para brindar un acompañamiento completo, restaurando el',
+    title4: 'equilibrio, vitalidad y salud pélvica',
+    cta: 'Solicitar Evaluación'
+  },
+  services: {
+    badge: 'Especialidades',
+    title: 'Abordaje Integral y Personalizado',
+    linkText: 'Ver profesionales disponibles',
+    items: [
+      { 
+        id: 1, 
+        icon: 'Stethoscope',
+        title: 'Endocrinología Especializada', 
+        description: 'Control hormonal y metabólico enfocado en el climaterio, menopausia y andropausia para un óptimo bienestar.',
+        footerText: 'Atención en consultorio',
+        btnText: 'Agendar'
+      },
+      { 
+        id: 2, 
+        icon: 'Zap',
+        isHighlighted: true,
+        badge: 'SERVICIO DESTACADO',
+        title: 'Rehabilitación Suelo Pélvico', 
+        description: 'Tratamiento kinésico especializado para incontinencia, disfunciones sexuales y fortalecimiento del piso pélvico en mujeres y hombres.',
+        footerText: 'Individual o Empresas',
+        btnText: 'Reservar Ahora'
+      },
+      { 
+        id: 3, 
+        icon: 'ShieldCheck',
+        title: 'Acompañamiento Psicológico', 
+        description: 'Espacio terapéutico para abordar los cambios emocionales, estrés y ansiedad durante la transición hormonal.',
+        footerText: 'Diagnóstico kinésico',
+        btnText: 'Agendar'
+      }
+    ]
+  },
+  contact: {
+    title: 'Contacto',
+    email: 'contacto@centrokinesiologico.com',
+    phone: '+54 11 1234-5678'
+  }
+};
+
+const IconMap = { Activity, Calendar, Clock, UserCheck, ShieldCheck, Heart, Sparkles, Zap, Award, Stethoscope, Users, Phone, Mail, MapPin };
+
 export default function PausasLanding() {
     const navigate = useNavigate();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [activeFaq, setActiveFaq] = useState(null);
     const containerRef = useRef(null);
+    const [pageData, setPageData] = useState(initialPageData);
+
+    useEffect(() => {
+        const fetchContent = async () => {
+            try {
+                const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/settings/content`);
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                        setPageData(result.data);
+                    }
+                }
+            } catch (error) {
+                console.error("Error loading page content:", error);
+            }
+        };
+        fetchContent();
+    }, []);
 
     // Queries
     const { data: profData, isLoading: isLoadingProfs } = useGetPublicProfessionalsQuery();
@@ -190,17 +276,17 @@ export default function PausasLanding() {
                             {/* Eyebrow badge */}
                             <div className="gsap-hero-item inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-100/70 border border-blue-200/80 text-blue-700 text-xs font-bold tracking-wide">
                                 <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-                                <span>CENTRO ESPECIALIZADO EN MENOPAUSIA</span>
+                                <span>{pageData.hero.badge}</span>
                             </div>
 
                             {/* Main Title */}
                             <h1 className="gsap-hero-item text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.12]">
-                                Cuidado Integral <br />
-                                <span className="text-blue-600 italic font-serif">Climaterio & Plenitud</span>
+                                {pageData.hero.title1} <br />
+                                <span className="text-blue-600 italic font-serif">{pageData.hero.title2}</span>
                             </h1>
 
                             <p className="gsap-hero-item text-base sm:text-lg text-slate-600 max-w-xl font-medium leading-relaxed">
-                                Acompañamos a mujeres y hombres en su etapa de transición hormonal. Especialistas en endocrinología, suelo pélvico y bienestar emocional para una vida plena.
+                                {pageData.hero.subtitle}
                             </p>
 
                             {/* Hero Action Buttons */}
@@ -212,7 +298,7 @@ export default function PausasLanding() {
                                     onClick={() => navigate('/reservar')}
                                     className="flex items-center justify-center gap-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-base px-8 py-4 rounded-full shadow-xl shadow-blue-600/30 transition-all"
                                 >
-                                    <span>Reservar Turno</span>
+                                    <span>{pageData.hero.ctaPrimary}</span>
                                     <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
                                         <ArrowUpRight className="w-4 h-4 text-white" />
                                     </div>
@@ -223,25 +309,19 @@ export default function PausasLanding() {
                                     href="#profesionales"
                                     className="flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-800 font-bold text-base px-7 py-4 rounded-full border border-slate-200 shadow-sm hover:border-slate-300 transition-all"
                                 >
-                                    <span>Conocer Profesionales</span>
+                                    <span>{pageData.hero.ctaSecondary}</span>
                                     <ChevronDown className="w-4 h-4 text-slate-500" />
                                 </motion.a>
                             </div>
 
                             {/* Stats Row */}
                             <div className="gsap-hero-item pt-8 border-t border-slate-200/80 grid grid-cols-3 gap-6 max-w-lg">
-                                <div>
-                                    <div className="text-2xl sm:text-3xl font-extrabold text-slate-900">15+</div>
-                                    <div className="text-xs text-slate-500 font-semibold mt-0.5">Años de Experiencia</div>
-                                </div>
-                                <div>
-                                    <div className="text-2xl sm:text-3xl font-extrabold text-slate-900">10k+</div>
-                                    <div className="text-xs text-slate-500 font-semibold mt-0.5">Pacientes Atendidos</div>
-                                </div>
-                                <div>
-                                    <div className="text-2xl sm:text-3xl font-extrabold text-slate-900">100%</div>
-                                    <div className="text-xs text-slate-500 font-semibold mt-0.5">Atención Personalizada</div>
-                                </div>
+                                {pageData.hero.stats.map((stat, idx) => (
+                                    <div key={idx}>
+                                        <div className="text-2xl sm:text-3xl font-extrabold text-slate-900">{stat.value}</div>
+                                        <div className="text-xs text-slate-500 font-semibold mt-0.5">{stat.label}</div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
 
@@ -262,8 +342,8 @@ export default function PausasLanding() {
                                             <Award className="w-5 h-5" />
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-slate-900 text-sm">Atención Integral</h4>
-                                            <p className="text-xs text-slate-500 font-medium">Endocrinología y Rehabilitación</p>
+                                            <h4 className="font-bold text-slate-900 text-sm">{pageData.hero.imageBadge.title}</h4>
+                                            <p className="text-xs text-slate-500 font-medium">{pageData.hero.imageBadge.subtitle}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -277,10 +357,10 @@ export default function PausasLanding() {
             <section className="py-16 bg-blue-50/50 border-y border-blue-100/80">
                 <div className="gsap-statement max-w-4xl mx-auto px-4 text-center space-y-6">
                     <span className="text-xs font-bold uppercase tracking-widest text-blue-600 bg-blue-100/80 px-3.5 py-1.5 rounded-full">
-                        CUIDADO MULTIDISCIPLINARIO
+                        {pageData.statement.badge}
                     </span>
                     <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 leading-relaxed max-w-3xl mx-auto">
-                        Integramos <span className="text-blue-600 italic font-serif">múltiples especialidades</span> para brindar un acompañamiento completo, restaurando el <span className="text-blue-600 italic font-serif">equilibrio, vitalidad y salud pélvica</span>.
+                        {pageData.statement.title1} <span className="text-blue-600 italic font-serif">{pageData.statement.title2}</span> {pageData.statement.title3} <span className="text-blue-600 italic font-serif">{pageData.statement.title4}</span>.
                     </h2>
                     <div>
                         <motion.button
@@ -290,7 +370,7 @@ export default function PausasLanding() {
                             onClick={() => navigate('/reservar')}
                             className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 hover:bg-blue-200 font-bold text-xs px-5 py-2.5 rounded-full transition-colors"
                         >
-                            <span>Solicitar Evaluación</span>
+                            <span>{pageData.statement.cta}</span>
                             <ArrowUpRight className="w-3.5 h-3.5" />
                         </motion.button>
                     </div>
@@ -303,102 +383,83 @@ export default function PausasLanding() {
                     
                     <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
                         <div>
-                            <span className="text-xs font-bold uppercase tracking-widest text-blue-600">Especialidades</span>
+                            <span className="text-xs font-bold uppercase tracking-widest text-blue-600">{pageData.services.badge}</span>
                             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-1">
-                                Abordaje Integral y Personalizado
+                                {pageData.services.title}
                             </h2>
                         </div>
                         <a href="#profesionales" className="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1">
-                            <span>Ver profesionales disponibles</span>
+                            <span>{pageData.services.linkText}</span>
                             <ArrowUpRight className="w-4 h-4" />
                         </a>
                     </div>
 
                     {/* Services Cards Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        
-                        {/* Card 1: Kinesiología General */}
-                        <motion.div 
-                            whileHover={{ y: -8, transition: springConfig }}
-                            className="gsap-service-card bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all flex flex-col justify-between space-y-6"
-                        >
-                            <div className="space-y-4">
-                                <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                                    <Stethoscope className="w-6 h-6" />
-                                </div>
-                                <h3 className="text-xl font-bold text-slate-900">Endocrinología Especializada</h3>
-                                <p className="text-sm text-slate-600 leading-relaxed font-medium">
-                                    Control hormonal y metabólico enfocado en el climaterio, menopausia y andropausia para un óptimo bienestar.
-                                </p>
-                            </div>
-                            <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                                <span className="text-xs font-bold text-slate-400">Atención en consultorio</span>
-                                <motion.button
-                                    whileTap={{ scale: 0.95 }}
-                                    onClick={() => navigate('/reservar')}
-                                    className="bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 text-xs font-bold px-4 py-2 rounded-xl transition-all"
-                                >
-                                    Agendar
-                                </motion.button>
-                            </div>
-                        </motion.div>
-
-                        {/* Card 2: DESTACADA (Blue Royal Navy Accent - Pausas Activas) */}
-                        <motion.div 
-                            whileHover={{ y: -8, transition: springConfig }}
-                            className="gsap-service-card bg-[#0f2b6e] text-white rounded-3xl p-8 border border-blue-900 shadow-2xl flex flex-col justify-between space-y-6 transform lg:-translate-y-2"
-                        >
-                            <div className="space-y-4">
-                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-200 text-xs font-bold">
-                                    <Zap className="w-3.5 h-3.5 text-blue-300" />
-                                    <span>SERVICIO DESTACADO</span>
-                                </div>
-                                <h3 className="text-2xl font-extrabold text-white">Rehabilitación Suelo Pélvico</h3>
-                                <p className="text-sm text-blue-100 leading-relaxed font-normal">
-                                    Tratamiento kinésico especializado para incontinencia, disfunciones sexuales y fortalecimiento del piso pélvico en mujeres y hombres.
-                                </p>
-                            </div>
-                            <div className="pt-4 border-t border-blue-800/80 flex items-center justify-between">
-                                <span className="text-xs text-blue-200 font-semibold">Individual o Empresas</span>
-                                <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    transition={springConfig}
-                                    onClick={() => navigate('/reservar')}
-                                    className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-1.5"
-                                >
-                                    <span>Reservar Ahora</span>
-                                    <ArrowUpRight className="w-3.5 h-3.5" />
-                                </motion.button>
-                            </div>
-                        </motion.div>
-
-                        {/* Card 3: RPG y Postura */}
-                        <motion.div 
-                            whileHover={{ y: -8, transition: springConfig }}
-                            className="gsap-service-card bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all flex flex-col justify-between space-y-6"
-                        >
-                            <div className="space-y-4">
-                                <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                                    <ShieldCheck className="w-6 h-6" />
-                                </div>
-                                <h3 className="text-xl font-bold text-slate-900">Acompañamiento Psicológico</h3>
-                                <p className="text-sm text-slate-600 leading-relaxed font-medium">
-                                    Espacio terapéutico para abordar los cambios emocionales, estrés y ansiedad durante la transición hormonal.
-                                </p>
-                            </div>
-                            <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                                <span className="text-xs font-bold text-slate-400">Diagnóstico kinésico</span>
-                                <motion.button
-                                    whileTap={{ scale: 0.95 }}
-                                    onClick={() => navigate('/reservar')}
-                                    className="bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 text-xs font-bold px-4 py-2 rounded-xl transition-all"
-                                >
-                                    Agendar
-                                </motion.button>
-                            </div>
-                        </motion.div>
-
+                        {pageData.services.items.map((item, index) => {
+                            const IconComp = IconMap[item.icon] || Stethoscope;
+                            if (item.isHighlighted) {
+                                return (
+                                    <motion.div 
+                                        key={item.id || index}
+                                        whileHover={{ y: -8, transition: springConfig }}
+                                        className="gsap-service-card bg-[#0f2b6e] text-white rounded-3xl p-8 border border-blue-900 shadow-2xl flex flex-col justify-between space-y-6 transform lg:-translate-y-2"
+                                    >
+                                        <div className="space-y-4">
+                                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-200 text-xs font-bold">
+                                                <IconComp className="w-3.5 h-3.5 text-blue-300" />
+                                                <span>{item.badge}</span>
+                                            </div>
+                                            <h3 className="text-2xl font-extrabold text-white">{item.title}</h3>
+                                            <p className="text-sm text-blue-100 leading-relaxed font-normal">
+                                                {item.description}
+                                            </p>
+                                        </div>
+                                        <div className="pt-4 border-t border-blue-800/80 flex items-center justify-between">
+                                            <span className="text-xs text-blue-200 font-semibold">{item.footerText}</span>
+                                            <motion.button
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                                transition={springConfig}
+                                                onClick={() => navigate('/reservar')}
+                                                className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-1.5"
+                                            >
+                                                <span>{item.btnText}</span>
+                                                <ArrowUpRight className="w-3.5 h-3.5" />
+                                            </motion.button>
+                                        </div>
+                                    </motion.div>
+                                );
+                            } else {
+                                return (
+                                    <motion.div 
+                                        key={item.id || index}
+                                        whileHover={{ y: -8, transition: springConfig }}
+                                        className="gsap-service-card bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all flex flex-col justify-between space-y-6"
+                                    >
+                                        <div className="space-y-4">
+                                            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                                                <IconComp className="w-6 h-6" />
+                                            </div>
+                                            <h3 className="text-xl font-bold text-slate-900">{item.title}</h3>
+                                            <p className="text-sm text-slate-600 leading-relaxed font-medium">
+                                                {item.description}
+                                            </p>
+                                        </div>
+                                        <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                                            <span className="text-xs font-bold text-slate-400">{item.footerText}</span>
+                                            <motion.button
+                                                whileTap={{ scale: 0.95 }}
+                                                onClick={() => navigate('/reservar')}
+                                                className="bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 text-xs font-bold px-4 py-2 rounded-xl transition-all"
+                                            >
+                                                {item.btnText}
+                                            </motion.button>
+                                        </div>
+                                    </motion.div>
+                                );
+                            }
+                        })}
                     </div>
                 </div>
             </section>
@@ -606,10 +667,10 @@ export default function PausasLanding() {
             <section className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="gsap-cta-banner bg-[#0a183d] rounded-3xl p-10 sm:p-14 text-center text-white space-y-6 shadow-2xl relative overflow-hidden">
                     <div className="max-w-2xl mx-auto space-y-4">
-                        <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+                        <h2 className="text-white text-3xl sm:text-4xl font-extrabold tracking-tight">
                             ¿Listo para vivir tu transición con plenitud?
                         </h2>
-                        <p className="text-blue-100 text-sm sm:text-base font-normal leading-relaxed">
+                        <p className="text-white text-sm sm:text-base font-normal leading-relaxed">
                             Reserva tu consulta hoy mismo y da el primer paso hacia un bienestar hormonal, físico y emocional.
                         </p>
                     </div>
