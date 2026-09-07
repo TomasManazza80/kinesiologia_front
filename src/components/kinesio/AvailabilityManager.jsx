@@ -36,7 +36,7 @@ const AvailabilityManager = () => {
     useEffect(() => {
         // Fetch MP Auth URL if token is missing
         if (!mpAccessToken) {
-            const backendUrl = import.meta.env.VITE_PUBLIC_BACKEND_URL || 'http://localhost:10000';
+            const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:10000';
             const token = localStorage.getItem('token');
             if (token) {
                 fetch(`${backendUrl}/api/kinesio/mp-auth-url`, {
