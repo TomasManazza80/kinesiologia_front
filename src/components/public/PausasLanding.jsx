@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Activity, Calendar, Clock, UserCheck, ShieldCheck, Heart, 
     Sparkles, ArrowUpRight, ChevronDown, CheckCircle2, Phone, Mail, 
-    MapPin, Users, Zap, Award, Stethoscope, ChevronRight, Menu, X, LogIn, CalendarCheck,
+    MapPin, Users, Zap, Award, Stethoscope, ChevronRight, ChevronLeft, Menu, X, LogIn, CalendarCheck,
     Check, ArrowRight, User
 } from 'lucide-react';
 import { useGetPublicProfessionalsQuery } from '../../services/api/kinesioApi.js';
@@ -92,6 +92,42 @@ export default function PausasLanding() {
     const [activeFaq, setActiveFaq] = useState(null);
     const containerRef = useRef(null);
     const [pageData, setPageData] = useState(initialPageData);
+    const [currentSlide, setCurrentSlide] = useState(0);
+
+    // Guarantee slides is an array, even if the database saved it as an object
+    const rawSlides = pageData?.hero?.slides;
+    const slides = Array.isArray(rawSlides) 
+      ? rawSlides 
+      : (rawSlides && typeof rawSlides === 'object' ? Object.values(rawSlides) : [pageData?.hero || {}]);
+
+    const heroTextRef = useRef(null);
+    const heroMediaRef = useRef(null);
+
+    useEffect(() => {
+        const ctx = gsap.context(() => {
+            if (heroTextRef.current) {
+                gsap.fromTo(heroTextRef.current, 
+                    { opacity: 0, x: -20 }, 
+                    { opacity: 1, x: 0, duration: 0.6, ease: "power2.out" }
+                );
+            }
+            if (heroMediaRef.current) {
+                gsap.fromTo(heroMediaRef.current,
+                    { opacity: 0.5, scale: 0.98 },
+                    { opacity: 1, scale: 1, duration: 0.8, ease: "power2.out" }
+                );
+            }
+        });
+        return () => ctx.revert();
+    }, [currentSlide]);
+
+    useEffect(() => {
+        if (slides.length <= 1) return;
+        const interval = setInterval(() => {
+            setCurrentSlide(prev => (prev + 1) % slides.length);
+        }, 5000);
+        return () => clearInterval(interval);
+    }, [slides.length]);
 
     useEffect(() => {
         const fetchContent = async () => {
@@ -260,6 +296,8 @@ export default function PausasLanding() {
         }
     ];
 
+    const currentData = slides[currentSlide] || slides[0] || {};
+
     return (
         <div ref={containerRef} className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-[#B59970]/50/20 selection:text-[#13263E] pb-16 md:pb-0 overflow-x-clip">
             
@@ -267,26 +305,38 @@ export default function PausasLanding() {
             <PublicNavbar />
 
             {/* HERO SECTION */}
-            <section id="inicio" className="relative pt-8 pb-20 md:pt-16 md:pb-28 overflow-hidden bg-gradient-to-b from-[#B59970]/10 via-white to-[#f8fafc]">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <section id="inicio" className="relative pt-8 pb-20 md:pt-16 md:pb-28 overflow-hidden">
+                {/* Fixed Background Video for the entire Hero section */}
+                <video 
+                    autoPlay 
+                    loop 
+                    muted 
+                    playsInline 
+                    className="absolute inset-0 w-full h-full object-cover"
+                >
+                    <source src="https://videos.pexels.com/video-files/3195394/3195394-uhd_2560_1440_25fps.mp4" type="video/mp4" />
+                </video>
+                <div className="absolute inset-0 bg-gradient-to-t from-[#f8fafc] from-5% via-white/70 via-50% to-transparent to-90% pointer-events-none" />
+
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                         
                         {/* Left Column Text */}
-                        <div className="lg:col-span-7 space-y-6 text-left">
+                        <div ref={heroTextRef} className="lg:col-span-7 space-y-6 text-left">
                             {/* Eyebrow badge */}
                             <div className="gsap-hero-item inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#B59970]/15/70 border border-[#B59970]/30/80 text-[#13263E] text-xs font-bold tracking-wide">
                                 <Sparkles className="w-3.5 h-3.5 text-[#B59970]" />
-                                <span>{pageData.hero.badge}</span>
+                                <span>{currentData.badge}</span>
                             </div>
 
                             {/* Main Title */}
                             <h1 className="gsap-hero-item text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.12]">
-                                {pageData.hero.title1} <br />
-                                <span className="text-[#B59970] italic font-serif">{pageData.hero.title2}</span>
+                                {currentData.title1} <br />
+                                <span className="text-[#B59970] italic font-serif">{currentData.title2}</span>
                             </h1>
 
                             <p className="gsap-hero-item text-base sm:text-lg text-slate-600 max-w-xl font-medium leading-relaxed">
-                                {pageData.hero.subtitle}
+                                {currentData.subtitle}
                             </p>
 
                             {/* Hero Action Buttons */}
@@ -298,7 +348,7 @@ export default function PausasLanding() {
                                     onClick={() => navigate('/reservar')}
                                     className="flex items-center justify-center gap-3 bg-[#13263E] hover:bg-[#B59970] text-white font-bold text-base px-8 py-4 rounded-full shadow-xl shadow-[#13263E]/30 transition-all"
                                 >
-                                    <span>{pageData.hero.ctaPrimary}</span>
+                                    <span>{currentData.ctaPrimary}</span>
                                     <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
                                         <ArrowUpRight className="w-4 h-4 text-white" />
                                     </div>
@@ -309,45 +359,94 @@ export default function PausasLanding() {
                                     href="#profesionales"
                                     className="flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-900 font-bold text-base px-7 py-4 rounded-full border border-slate-200 shadow-sm hover:border-slate-300 transition-all"
                                 >
-                                    <span>{pageData.hero.ctaSecondary}</span>
+                                    <span>{currentData.ctaSecondary}</span>
                                     <ChevronDown className="w-4 h-4 text-slate-500" />
                                 </motion.a>
                             </div>
 
                             {/* Stats Row */}
-                            <div className="gsap-hero-item pt-8 border-t border-slate-200/80 grid grid-cols-3 gap-6 max-w-lg">
-                                {pageData.hero.stats.map((stat, idx) => (
-                                    <div key={idx}>
-                                        <div className="text-2xl sm:text-3xl font-extrabold text-slate-900">{stat.value}</div>
-                                        <div className="text-xs text-slate-500 font-semibold mt-0.5">{stat.label}</div>
-                                    </div>
-                                ))}
-                            </div>
+                            {currentData.stats && (
+                                <div className="gsap-hero-item pt-8 border-t border-slate-200/80 grid grid-cols-3 gap-6 max-w-lg">
+                                    {currentData.stats.map((stat, idx) => (
+                                        <div key={idx}>
+                                            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900">{stat.value}</div>
+                                            <div className="text-xs text-slate-500 font-semibold mt-0.5">{stat.label}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         {/* Right Column Image & Floating Card */}
-                        <div className="gsap-hero-image lg:col-span-5 relative">
-                            <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200 bg-white group">
-                                <img 
-                                    src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=800" 
-                                    alt="Kinesiología y Pausas"
-                                    className="w-full h-[460px] object-cover group-hover:scale-105 transition-transform duration-500"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent" />
+                        <div ref={heroMediaRef} className="gsap-hero-image lg:col-span-5 relative group">
+                            <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200 bg-black group h-[460px]">
+                                {currentData.mediaType === 'video' ? (
+                                    <video 
+                                        src={currentData.mediaUrl || 'https://www.w3schools.com/html/mov_bbb.mp4'} 
+                                        className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
+                                        autoPlay
+                                        loop
+                                        muted
+                                        playsInline
+                                    />
+                                ) : (
+                                    <img 
+                                        src={currentData.mediaUrl || 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=800'} 
+                                        alt="Hero Media"
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                    />
+                                )}
+                                
+                                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
+
+                                {/* Carousel Navigation Arrows */}
+                                {slides.length > 1 && (
+                                    <>
+                                        <button 
+                                            onClick={() => setCurrentSlide(prev => (prev - 1 + slides.length) % slides.length)}
+                                            className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/20 hover:bg-white/90 backdrop-blur-md flex items-center justify-center text-white hover:text-slate-900 transition-all z-20 opacity-0 group-hover:opacity-100 shadow-xl border border-white/20"
+                                            aria-label="Anterior"
+                                        >
+                                            <ChevronLeft className="w-7 h-7" />
+                                        </button>
+                                        <button 
+                                            onClick={() => setCurrentSlide(prev => (prev + 1) % slides.length)}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/20 hover:bg-white/90 backdrop-blur-md flex items-center justify-center text-white hover:text-slate-900 transition-all z-20 opacity-0 group-hover:opacity-100 shadow-xl border border-white/20"
+                                            aria-label="Siguiente"
+                                        >
+                                            <ChevronRight className="w-7 h-7" />
+                                        </button>
+                                    </>
+                                )}
 
                                 {/* Floating Overlay Badge */}
-                                <div className="gsap-floating-badge absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-xl border border-white/40 space-y-2">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-[#B59970]/15 flex items-center justify-center text-[#B59970]">
-                                            <Award className="w-5 h-5" />
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-slate-900 text-sm">{pageData.hero.imageBadge.title}</h4>
-                                            <p className="text-xs text-slate-500 font-medium">{pageData.hero.imageBadge.subtitle}</p>
+                                {currentData.imageBadge && (
+                                    <div className="gsap-floating-badge absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-xl border border-white/40 space-y-2 z-10">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-[#B59970]/15 flex items-center justify-center text-[#B59970]">
+                                                <Award className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-slate-900 text-sm">{currentData.imageBadge.title}</h4>
+                                                <p className="text-xs text-slate-500 font-medium">{currentData.imageBadge.subtitle}</p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
+
+                            {/* Carousel navigation indicators (Dots) */}
+                            {slides.length > 1 && (
+                                <div className="absolute -bottom-8 left-0 right-0 flex justify-center gap-2">
+                                    {slides.map((_, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => setCurrentSlide(idx)}
+                                            className={`w-2.5 h-2.5 rounded-full transition-all ${currentSlide === idx ? 'bg-[#13263E] w-6' : 'bg-slate-300 hover:bg-slate-400'}`}
+                                        />
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

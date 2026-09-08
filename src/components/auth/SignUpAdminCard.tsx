@@ -7,11 +7,13 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {Button} from "../ui/button.tsx";
 import {useNavigate} from "react-router-dom";
 import PublicAuthLayout from "./PublicAuthLayout.jsx";
-
+import { Eye, EyeOff } from "lucide-react";
+import React, { useState } from "react";
 export const SignUpAdminCard = () => {
     const navigate = useNavigate();
     const [register, {isLoading}] = useRegisterMutation();
     const [login, {isLoading: loginIsLoading }] = useLoginMutation();
+    const [showPassword, setShowPassword] = useState(false);
 
     const signUpFormSchema = z.object({
         email: z.string().email( {message: 'Introduce un correo válido'}),
@@ -138,12 +140,21 @@ export const SignUpAdminCard = () => {
                             <FormItem>
                                 <FormLabel className="text-gray-700 font-semibold">Contraseña</FormLabel>
                                 <FormControl>
-                                    <Input 
-                                        type="password" 
-                                        placeholder="••••••••" 
-                                        className="bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-[#b91c1c] focus-visible:border-[#b91c1c] rounded-xl px-4 py-3 h-auto" 
-                                        {...field} 
-                                    />
+                                    <div className="relative">
+                                        <Input 
+                                            type={showPassword ? "text" : "password"} 
+                                            placeholder="••••••••" 
+                                            className="bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus-visible:ring-[#b91c1c] focus-visible:border-[#b91c1c] rounded-xl px-4 py-3 h-auto pr-12" 
+                                            {...field} 
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                                        >
+                                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                        </button>
+                                    </div>
                                 </FormControl>
                                 <FormMessage className="text-red-500 text-xs" />
                             </FormItem>

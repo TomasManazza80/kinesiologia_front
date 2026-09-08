@@ -4,21 +4,27 @@ const LiveEditorContext = createContext();
 
 const initialPageData = {
   hero: {
-    badge: 'CENTRO ESPECIALIZADO EN MENOPAUSIA',
-    title1: 'Cuidado Integral',
-    title2: 'Climaterio & Plenitud',
-    subtitle: 'Acompañamos a mujeres y hombres en su etapa de transición hormonal. Especialistas en endocrinología, suelo pélvico y bienestar emocional para una vida plena.',
-    ctaPrimary: 'Reservar Turno',
-    ctaSecondary: 'Conocer Profesionales',
-    stats: [
-      { value: '15+', label: 'Años de Experiencia' },
-      { value: '10k+', label: 'Pacientes Atendidos' },
-      { value: '100%', label: 'Atención Personalizada' }
-    ],
-    imageBadge: {
-      title: 'Atención Integral',
-      subtitle: 'Endocrinología y Rehabilitación'
-    }
+    slides: [
+      {
+        badge: 'CENTRO ESPECIALIZADO EN MENOPAUSIA',
+        title1: 'Cuidado Integral',
+        title2: 'Climaterio & Plenitud',
+        subtitle: 'Acompañamos a mujeres y hombres en su etapa de transición hormonal. Especialistas en endocrinología, suelo pélvico y bienestar emocional para una vida plena.',
+        ctaPrimary: 'Reservar Turno',
+        ctaSecondary: 'Conocer Profesionales',
+        stats: [
+          { value: '15+', label: 'Años de Experiencia' },
+          { value: '10k+', label: 'Pacientes Atendidos' },
+          { value: '100%', label: 'Atención Personalizada' }
+        ],
+        imageBadge: {
+          title: 'Atención Integral',
+          subtitle: 'Endocrinología y Rehabilitación'
+        },
+        mediaType: 'image',
+        mediaUrl: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=800'
+      }
+    ]
   },
   statement: {
     badge: 'CUIDADO MULTIDISCIPLINARIO',
@@ -82,8 +88,13 @@ export const LiveEditorProvider = ({ children }) => {
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.data) {
-            setPageData(result.data);
-            setOriginalData(result.data);
+            let fetchedData = result.data;
+            // Migrate old hero data to new slides structure if necessary
+            if (fetchedData.hero && !fetchedData.hero.slides) {
+              fetchedData.hero = { slides: [ { ...fetchedData.hero } ] };
+            }
+            setPageData(fetchedData);
+            setOriginalData(fetchedData);
           }
         }
       } catch (error) {
@@ -139,8 +150,13 @@ export const LiveEditorProvider = ({ children }) => {
       }
       
       const targetArrayKey = keys[keys.length - 1];
-      if (Array.isArray(current[targetArrayKey])) {
+      if (!current[targetArrayKey]) {
+          current[targetArrayKey] = [newItem];
+      } else if (Array.isArray(current[targetArrayKey])) {
           current[targetArrayKey] = [...current[targetArrayKey], newItem];
+      } else if (typeof current[targetArrayKey] === 'object') {
+          // It was saved as an object instead of an array
+          current[targetArrayKey] = [...Object.values(current[targetArrayKey]), newItem];
       }
       return newData;
     });
@@ -165,6 +181,9 @@ export const LiveEditorProvider = ({ children }) => {
       const targetArrayKey = keys[keys.length - 1];
       if (Array.isArray(current[targetArrayKey])) {
           current[targetArrayKey] = current[targetArrayKey].filter((_, index) => index !== indexToRemove);
+      } else if (typeof current[targetArrayKey] === 'object' && current[targetArrayKey] !== null) {
+          // Convert to array and then filter
+          current[targetArrayKey] = Object.values(current[targetArrayKey]).filter((_, index) => index !== indexToRemove);
       }
       return newData;
     });
