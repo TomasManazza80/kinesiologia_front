@@ -365,7 +365,7 @@ export default function PausasLanding() {
                             </div>
 
                             {/* Stats Row */}
-                            {currentData.stats && (
+                            {currentData.stats && Array.isArray(currentData.stats) && (
                                 <div className="gsap-hero-item pt-8 border-t border-slate-200/80 grid grid-cols-3 gap-6 max-w-lg">
                                     {currentData.stats.map((stat, idx) => (
                                         <div key={idx}>
