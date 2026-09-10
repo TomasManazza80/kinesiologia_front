@@ -14,11 +14,19 @@ import {
     useNotifyAppointmentMutation
 } from '../../services/api/kinesioApi.js';
 import { toast } from '../ui/use-toast';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+import 'dayjs/locale/es';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.locale('es');
 
 // Date Helpers
 const parseLocalDate = (dateString) => {
-    if (!dateString) return new Date();
-    return new Date(dateString);
+    if (!dateString) return dayjs().tz('America/Argentina/Buenos_Aires');
+    return dayjs(dateString).tz('America/Argentina/Buenos_Aires');
 };
 
 const getStartOfWeek = (date) => {
@@ -145,14 +153,14 @@ const AppointmentCalendar = () => {
             const date = parseLocalDate(appt.fecha_hora);
 
             if (viewMode === 'Semanal') {
-                const dayOfWeek = date.getDay();
+                const dayOfWeek = date.day();
                 const colIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
                 if (colIndex >= 0 && colIndex < 7) {
                     appointmentsByDay[colIndex].push(appt);
                 }
             } else {
                 // Diario mode
-                if (date.toDateString() === currentDate.toDateString()) {
+                if (date.format('YYYY-MM-DD') === dayjs(currentDate).format('YYYY-MM-DD')) {
                     appointmentsByDay[0].push(appt);
                 }
             }
@@ -218,17 +226,23 @@ const AppointmentCalendar = () => {
     const handleCreateAppointment = async (e) => {
         e.preventDefault();
         try {
+            let fechaHoraUtc = null;
             let calculatedEndTime = null;
-            if (newAppt.fecha_hora && newAppt.duration) {
-                const date = new Date(newAppt.fecha_hora);
-                date.setMinutes(date.getMinutes() + parseInt(newAppt.duration));
-                calculatedEndTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+            
+            if (newAppt.fecha_hora) {
+                // Interpretar la hora ingresada como hora de Argentina, y luego convertir a UTC para guardar
+                const localDate = dayjs.tz(newAppt.fecha_hora, 'America/Argentina/Buenos_Aires');
+                fechaHoraUtc = localDate.utc().format();
+                
+                if (newAppt.duration) {
+                    calculatedEndTime = localDate.add(parseInt(newAppt.duration), 'minute').utc().format();
+                }
             }
 
             await createAppointment({
                 patient_id: newAppt.patient_id,
                 professional_id: activeProfessionalId,
-                fecha_hora: newAppt.fecha_hora,
+                fecha_hora: fechaHoraUtc,
                 end_time: calculatedEndTime,
                 motivo: newAppt.motivo
             }).unwrap();
@@ -251,8 +265,8 @@ const AppointmentCalendar = () => {
 
     const renderAppointment = (appt) => {
         const date = parseLocalDate(appt.fecha_hora);
-        const hours = date.getHours();
-        const minutes = date.getMinutes();
+        const hours = date.hour();
+        const minutes = date.minute();
 
         const hourHeight = isCompact ? 40 : 60;
 
@@ -262,7 +276,7 @@ const AppointmentCalendar = () => {
         let height = hourHeight;
         if (appt.end_time) {
             const endDate = parseLocalDate(appt.end_time);
-            const durationMinutes = (endDate - date) / (1000 * 60);
+            const durationMinutes = endDate.diff(date, 'minute');
             if (durationMinutes > 15) height = (durationMinutes / 60) * hourHeight;
         }
 
@@ -308,7 +322,7 @@ const AppointmentCalendar = () => {
                 {showPatient && patientName && <div className={`text-[10px] font-semibold truncate mt-0.5 ${isCompleted ? 'text-gray-500' : ''}`} style={{ color: isCompleted ? undefined : color.text }}>{patientName}</div>}
                 {showTime && (
                     <div className={`text-[9px] font-medium mt-auto pt-0.5 flex justify-between items-center ${isCompleted ? 'text-gray-400' : ''}`} style={{ color: isCompleted ? undefined : color.timeText }}>
-                        <span>{date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        <span>{date.format('HH:mm')}</span>
                         {isCompleted && <span className="text-[8px] uppercase tracking-wider font-bold text-green-600 bg-green-100 px-1.5 py-0.5 rounded-full">Hecho</span>}
                     </div>
                 )}
@@ -676,14 +690,14 @@ const AppointmentCalendar = () => {
                                 <div>
                                     <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Inicio</p>
                                     <p className="text-sm font-medium text-gray-800">
-                                        {parseLocalDate(selectedApptDetail.fecha_hora).toLocaleString()}
+                                        {parseLocalDate(selectedApptDetail.fecha_hora).format('DD/MM/YYYY HH:mm')}
                                     </p>
                                 </div>
                                 {selectedApptDetail.end_time && (
                                     <div>
                                         <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Fin</p>
                                         <p className="text-sm font-medium text-gray-800">
-                                            {parseLocalDate(selectedApptDetail.end_time).toLocaleString()}
+                                            {parseLocalDate(selectedApptDetail.end_time).format('DD/MM/YYYY HH:mm')}
                                         </p>
                                     </div>
                                 )}
@@ -772,15 +786,15 @@ const AppointmentCalendar = () => {
                         </div>
                         <div className="p-4 overflow-y-auto flex-1 flex flex-col gap-3">
                             {(() => {
-                                const dayAppts = appointments ? appointments.filter(a => parseLocalDate(a.fecha_hora).toDateString() === currentDate.toDateString()) : [];
+                                const dayAppts = appointments ? appointments.filter(a => parseLocalDate(a.fecha_hora).format('YYYY-MM-DD') === dayjs(currentDate).format('YYYY-MM-DD')) : [];
                                 if (dayAppts.length === 0) {
                                     return <p className="text-sm text-gray-500 text-center py-4">No hay turnos para este día.</p>;
                                 }
-                                return dayAppts.sort((a,b) => parseLocalDate(a.fecha_hora) - parseLocalDate(b.fecha_hora)).map(appt => (
+                                return dayAppts.sort((a,b) => parseLocalDate(a.fecha_hora).valueOf() - parseLocalDate(b.fecha_hora).valueOf()).map(appt => (
                                     <div key={appt.id} className="flex justify-between items-center p-3 border border-gray-100 rounded-lg hover:bg-gray-50 cursor-pointer" onClick={() => { setSelectedApptDetail(appt); setIsListModalOpen(false); }}>
                                         <div>
                                             <p className="text-sm font-bold text-gray-900">{appt.patient?.nombre || 'Sin nombre'}</p>
-                                            <p className="text-xs text-gray-500">{parseLocalDate(appt.fecha_hora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {appt.motivo}</p>
+                                            <p className="text-xs text-gray-500">{parseLocalDate(appt.fecha_hora).format('HH:mm')} - {appt.motivo}</p>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <span className={`text-xs px-2 py-1 rounded-full ${appt.estado === 'completado' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
@@ -827,20 +841,20 @@ const AppointmentCalendar = () => {
                                                 <div className="w-2 h-2 rounded-full bg-gray-400"></div>
                                                 Turnos Pasados
                                                 <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full ml-auto">
-                                                    {allAppointments?.filter(a => parseLocalDate(a.fecha_hora) < new Date()).length || 0}
+                                                    {allAppointments?.filter(a => parseLocalDate(a.fecha_hora).isBefore(dayjs())).length || 0}
                                                 </span>
                                             </h4>
                                         </div>
                                         <div className="p-4 overflow-y-auto flex-1 flex flex-col gap-3">
                                             {(() => {
-                                                const past = allAppointments?.filter(a => parseLocalDate(a.fecha_hora) < new Date()).sort((a,b) => parseLocalDate(b.fecha_hora) - parseLocalDate(a.fecha_hora)) || [];
+                                                const past = allAppointments?.filter(a => parseLocalDate(a.fecha_hora).isBefore(dayjs())).sort((a,b) => parseLocalDate(b.fecha_hora).valueOf() - parseLocalDate(a.fecha_hora).valueOf()) || [];
                                                 if (past.length === 0) return <p className="text-sm text-gray-500 text-center py-4">No hay turnos pasados.</p>;
                                                 return past.map(appt => (
                                                     <div key={appt.id} className="flex justify-between items-start p-3 border border-gray-100 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors" onClick={() => { setSelectedApptDetail(appt); setIsAllApptsModalOpen(false); }}>
                                                         <div className="flex-1 min-w-0 pr-4">
                                                             <p className="text-sm font-bold text-gray-900 truncate">{appt.patient?.nombre || 'Sin nombre'}</p>
                                                             <p className="text-xs text-gray-500 mt-0.5 truncate">{appt.motivo}</p>
-                                                            <p className="text-xs font-medium text-gray-400 mt-1">{parseLocalDate(appt.fecha_hora).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                                                            <p className="text-xs font-medium text-gray-400 mt-1">{parseLocalDate(appt.fecha_hora).format('DD MMM YYYY, HH:mm')}</p>
                                                         </div>
                                                         <div className="shrink-0 flex flex-col items-end gap-2">
                                                             <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-md ${appt.estado === 'completado' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
@@ -860,20 +874,20 @@ const AppointmentCalendar = () => {
                                                 <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                                                 Próximos Turnos
                                                 <span className="text-xs bg-blue-200 text-blue-700 px-2 py-0.5 rounded-full ml-auto">
-                                                    {allAppointments?.filter(a => parseLocalDate(a.fecha_hora) >= new Date()).length || 0}
+                                                    {allAppointments?.filter(a => !parseLocalDate(a.fecha_hora).isBefore(dayjs())).length || 0}
                                                 </span>
                                             </h4>
                                         </div>
                                         <div className="p-4 overflow-y-auto flex-1 flex flex-col gap-3">
                                             {(() => {
-                                                const future = allAppointments?.filter(a => parseLocalDate(a.fecha_hora) >= new Date()).sort((a,b) => parseLocalDate(a.fecha_hora) - parseLocalDate(b.fecha_hora)) || [];
+                                                const future = allAppointments?.filter(a => !parseLocalDate(a.fecha_hora).isBefore(dayjs())).sort((a,b) => parseLocalDate(a.fecha_hora).valueOf() - parseLocalDate(b.fecha_hora).valueOf()) || [];
                                                 if (future.length === 0) return <p className="text-sm text-gray-500 text-center py-4">No hay próximos turnos.</p>;
                                                 return future.map(appt => (
                                                     <div key={appt.id} className="flex justify-between items-start p-3 border border-blue-100 bg-white rounded-lg hover:border-blue-300 hover:shadow-sm cursor-pointer transition-all" onClick={() => { setSelectedApptDetail(appt); setIsAllApptsModalOpen(false); }}>
                                                         <div className="flex-1 min-w-0 pr-4">
                                                             <p className="text-sm font-bold text-gray-900 truncate">{appt.patient?.nombre || 'Sin nombre'}</p>
                                                             <p className="text-xs text-gray-600 mt-0.5 truncate">{appt.motivo}</p>
-                                                            <p className="text-xs font-semibold text-blue-600 mt-1">{parseLocalDate(appt.fecha_hora).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                                                            <p className="text-xs font-semibold text-blue-600 mt-1">{parseLocalDate(appt.fecha_hora).format('DD MMM YYYY, HH:mm')}</p>
                                                         </div>
                                                         <div className="shrink-0 flex flex-col items-end gap-2">
                                                             <span className="text-[10px] uppercase font-bold px-2 py-1 rounded-md bg-blue-100 text-blue-700">

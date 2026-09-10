@@ -15,7 +15,9 @@ import {
     Settings, Search, CheckCircle2, Clock, FileText, ChevronDown, ChevronUp, Sliders, Check, Layers, Pencil 
 } from 'lucide-react';
 import { toast } from '../ui/use-toast.tsx';
-import moment from 'moment';
+import dayjs from 'dayjs';
+import 'dayjs/locale/es';
+dayjs.locale('es');
 import TemplateBuilder from './TemplateBuilder.jsx';
 import MedicalRecordForm from './MedicalRecordForm.jsx';
 import SpeechToTextButton from '../ui/SpeechToTextButton.jsx';
@@ -142,7 +144,7 @@ const MedicalHistoryEntry = () => {
     const term = historySearchTerm.toLowerCase();
     
     return allConsultations.filter(c => {
-      const dateStr = moment(c.date).format('DD MMMM YYYY HH:mm').toLowerCase();
+      const dateStr = dayjs(c.date).format('DD MMMM YYYY HH:mm').toLowerCase();
       if (dateStr.includes(term)) return true;
       
       if (c.type === 'static') {
@@ -319,7 +321,7 @@ const MedicalHistoryEntry = () => {
               )}
             </div>
             <h3 className="font-bold text-xl text-gray-900 mt-1">
-              {moment(consultation.date).format('DD [de] MMMM, YYYY [•] HH:mm [hs]')}
+              {dayjs(consultation.date).format('DD [de] MMMM, YYYY [•] HH:mm [hs]')}
             </h3>
             {consultation.professional_name && (
               <p className="text-xs text-gray-500 font-medium">
@@ -371,7 +373,7 @@ const MedicalHistoryEntry = () => {
             )}
             {consultation.status === 'signed' && consultation.signature_timestamp && (
               <div className="mt-4 pt-3 border-t border-gray-100 flex items-center gap-2 text-xs text-blue-600 font-semibold bg-blue-50/50 p-3 rounded-xl">
-                <CheckCircle2 size={16} /> Firmado digitalmente el {moment(consultation.signature_timestamp).format('DD/MM/YYYY [a las] HH:mm [hs]')}
+                <CheckCircle2 size={16} /> Firmado digitalmente el {dayjs(consultation.signature_timestamp).format('DD/MM/YYYY [a las] HH:mm [hs]')}
               </div>
             )}
           </div>
@@ -724,7 +726,7 @@ const MedicalHistoryEntry = () => {
                   <div className="bg-white rounded-2xl border border-amber-200 bg-amber-50/50 p-4 shadow-sm flex items-center justify-between">
                       <div className="flex items-center gap-2 text-sm text-amber-900 font-bold">
                           <Pencil size={18} className="text-amber-600" />
-                          <span>Editando consulta realizada ({moment(editingConsultation.date).format('DD/MM/YYYY HH:mm [hs]')})</span>
+                          <span>Editando consulta realizada ({dayjs(editingConsultation.date).format('DD/MM/YYYY HH:mm [hs]')})</span>
                       </div>
                       <button 
                           onClick={() => { setViewMode('history'); setEditingConsultation(null); }}
@@ -753,7 +755,7 @@ const MedicalHistoryEntry = () => {
                   <div className="bg-white rounded-2xl border border-amber-200 bg-amber-50/50 p-4 shadow-sm flex items-center justify-between">
                       <div className="flex items-center gap-2 text-sm text-amber-900 font-bold">
                           <Pencil size={18} className="text-amber-600" />
-                          <span>Editando consulta histórica ({moment(editingConsultation.date).format('DD/MM/YYYY HH:mm [hs]')})</span>
+                          <span>Editando consulta histórica ({dayjs(editingConsultation.date).format('DD/MM/YYYY HH:mm [hs]')})</span>
                       </div>
                       <button 
                           onClick={() => { setViewMode('history'); setEditingConsultation(null); }}

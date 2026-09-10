@@ -14,7 +14,11 @@ import {
 } from '../../services/api/kinesioApi.js';
 import { useGetExpensesQuery } from '../../services/api/financialsApi.js';
 import { toast } from '../ui/use-toast.tsx';
-import moment from 'moment';
+import dayjs from 'dayjs';
+import 'dayjs/locale/es';
+import isoWeek from 'dayjs/plugin/isoWeek';
+dayjs.extend(isoWeek);
+dayjs.locale('es');
 
 const parseJwt = (token) => {
   try { return JSON.parse(atob(token.split('.')[1])); } catch (e) { return null; }
@@ -32,14 +36,14 @@ const GroupFinancialOverview = () => {
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historyLimit, setHistoryLimit] = useState(50);
   const [selectedDayGroup, setSelectedDayGroup] = useState(null);
-  const [newTx, setNewTx] = useState({ title: '', amount: '', type: 'income', category: 'OTHER', paymentMethod: 'Efectivo', date: moment().format('YYYY-MM-DDTHH:mm') });
+  const [newTx, setNewTx] = useState({ title: '', amount: '', type: 'income', category: 'OTHER', paymentMethod: 'Efectivo', date: dayjs().format('YYYY-MM-DDTHH:mm') });
   
   const [selectedTx, setSelectedTx] = useState(null);
   const [isEditingTx, setIsEditingTx] = useState(false);
 
   // Expenses Date Range Search State
-  const [expenseStartDate, setExpenseStartDate] = useState(moment().startOf('month').format('YYYY-MM-DD'));
-  const [expenseEndDate, setExpenseEndDate] = useState(moment().format('YYYY-MM-DD'));
+  const [expenseStartDate, setExpenseStartDate] = useState(dayjs().startOf('month').format('YYYY-MM-DD'));
+  const [expenseEndDate, setExpenseEndDate] = useState(dayjs().format('YYYY-MM-DD'));
   const [expenseSearchQuery, setExpenseSearchQuery] = useState('');
   
   const { data, isLoading, refetch } = useGetBalanceQuery({ filter: timeFilter, scope: 'group' }, { pollingInterval: 5000, skip: userRole !== 'ADMIN' && userRole !== 'SUPERADMIN' });
@@ -87,7 +91,7 @@ const GroupFinancialOverview = () => {
         await createTransaction({ ...newTx, isGroup: true }).unwrap();
         toast({ title: 'Éxito', description: 'Transacción grupal creada', variant: 'success' });
         setShowModal(false);
-        setNewTx({ title: '', amount: '', type: 'income', category: 'OTHER', paymentMethod: 'Efectivo', date: moment().format('YYYY-MM-DDTHH:mm') });
+        setNewTx({ title: '', amount: '', type: 'income', category: 'OTHER', paymentMethod: 'Efectivo', date: dayjs().format('YYYY-MM-DDTHH:mm') });
         refetch();
     } catch (error) {
         toast({ title: 'Error', description: 'No se pudo guardar la transacción', variant: 'destructive' });
@@ -124,11 +128,11 @@ const GroupFinancialOverview = () => {
 
   const groupedHistory = historyData?.data?.reduce((groups, tx) => {
       const txDate = tx.date || tx.created_at;
-      const dateKey = moment(txDate).format('YYYY-MM-DD');
+      const dateKey = dayjs(txDate).format('YYYY-MM-DD');
       if (!groups[dateKey]) {
           groups[dateKey] = {
               date: dateKey,
-              formattedDate: moment(dateKey).format('DD [de] MMMM'),
+              formattedDate: dayjs(dateKey).format('DD [de] MMMM'),
               transactions: [],
               totalIncome: 0,
               totalExpense: 0,
@@ -295,7 +299,7 @@ const GroupFinancialOverview = () => {
                                         <p className="font-bold text-gray-800 text-sm md:text-base">{tx.title}</p>
                                         <div className="flex items-center gap-2 flex-wrap mt-1">
                                             <p className="text-xs text-gray-500 font-medium">
-                                                {moment(txDate).format('DD MMM YYYY, HH:mm')}
+                                                {dayjs(txDate).format('DD MMM YYYY, HH:mm')}
                                             </p>
                                             <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-bold uppercase">{tx.payment_method || 'Efectivo'}</span>
                                             {tx.professional && (
@@ -355,8 +359,8 @@ const GroupFinancialOverview = () => {
                 <div className="flex items-center gap-2 flex-wrap text-xs">
                   <button
                     onClick={() => {
-                      setExpenseStartDate(moment().startOf('day').format('YYYY-MM-DD'));
-                      setExpenseEndDate(moment().endOf('day').format('YYYY-MM-DD'));
+                      setExpenseStartDate(dayjs().startOf('day').format('YYYY-MM-DD'));
+                      setExpenseEndDate(dayjs().endOf('day').format('YYYY-MM-DD'));
                     }}
                     className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg transition-colors"
                   >
@@ -364,8 +368,8 @@ const GroupFinancialOverview = () => {
                   </button>
                   <button
                     onClick={() => {
-                      setExpenseStartDate(moment().startOf('isoWeek').format('YYYY-MM-DD'));
-                      setExpenseEndDate(moment().format('YYYY-MM-DD'));
+                      setExpenseStartDate(dayjs().startOf('isoWeek').format('YYYY-MM-DD'));
+                      setExpenseEndDate(dayjs().format('YYYY-MM-DD'));
                     }}
                     className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg transition-colors"
                   >
@@ -373,8 +377,8 @@ const GroupFinancialOverview = () => {
                   </button>
                   <button
                     onClick={() => {
-                      setExpenseStartDate(moment().startOf('month').format('YYYY-MM-DD'));
-                      setExpenseEndDate(moment().endOf('month').format('YYYY-MM-DD'));
+                      setExpenseStartDate(dayjs().startOf('month').format('YYYY-MM-DD'));
+                      setExpenseEndDate(dayjs().endOf('month').format('YYYY-MM-DD'));
                     }}
                     className="px-3 py-1.5 bg-red-50 text-red-700 font-bold border border-red-100 rounded-lg hover:bg-red-100 transition-colors"
                   >
@@ -382,8 +386,8 @@ const GroupFinancialOverview = () => {
                   </button>
                   <button
                     onClick={() => {
-                      setExpenseStartDate(moment().subtract(1, 'month').startOf('month').format('YYYY-MM-DD'));
-                      setExpenseEndDate(moment().subtract(1, 'month').endOf('month').format('YYYY-MM-DD'));
+                      setExpenseStartDate(dayjs().subtract(1, 'month').startOf('month').format('YYYY-MM-DD'));
+                      setExpenseEndDate(dayjs().subtract(1, 'month').endOf('month').format('YYYY-MM-DD'));
                     }}
                     className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg transition-colors"
                   >
@@ -444,7 +448,7 @@ const GroupFinancialOverview = () => {
                   <TrendingDown size={22} />
                 </div>
                 <div className="text-3xl font-black">{formatCurrency(filteredExpensesTotal)}</div>
-                <p className="text-xs mt-1.5 opacity-80 font-medium">Del {moment(expenseStartDate).format('DD/MM/YYYY')} al {moment(expenseEndDate).format('DD/MM/YYYY')}</p>
+                <p className="text-xs mt-1.5 opacity-80 font-medium">Del {dayjs(expenseStartDate).format('DD/MM/YYYY')} al {dayjs(expenseEndDate).format('DD/MM/YYYY')}</p>
               </div>
 
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-center">
@@ -503,7 +507,7 @@ const GroupFinancialOverview = () => {
                         return (
                           <tr key={tx.id} className="hover:bg-gray-50/80 transition-colors group">
                             <td className="py-3.5 px-4 font-semibold text-gray-600">
-                              {moment(txDate).format('DD/MM/YYYY • HH:mm [hs]')}
+                              {dayjs(txDate).format('DD/MM/YYYY • HH:mm [hs]')}
                             </td>
                             <td className="py-3.5 px-4 font-bold text-gray-900">
                               {tx.title}
@@ -721,7 +725,7 @@ const GroupFinancialOverview = () => {
                                                 return (
                                                 <tr key={tx.id} onClick={() => { setSelectedTx({...tx}); setIsEditingTx(false); }} className="hover:bg-gray-50 transition-colors cursor-pointer">
                                                     <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                        {moment(txDate).format('HH:mm')}
+                                                        {dayjs(txDate).format('HH:mm')}
                                                     </td>
                                                     <td className="px-6 py-3 whitespace-nowrap text-sm">
                                                         <span className={`px-2 inline-flex text-xs leading-5 font-bold rounded-full ${tx.type === 'income' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
@@ -770,8 +774,8 @@ const GroupFinancialOverview = () => {
                                     >
                                         <div className="flex items-center gap-4">
                                             <div className="bg-blue-50 text-[#0a47d4] p-3 rounded-lg flex flex-col items-center justify-center min-w-[70px]">
-                                                <span className="text-sm font-bold uppercase leading-none mb-1">{moment(group.date).format('MMM')}</span>
-                                                <span className="text-2xl font-black leading-none">{moment(group.date).format('DD')}</span>
+                                                <span className="text-sm font-bold uppercase leading-none mb-1">{dayjs(group.date).format('MMM')}</span>
+                                                <span className="text-2xl font-black leading-none">{dayjs(group.date).format('DD')}</span>
                                             </div>
                                             <div>
                                                 <h3 className="text-lg font-bold text-gray-900">{group.formattedDate}</h3>
@@ -908,7 +912,7 @@ const GroupFinancialOverview = () => {
                         <label className="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
                         <input 
                             type="datetime-local" 
-                            value={selectedTx.date ? moment(selectedTx.date).format('YYYY-MM-DDTHH:mm') : (selectedTx.created_at ? moment(selectedTx.created_at).format('YYYY-MM-DDTHH:mm') : '')}
+                            value={selectedTx.date ? dayjs(selectedTx.date).format('YYYY-MM-DDTHH:mm') : (selectedTx.created_at ? dayjs(selectedTx.created_at).format('YYYY-MM-DDTHH:mm') : '')}
                             disabled={!isEditingTx}
                             onChange={(e) => setSelectedTx({...selectedTx, date: e.target.value})}
                             className={`w-full border rounded-lg p-2 focus:ring-2 focus:ring-[#0a47d4] outline-none ${!isEditingTx ? 'bg-gray-100 text-gray-700 border-transparent font-semibold' : 'border-gray-300'}`}

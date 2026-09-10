@@ -1,7 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { useGetAppointmentsQuery } from '../../services/api/kinesioApi.js';
-import { format, parseISO } from 'date-fns';
-import { es } from 'date-fns/locale/index.js';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+import 'dayjs/locale/es';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.locale('es');
 import { Search, Calendar as CalendarIcon, Filter, User, Stethoscope, ChevronLeft, ChevronRight, Loader2, Edit2, Trash2, Phone, X, AlertTriangle } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { useDeleteAppointmentMutation, useUpdateAppointmentMutation, useCancelAppointmentMutation } from '../../services/api/kinesioApi.js';
@@ -206,10 +212,10 @@ const AppointmentHistory = () => {
                                                 </div>
                                                 <div>
                                                     <div className="font-bold text-gray-900">
-                                                        {format(parseISO(appt.fecha_hora), "dd 'de' MMMM, yyyy", { locale: es })}
+                                                        {dayjs(appt.fecha_hora).tz('America/Argentina/Buenos_Aires').format("DD [de] MMMM, YYYY")}
                                                     </div>
                                                     <div className="text-sm text-gray-500 font-medium">
-                                                        {format(parseISO(appt.fecha_hora), "HH:mm")} hs
+                                                        {dayjs(appt.fecha_hora).tz('America/Argentina/Buenos_Aires').format("HH:mm")} hs
                                                     </div>
                                                 </div>
                                             </div>
@@ -340,7 +346,7 @@ const AppointmentHistory = () => {
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Fecha y Hora</label>
                                 <input 
                                     type="datetime-local"
-                                    value={editingAppt.fecha_hora ? format(new Date(editingAppt.fecha_hora), "yyyy-MM-dd'T'HH:mm") : ''}
+                                    value={editingAppt.fecha_hora ? dayjs(editingAppt.fecha_hora).tz('America/Argentina/Buenos_Aires').format("YYYY-MM-DDTHH:mm") : ''}
                                     onChange={e => setEditingAppt({...editingAppt, fecha_hora: e.target.value})}
                                     className="w-full p-3 bg-white border border-gray-300 rounded-xl outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all font-medium"
                                 />

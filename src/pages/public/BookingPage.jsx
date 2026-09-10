@@ -14,11 +14,17 @@ import { useGetUserQuery } from '../../services/api/userApi.js';
 import { logout } from '../../services/auth/authSlice.js';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import moment from 'moment';
-import 'moment/locale/es';
+import dayjs from 'dayjs';
+import 'dayjs/locale/es';
+import isoWeek from 'dayjs/plugin/isoWeek';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import PublicNavbar from '../../components/nav/PublicNavbar.jsx';
 
-moment.locale('es');
+dayjs.extend(isoWeek);
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.locale('es');
 
 export default function BookingPage() {
     const [selectedService, setSelectedService] = useState(null);
@@ -152,10 +158,10 @@ export default function BookingPage() {
     const days = useMemo(() => {
         const d = [];
         // Empezamos la semana actual (offset = 0) o avanzamos semanas completas
-        const startOfWeek = moment().startOf('isoWeek').add(weekOffset, 'weeks');
+        const startOfWeek = dayjs().startOf('isoWeek').add(weekOffset, 'weeks');
         // Mostrar de lunes a viernes (5 días)
         for(let i=0; i<5; i++) {
-            const current = moment(startOfWeek).add(i, 'days');
+            const current = dayjs(startOfWeek).add(i, 'days');
             d.push({
                 day: current.format('ddd').charAt(0).toUpperCase() + current.format('ddd').slice(1, 3), // Lun, Mar
                 date: current.format('YYYY-MM-DD'),
@@ -216,7 +222,7 @@ export default function BookingPage() {
     const selectedSpecialist = professionals.find(p => p.id === selectedSpecialistId);
     const requiresPayment = selectedSpecialist && selectedSpecialist.require_payment && selectedSpecialist.session_fee > 0 && !!selectedSpecialist.mp_access_token;
     
-    const currentMonthLabel = moment().startOf('isoWeek').add(weekOffset, 'weeks').format('MMMM YYYY');
+    const currentMonthLabel = dayjs().startOf('isoWeek').add(weekOffset, 'weeks').format('MMMM YYYY');
     const isReadyToConfirm = selectedSpecialistId && selectedDate && selectedTime;
 
     return (

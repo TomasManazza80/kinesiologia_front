@@ -4,9 +4,13 @@ import { toast } from '../../components/ui/use-toast';
 import { Calendar, Clock, Stethoscope, CheckCircle2, XCircle, Clock4, ArrowLeft, Loader2, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import 'dayjs/locale/es';
 import PublicNavbar from '../nav/PublicNavbar.jsx';
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
 dayjs.locale('es');
 
 const MyAppointments = () => {
@@ -30,12 +34,13 @@ const MyAppointments = () => {
 
     const { upcoming, past } = useMemo(() => {
         if (!appointments) return { upcoming: [], past: [] };
-        const now = dayjs();
+        const now = dayjs().tz('America/Argentina/Buenos_Aires');
         const upcomingList = [];
         const pastList = [];
 
         appointments.forEach(appt => {
-            if (dayjs(appt.fecha_hora).isAfter(now) && appt.estado !== 'cancelado') {
+            const apptDate = dayjs(appt.fecha_hora).tz('America/Argentina/Buenos_Aires');
+            if (apptDate.isAfter(now) && appt.estado !== 'cancelado') {
                 upcomingList.push(appt);
             } else {
                 pastList.push(appt);
@@ -145,7 +150,7 @@ const MyAppointments = () => {
 };
 
 const AppointmentCard = ({ appt, getStatusStyle, getStatusIcon, handleCancel, isCancelling, isUpcoming }) => {
-    const date = dayjs(appt.fecha_hora);
+    const date = dayjs(appt.fecha_hora).tz('America/Argentina/Buenos_Aires');
     return (
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex flex-col sm:flex-row items-start sm:items-center gap-5 transition-transform hover:-translate-y-0.5">
             <div className="flex flex-col items-center justify-center bg-blue-50 border border-blue-100 text-blue-800 rounded-xl w-16 h-16 shrink-0">

@@ -2,7 +2,9 @@ import React from 'react';
 import { Layers, CalendarDays, Activity, UserCircle2, FileText, Printer } from 'lucide-react';
 import AdmissionForm from './AdmissionForm';
 import ContactSessionList from './ContactSessionList';
-import dayjs from 'moment';
+import dayjs from 'dayjs';
+import 'dayjs/locale/es';
+dayjs.locale('es');
 
 const MedicalHistoryLayout = ({ patient, legacyHistory }) => {
   return (

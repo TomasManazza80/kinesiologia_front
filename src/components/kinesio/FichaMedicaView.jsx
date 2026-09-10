@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import dayjs from 'moment';
+import dayjs from 'dayjs';
+import 'dayjs/locale/es';
+dayjs.locale('es');
 import { toast } from '../ui/use-toast';
 import { Paperclip, Loader2, X, File, Image as ImageIcon } from 'lucide-react';
 import { useUploadImageMutation } from '../../services/api/kinesioApi';
