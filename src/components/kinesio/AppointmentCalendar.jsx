@@ -250,7 +250,11 @@ const AppointmentCalendar = () => {
             setNewAppt({ patient_id: '', fecha_hora: '', duration: 30, motivo: '' });
         } catch (err) {
             console.error("Failed to create appointment", err);
-            toast({ title: 'Error', description: 'Error al crear el turno', variant: 'destructive' });
+            if (err.status === 409) {
+                toast({ title: 'Horario Ocupado', description: err.data?.error || 'Ya existe un turno en este horario. Para agendar uno nuevo, primero debe eliminar o reprogramar el existente.', variant: 'destructive' });
+            } else {
+                toast({ title: 'Error', description: 'Error al crear el turno', variant: 'destructive' });
+            }
         }
     };
 
