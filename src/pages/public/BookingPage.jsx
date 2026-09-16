@@ -31,6 +31,7 @@ export default function BookingPage() {
     const [selectedSpecialistId, setSelectedSpecialistId] = useState(null);
     const [selectedDate, setSelectedDate] = useState(null);
     const [selectedTime, setSelectedTime] = useState(null);
+    const [currentStep, setCurrentStep] = useState(1);
     const [weekOffset, setWeekOffset] = useState(0);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -100,25 +101,6 @@ export default function BookingPage() {
     const { data: profData, isLoading: isLoadingProfs } = useGetPublicProfessionalsQuery();
     const professionals = profData?.data || [];
 
-    const allSpecialties = useMemo(() => {
-        const specs = new Set();
-        professionals.forEach(p => {
-            if (p.specialty && Array.isArray(p.specialty)) {
-                p.specialty.forEach(s => specs.add(s));
-            } else if (p.specialty && typeof p.specialty === 'string') {
-                specs.add(p.specialty);
-            }
-        });
-        if (specs.size === 0) specs.add('Kinesiología General');
-        return Array.from(specs);
-    }, [professionals]);
-
-    React.useEffect(() => {
-        if (!selectedService && allSpecialties.length > 0) {
-            setSelectedService(allSpecialties[0]);
-        }
-    }, [allSpecialties, selectedService]);
-
     // Preselect professional if query param 'profesional' or 'professional_id' is present
     React.useEffect(() => {
         const profIdParam = searchParams.get('profesional') || searchParams.get('professional_id');
@@ -133,26 +115,6 @@ export default function BookingPage() {
             }
         }
     }, [searchParams, professionals]);
-
-    const filteredProfessionals = useMemo(() => {
-        if (!selectedService) return [];
-        return professionals.filter(p => {
-            if (p.specialty && Array.isArray(p.specialty)) {
-                return p.specialty.includes(selectedService);
-            } else if (p.specialty && typeof p.specialty === 'string') {
-                return p.specialty === selectedService;
-            }
-            return selectedService === 'Kinesiología General';
-        });
-    }, [professionals, selectedService]);
-
-    const { data: slotsData, isLoading: isLoadingSlots, isFetching: isFetchingSlots } = useGetAvailableSlotsQuery(
-        { professional_id: selectedSpecialistId, date: selectedDate?.date, service: selectedService },
-        { skip: !selectedSpecialistId || !selectedDate }
-    );
-    const availableSlots = slotsData?.data || [];
-
-    const [createAppointment, { isLoading: isCreating }] = useCreatePublicAppointmentMutation();
 
     // Generate days
     const days = useMemo(() => {
@@ -171,6 +133,19 @@ export default function BookingPage() {
         }
         return d;
     }, [weekOffset]);
+
+    const weekStartDate = days.length > 0 ? days[0].date : null;
+    const weekEndDate = days.length > 0 ? days[days.length - 1].date : null;
+
+    const { data: weeklySlotsData, isLoading: isLoadingSlots, isFetching: isFetchingSlots } = useGetAvailableSlotsQuery(
+        { professional_id: selectedSpecialistId, start_date: weekStartDate, end_date: weekEndDate, service: selectedService },
+        { skip: !selectedSpecialistId || !weekStartDate || !weekEndDate }
+    );
+    
+    const weeklySlots = weeklySlotsData?.data || {};
+    const availableSlots = selectedDate ? (weeklySlots[selectedDate.date] || []) : [];
+
+    const [createAppointment, { isLoading: isCreating }] = useCreatePublicAppointmentMutation();
 
     const handleConfirmClick = () => {
         if (!selectedSpecialistId || !selectedDate || !selectedTime) return;
@@ -226,348 +201,521 @@ export default function BookingPage() {
     const isReadyToConfirm = selectedSpecialistId && selectedDate && selectedTime;
 
     return (
-        <div className="bg-[#f7f9fc] min-h-screen font-sans text-gray-800 pb-20 md:pb-0">
+        <div className="bg-gray-50 min-h-screen font-sans text-gray-900 pb-20 md:pb-0 overflow-x-hidden">
             <PublicNavbar />
+            
             {/* Main Container */}
-            <div className="max-w-md md:max-w-[1400px] mx-auto bg-white min-h-screen relative flex flex-col md:px-6 lg:px-12">
+            <div className="max-w-md md:max-w-4xl mx-auto bg-transparent min-h-screen relative flex flex-col">
 
                 {/* Mobile Navigation Drawer & Overlay */}
                 <div 
-                    className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 md:hidden ${isMobileMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
+                    className={`fixed inset-0 bg-gray-900/60 z-40 transition-opacity duration-300 md:hidden ${isMobileMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
                     onClick={() => setIsMobileMenuOpen(false)}
-                ></div>
+                    aria-hidden="true"
+                />
 
                 <div 
-                    className={`fixed top-0 left-0 h-full w-[280px] bg-white z-50 transform transition-transform duration-300 ease-in-out md:hidden shadow-2xl flex flex-col ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
+                    className={`fixed top-0 left-0 h-full w-[300px] bg-white z-50 transform transition-transform duration-300 ease-in-out md:hidden shadow-2xl flex flex-col ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Menú principal"
                 >
-                    <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                        <span className="text-xl font-bold text-[#1E293B]">Menú</span>
-                        <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-500 hover:text-gray-900 transition-colors">
-                            <X size={24} />
+                    <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                        <span className="text-xl font-bold text-gray-900">Menú</span>
+                        <button 
+                            onClick={() => setIsMobileMenuOpen(false)} 
+                            className="p-2 -mr-2 text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-600 rounded-lg transition-colors"
+                            aria-label="Cerrar menú"
+                        >
+                            <X size={28} aria-hidden="true" />
                         </button>
                     </div>
-                    <div className="flex flex-col p-6 gap-6">
-                        <button onClick={() => { setIsMobileMenuOpen(false); }} className="text-left text-lg font-semibold text-[#0a47d4]">Reservar Turno</button>
-                        <button onClick={() => { setIsMobileMenuOpen(false); navigate('/mis-turnos'); }} className="text-left text-lg font-semibold text-gray-500 hover:text-[#0a47d4] transition-colors">Mis Turnos</button>
+                    <div className="flex flex-col p-6 gap-4">
+                        <button 
+                            onClick={() => { setIsMobileMenuOpen(false); navigate('/reservar-turno'); }} 
+                            className="text-left text-lg font-bold text-blue-700 py-3 px-4 bg-blue-50 rounded-xl hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-colors flex items-center gap-3"
+                        >
+                            <CalendarPlus size={24} aria-hidden="true" />
+                            Reservar Turno
+                        </button>
+                        <button 
+                            onClick={() => { setIsMobileMenuOpen(false); navigate('/mis-turnos'); }} 
+                            className="text-left text-lg font-medium text-gray-700 py-3 px-4 hover:bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 transition-colors flex items-center gap-3"
+                        >
+                            <ClipboardList size={24} aria-hidden="true" />
+                            Mis Turnos
+                        </button>
                         
                         {userInfo?.role === 'ADMIN' || userInfo?.role === 'EMPLOYEE' ? (
                             <button 
                                 onClick={() => { setIsMobileMenuOpen(false); navigate('/dashboard'); }}
-                                className="text-left text-lg font-bold text-[#0a47d4] transition-colors"
+                                className="text-left text-lg font-medium text-blue-700 py-3 px-4 hover:bg-blue-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 transition-colors flex items-center gap-3"
                             >
-                                Panel Admin
+                                <Home size={24} aria-hidden="true" />
+                                Panel de Administración
                             </button>
                         ) : null}
 
-                        <div className="h-px bg-gray-100 w-full my-2"></div>
+                        <hr className="border-gray-200 my-2" />
 
                         {accessToken ? (
                             <button 
                                 onClick={() => { setIsMobileMenuOpen(false); handleLogout(); }}
-                                className="text-left text-lg font-semibold text-red-600 transition-colors"
+                                className="text-left text-lg font-medium text-red-700 py-3 px-4 hover:bg-red-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600 transition-colors flex items-center gap-3"
                             >
+                                <User size={24} aria-hidden="true" />
                                 Cerrar Sesión
                             </button>
                         ) : (
                             <button 
                                 onClick={() => { setIsMobileMenuOpen(false); navigate('/login'); }}
-                                className="text-left text-lg font-semibold text-[#0a47d4] transition-colors"
+                                className="text-left text-lg font-medium text-blue-700 py-3 px-4 hover:bg-blue-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 transition-colors flex items-center gap-3"
                             >
+                                <User size={24} aria-hidden="true" />
                                 Iniciar Sesión
                             </button>
                         )}
                     </div>
                 </div>
 
-                <main className="flex-1 px-6 pt-4 pb-24 md:pb-10 md:px-10 md:pt-8">
-                    {/* Title Section */}
-                    <div className="mb-8 md:mb-12">
-                        <h1 className="text-[28px] md:text-4xl font-bold text-[#0a47d4] mb-3 leading-tight">
+                <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
+                    {/* Header & Progress Indicator */}
+                    <header className="mb-10 md:mb-16">
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 mb-4 tracking-tight leading-tight">
                             Reservar Turno
                         </h1>
-                        <p className="text-gray-500 text-[15px] md:text-base leading-relaxed md:max-w-2xl">
-                            Siga los pasos a continuación para programar su sesión con nuestros especialistas en kinesiología y rehabilitación.
+                        <p className="text-gray-600 text-lg md:text-xl leading-relaxed mb-8 max-w-2xl">
+                            Siga los pasos a continuación para programar su sesión de manera rápida y sencilla.
                         </p>
-                    </div>
 
-                    <div className="md:grid md:grid-cols-12 md:gap-12">
-                        {/* Left Column: Steps */}
-                        <div className="md:col-span-7 lg:col-span-8">
-                            
-                            {/* Step 1: Servicio */}
-                            <div className="mb-8 md:mb-10">
-                                <div className="flex items-center gap-3 mb-4 md:mb-5">
-                                    <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-[#0a47d4] text-white flex items-center justify-center font-bold text-sm md:text-base">1</div>
-                                    <h2 className="text-lg md:text-xl font-bold text-gray-900">Seleccione un Servicio</h2>
-                                </div>
+                        <div className="flex flex-col md:flex-row md:items-center gap-4 bg-white p-4 md:px-6 md:py-4 rounded-xl border border-gray-200 shadow-sm">
+                            <div className="flex gap-2 flex-1 md:flex-none">
+                                <div className={`h-2.5 flex-1 md:w-20 rounded-full transition-colors duration-500 ${currentStep >= 1 ? 'bg-blue-700' : 'bg-gray-200'}`}></div>
+                                <div className={`h-2.5 flex-1 md:w-20 rounded-full transition-colors duration-500 ${currentStep >= 2 ? 'bg-blue-700' : 'bg-gray-200'}`}></div>
+                                <div className={`h-2.5 flex-1 md:w-20 rounded-full transition-colors duration-500 ${currentStep >= 3 ? 'bg-blue-700' : 'bg-gray-200'}`}></div>
+                            </div>
+                            <span className="text-sm font-bold text-gray-500 uppercase tracking-wider">
+                                Paso {currentStep} de 3
+                            </span>
+                        </div>
+                    </header>
+
+                    <div className="relative">
+                        {/* Step 1: Especialista */}
+                        {currentStep === 1 && (
+                            <section className="animate-in fade-in slide-in-from-right-8 duration-700 bg-white rounded-3xl p-8 md:p-12 shadow-xl border border-gray-100 ring-1 ring-gray-900/5">
+                                <header className="flex items-center gap-5 mb-4">
+                                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-blue-700 text-white flex items-center justify-center font-bold text-xl md:text-2xl shadow-md" aria-hidden="true">1</div>
+                                    <h2 className="text-2xl md:text-4xl font-extrabold text-gray-900 tracking-tight">Elija un especialista</h2>
+                                </header>
+                                <p className="text-gray-600 text-lg md:text-xl mb-10 ml-0 md:ml-16">Seleccione el profesional para su atención.</p>
                                 
-                                <div className="flex flex-col md:grid md:grid-cols-2 gap-3 md:gap-5">
-                                    {allSpecialties.map((spec) => (
-                                        <div 
-                                            key={spec}
-                                            onClick={() => { setSelectedService(spec); setSelectedSpecialistId(null); setSelectedTime(null); }}
-                                            className={`p-4 rounded-xl border-2 transition-all cursor-pointer relative ${selectedService === spec ? 'border-[#0a47d4] bg-[#f0f5ff] shadow-md shadow-blue-500/10' : 'border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50'}`}
-                                        >
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-[#e1ebff] flex items-center justify-center text-[#0a47d4]">
-                                                    <Activity size={20} className="md:w-6 md:h-6" />
-                                                </div>
-                                                {selectedService === spec ? <CheckCircle2 className="text-[#0a47d4]" size={22} fill="white" /> : <Circle className="text-gray-300" size={22} />}
-                                            </div>
-                                            <h3 className="font-bold text-gray-900 mb-1 text-[15px] md:text-base">{spec}</h3>
+                                <div className="ml-0 md:ml-16 min-h-[300px]">
+                                    {isLoadingProfs ? (
+                                        <div className="flex items-center justify-center h-[200px] gap-3 text-gray-600 bg-gray-50 rounded-xl border border-gray-200 text-xl font-medium">
+                                            <Loader2 className="animate-spin text-blue-700" size={32} aria-hidden="true" /> 
+                                            <span>Buscando especialistas disponibles...</span>
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Step 2: Especialista */}
-                            <div className="mb-8 md:mb-10">
-                                <div className="flex items-center gap-3 mb-4 md:mb-5">
-                                    <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-[#e1ebff] text-[#0a47d4] flex items-center justify-center font-bold text-sm md:text-base">2</div>
-                                    <h2 className="text-lg md:text-xl font-bold text-gray-900">Elija un Especialista</h2>
-                                </div>
-                                
-                                {isLoadingProfs ? (
-                                    <div className="flex items-center gap-2 text-gray-500"><Loader2 className="animate-spin" size={20}/> Cargando especialistas...</div>
-                                ) : filteredProfessionals.length === 0 ? (
-                                    <p className="text-gray-500 text-sm">No hay especialistas disponibles para esta especialidad.</p>
-                                ) : (
-                                    <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar">
-                                        {filteredProfessionals.map(prof => (
-                                            <div 
-                                                key={prof.id}
-                                                onClick={() => { setSelectedSpecialistId(prof.id); setSelectedTime(null); }}
-                                                className={`min-w-[160px] md:min-w-[180px] p-4 rounded-xl border-2 transition-all cursor-pointer flex flex-col items-center text-center ${selectedSpecialistId === prof.id ? 'border-[#0a47d4] bg-white shadow-md shadow-blue-500/10' : 'border-gray-100 bg-white hover:border-gray-200'}`}
-                                            >
-                                                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden mb-3 border-2 border-transparent bg-gray-100 flex items-center justify-center">
-                                                    {prof.profile_picture ? (
-                                                        <img src={prof.profile_picture} alt={prof.name} className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <User size={32} className="text-gray-400" />
-                                                    )}
-                                                </div>
-                                                <h3 className="font-bold text-gray-900 text-[14px] md:text-base">{prof.name || prof.email}</h3>
-                                                <span className="mt-1 px-2 py-0.5 rounded-full bg-[#f0f5ff] text-[#0a47d4] text-[10px] md:text-[11px] font-semibold">
-                                                    {(prof.specialty && prof.specialty.length > 0) ? (Array.isArray(prof.specialty) ? prof.specialty.join(', ') : prof.specialty) : 'Kinesiología'}
-                                                </span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Step 3: Fecha y Hora */}
-                            <div className="mb-8 md:mb-0">
-                                <div className="flex items-center gap-3 mb-4 md:mb-5">
-                                    <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-[#e1ebff] text-[#0a47d4] flex items-center justify-center font-bold text-sm md:text-base">3</div>
-                                    <h2 className="text-lg md:text-xl font-bold text-gray-900">Fecha y Hora</h2>
-                                </div>
-                                
-                                <div className={`border border-gray-100 rounded-2xl p-5 md:p-6 bg-white shadow-sm transition-opacity ${!selectedSpecialistId ? 'opacity-50 pointer-events-none' : ''}`}>
-                                    
-                                    {/* Calendar Header */}
-                                    <div className="flex items-center justify-between mb-5 md:mb-6">
-                                        <button onClick={() => setWeekOffset(w => w - 1)} className="p-1 hover:bg-gray-100 rounded-full transition-colors"><ChevronLeft size={20} className="text-gray-600"/></button>
-                                        <h3 className="font-bold text-[15px] md:text-lg text-gray-900 capitalize">{currentMonthLabel}</h3>
-                                        <button onClick={() => setWeekOffset(w => w + 1)} className="p-1 hover:bg-gray-100 rounded-full transition-colors"><ChevronRight size={20} className="text-gray-600"/></button>
-                                    </div>
-                                    
-                                    {/* Days */}
-                                    <div className="flex justify-between mb-6 md:mb-8 md:px-4">
-                                        {days.map((d) => (
-                                            <div 
-                                                key={d.date} 
-                                                onClick={() => { setSelectedDate(d); setSelectedTime(null); }}
-                                                className={`flex flex-col items-center justify-center w-12 h-14 md:w-16 md:h-20 rounded-xl cursor-pointer transition-colors ${selectedDate?.date === d.date ? 'bg-[#0a47d4] text-white shadow-md shadow-blue-500/20' : 'text-gray-500 hover:bg-gray-50'}`}
-                                            >
-                                                <span className="text-[11px] md:text-sm font-medium mb-0.5 md:mb-1">{d.day}</span>
-                                                <span className={`text-[15px] md:text-lg font-bold ${selectedDate?.date === d.date ? 'text-white' : 'text-gray-900'}`}>{d.displayNum}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    {/* Times */}
-                                    <div>
-                                        <h4 className="text-xs md:text-sm text-gray-400 font-medium mb-3 md:mb-4">Horarios Disponibles</h4>
-                                        {(!selectedSpecialistId || !selectedDate) ? (
-                                            <p className="text-sm text-gray-400 italic">Seleccione un especialista y una fecha para ver horarios.</p>
-                                        ) : isFetchingSlots || isLoadingSlots ? (
-                                            <div className="flex items-center gap-2 text-gray-500 text-sm"><Loader2 className="animate-spin" size={16}/> Buscando disponibilidad...</div>
-                                        ) : availableSlots.length === 0 ? (
-                                            <p className="text-sm text-red-500">No hay horarios libres este día.</p>
-                                        ) : (
-                                            <div className="grid grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
-                                                {availableSlots.map((time) => (
+                                    ) : professionals.length === 0 ? (
+                                        <div className="bg-yellow-50 p-6 rounded-xl border border-yellow-200 text-center">
+                                            <User size={48} className="text-yellow-500 mx-auto mb-4" />
+                                            <p className="text-yellow-800 text-lg font-medium">No hay especialistas disponibles actualmente.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4 lg:gap-5">
+                                            {professionals.map(prof => {
+                                                const isSelected = selectedSpecialistId === prof.id;
+                                                return (
                                                     <button 
-                                                        key={time}
-                                                        onClick={() => setSelectedTime(time)}
-                                                        className={`py-2 md:py-3 rounded-lg text-sm md:text-base font-semibold border transition-colors ${selectedTime === time ? 'border-[#0a47d4] text-[#0a47d4] bg-[#f0f5ff] shadow-sm' : 'border-gray-200 text-gray-600 hover:border-[#0a47d4] hover:text-[#0a47d4] hover:bg-blue-50/30'}`}
+                                                        key={prof.id}
+                                                        onClick={() => { 
+                                                            setSelectedSpecialistId(prof.id); 
+                                                            setSelectedTime(null);
+                                                            const spec = Array.isArray(prof.specialty) && prof.specialty.length > 0 ? prof.specialty[0] : (prof.specialty || 'Kinesiología General');
+                                                            setSelectedService(spec);
+                                                        }}
+                                                        className={`rounded-xl border-2 transition-all duration-300 ease-in-out flex flex-col items-center text-center focus:outline-none focus:ring-4 focus:ring-blue-200 overflow-hidden transform ${
+                                                            isSelected 
+                                                            ? 'border-blue-700 bg-blue-50 shadow-lg -translate-y-1' 
+                                                            : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-md hover:-translate-y-1'
+                                                        }`}
+                                                        aria-pressed={isSelected}
                                                     >
-                                                        {time}
+                                                        <div className="w-full aspect-square bg-gray-100 flex items-center justify-center flex-shrink-0 relative overflow-hidden group" aria-hidden="true">
+                                                            {prof.profile_picture ? (
+                                                                <img src={prof.profile_picture} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                                                            ) : (
+                                                                <User className="w-8 h-8 md:w-12 md:h-12 text-gray-400 transition-transform duration-700 group-hover:scale-110" />
+                                                            )}
+                                                            <div className="absolute inset-0 bg-gradient-to-t from-gray-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                                        </div>
+                                                        <div className="p-2 md:p-4 flex flex-col items-center w-full">
+                                                            <h3 className={`font-extrabold text-[11px] leading-tight md:text-base md:leading-snug mb-1 ${isSelected ? 'text-blue-900' : 'text-gray-900'}`}>{prof.name || prof.email}</h3>
+                                                            <span className="inline-block mt-0.5 md:mt-1 px-1.5 py-0.5 md:px-3 md:py-1 rounded-full bg-white border border-gray-200 text-gray-700 text-[9px] md:text-xs font-bold shadow-sm leading-none text-center">
+                                                                {(prof.specialty && prof.specialty.length > 0) ? (Array.isArray(prof.specialty) ? prof.specialty.join(', ') : prof.specialty) : 'Kinesiología'}
+                                                            </span>
+                                                            {isSelected && (
+                                                                <div className="mt-1.5 md:mt-3 text-blue-700 flex items-center justify-center gap-1 font-bold bg-blue-100/60 py-1 px-2 md:py-1.5 md:px-3 rounded-full shadow-sm text-[9px] md:text-xs w-full" aria-hidden="true">
+                                                                    <CheckCircle2 size={12} className="md:w-4 md:h-4 flex-shrink-0" /> <span className="hidden sm:inline">Seleccionado</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </button>
-                                                ))}
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="mt-12 pt-8 border-t border-gray-200 flex justify-end ml-0 md:ml-16">
+                                    <button 
+                                        onClick={() => setCurrentStep(2)}
+                                        disabled={!selectedSpecialistId}
+                                        className={`w-full sm:w-auto py-4 px-10 rounded-2xl font-extrabold text-xl flex items-center justify-center gap-3 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 ${
+                                            selectedSpecialistId ? 'bg-blue-700 text-white hover:bg-blue-800 shadow-xl shadow-blue-700/20 transform hover:-translate-y-1' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                        }`}
+                                    >
+                                        <span>Siguiente paso</span>
+                                        <ArrowRight size={24} aria-hidden="true" />
+                                    </button>
+                                </div>
+                            </section>
+                        )}
+
+                        {/* Step 2: Fecha y Hora */}
+                        {currentStep === 2 && (
+                            <section className="animate-in fade-in slide-in-from-right-8 duration-700 bg-white rounded-3xl p-8 md:p-12 shadow-xl border border-gray-100 ring-1 ring-gray-900/5">
+                                <header className="flex items-center gap-5 mb-4">
+                                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-blue-700 text-white flex items-center justify-center font-bold text-xl md:text-2xl shadow-md" aria-hidden="true">2</div>
+                                    <h2 className="text-2xl md:text-4xl font-extrabold text-gray-900 tracking-tight">Seleccione fecha y hora</h2>
+                                </header>
+                                <p className="text-gray-600 text-lg md:text-xl mb-10 ml-0 md:ml-16">Elija el día y el horario que mejor se adapte a usted.</p>
+                                
+                                <div className="ml-0 md:ml-16">
+                                    <div className="bg-gray-50/50 rounded-3xl p-6 md:p-10 border border-gray-200 min-h-[400px]">
+                                        
+                                        {/* Calendar Header */}
+                                        <div className="flex items-center justify-between mb-8 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                                            <button 
+                                                onClick={() => setWeekOffset(w => w - 1)} 
+                                                className="p-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 flex items-center justify-center"
+                                                aria-label="Ver semana anterior"
+                                            >
+                                                <ChevronLeft size={24} className="text-gray-700" aria-hidden="true" />
+                                            </button>
+                                            <h3 className="font-bold text-xl text-gray-900 capitalize" aria-live="polite">{currentMonthLabel}</h3>
+                                            <button 
+                                                onClick={() => setWeekOffset(w => w + 1)} 
+                                                className="p-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 flex items-center justify-center"
+                                                aria-label="Ver semana siguiente"
+                                            >
+                                                <ChevronRight size={24} className="text-gray-700" aria-hidden="true" />
+                                            </button>
+                                        </div>
+                                        
+                                        {/* Days */}
+                                        <div className="grid grid-cols-5 gap-3 md:gap-6 mb-8">
+                                            {days.map((d) => {
+                                                const isSelected = selectedDate?.date === d.date;
+                                                const isLoading = isLoadingSlots || isFetchingSlots;
+                                                const hasSlots = weeklySlots[d.date] && weeklySlots[d.date].length > 0;
+                                                const isUnavailable = !isLoading && !hasSlots;
+                                                const isDisabled = isLoading || isUnavailable;
+                                                
+                                                return (
+                                                    <button 
+                                                        key={d.date} 
+                                                        onClick={() => { setSelectedDate(d); setSelectedTime(null); }}
+                                                        disabled={isDisabled}
+                                                        className={`flex flex-col items-center justify-center py-5 px-2 rounded-xl border-2 transition-all focus:outline-none focus:ring-4 focus:ring-blue-200 relative overflow-hidden ${
+                                                            isUnavailable
+                                                                ? 'bg-gray-200 border-gray-300 cursor-not-allowed opacity-80 shadow-inner'
+                                                                : isSelected 
+                                                                    ? 'bg-blue-700 border-blue-700 text-white shadow-md transform -translate-y-1' 
+                                                                    : 'bg-white border-gray-200 text-gray-700 hover:border-blue-400 hover:shadow-sm'
+                                                        }`}
+                                                        aria-pressed={isSelected}
+                                                        aria-disabled={isDisabled}
+                                                        aria-label={`Día ${d.displayNum}, ${d.day}`}
+                                                    >
+                                                        {isUnavailable && (
+                                                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                                <div className="w-[120%] h-[3px] bg-gray-400/40 transform -rotate-45"></div>
+                                                            </div>
+                                                        )}
+                                                        <span className={`text-sm md:text-base font-medium mb-1 z-10 ${isUnavailable ? 'text-gray-400 line-through decoration-gray-400/50' : isSelected ? 'text-blue-100' : 'text-gray-500'}`}>{d.day}</span>
+                                                        <span className={`text-2xl md:text-3xl font-bold z-10 ${isUnavailable ? 'text-gray-400 line-through decoration-gray-400/50' : ''}`}>{d.displayNum}</span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+
+                                        {/* Times */}
+                                        <div className="bg-white p-6 md:p-8 rounded-xl border border-gray-200 shadow-sm mt-8">
+                                            <h4 className="text-xl font-bold text-gray-900 mb-2">Horarios disponibles</h4>
+                                            <p className="text-gray-500 mb-6 text-base">
+                                                {selectedDate ? `Mostrando horarios para el ${selectedDate.fullDisplay}` : 'Seleccione un día para ver los horarios.'}
+                                            </p>
+
+                                            {!selectedDate ? (
+                                                <div className="bg-gray-50 rounded-xl p-8 text-center border border-dashed border-gray-300">
+                                                    <CalendarPlus size={40} className="text-gray-400 mx-auto mb-3" />
+                                                    <p className="text-gray-600 text-lg">Seleccione un día en el calendario de arriba.</p>
+                                                </div>
+                                            ) : isFetchingSlots || isLoadingSlots ? (
+                                                <div className="flex flex-col items-center justify-center h-[150px] gap-4 text-gray-600">
+                                                    <Loader2 className="animate-spin text-blue-700" size={40} aria-hidden="true" /> 
+                                                    <span className="text-lg font-medium">Consultando disponibilidad...</span>
+                                                </div>
+                                            ) : availableSlots.length === 0 ? (
+                                                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 flex gap-4 items-center">
+                                                    <Activity className="text-yellow-600 shrink-0" size={32} />
+                                                    <p className="text-yellow-800 text-lg font-medium">No hay horarios libres para este día. Por favor, seleccione otra fecha en el calendario.</p>
+                                                </div>
+                                            ) : (
+                                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                                    {availableSlots.map((time) => {
+                                                        const isSelected = selectedTime === time;
+                                                        return (
+                                                            <button 
+                                                                key={time}
+                                                                onClick={() => setSelectedTime(time)}
+                                                                className={`py-4 px-4 rounded-xl text-xl font-bold border-2 transition-all focus:outline-none focus:ring-4 focus:ring-blue-200 ${
+                                                                    isSelected 
+                                                                    ? 'border-blue-700 bg-blue-700 text-white shadow-md' 
+                                                                    : 'border-gray-200 bg-white text-gray-700 hover:border-blue-400 hover:text-blue-700 hover:bg-blue-50'
+                                                                }`}
+                                                                aria-pressed={isSelected}
+                                                            >
+                                                                {time}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-12 pt-8 border-t border-gray-200 flex flex-col sm:flex-row justify-between gap-4 ml-0 md:ml-16">
+                                    <button 
+                                        onClick={() => setCurrentStep(1)}
+                                        className="py-4 px-8 rounded-2xl font-bold text-lg md:text-xl text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-4 focus:ring-gray-300 transition-colors flex items-center justify-center gap-3"
+                                    >
+                                        <ChevronLeft size={24} /> Atrás
+                                    </button>
+                                    <button 
+                                        onClick={() => setCurrentStep(3)}
+                                        disabled={!selectedTime}
+                                        className={`py-4 px-10 rounded-2xl font-extrabold text-xl flex items-center justify-center gap-3 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 ${
+                                            selectedTime ? 'bg-blue-700 text-white hover:bg-blue-800 shadow-lg transform hover:-translate-y-1' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                        }`}
+                                    >
+                                        <span>Ver Resumen</span>
+                                        <ArrowRight size={24} aria-hidden="true" />
+                                    </button>
+                                </div>
+                            </section>
+                        )}
+
+                        {/* Step 3: Resumen (Ex Right Column Box) */}
+                        {currentStep === 3 && (
+                            <section className="animate-in fade-in slide-in-from-right-8 duration-700 bg-white rounded-3xl p-8 md:p-12 shadow-2xl border border-gray-100 ring-1 ring-gray-900/5 max-w-3xl mx-auto">
+                                <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-8 flex items-center gap-5 border-b border-gray-100 pb-8">
+                                    <div className="w-12 h-12 md:w-16 md:h-16 bg-blue-50 text-blue-700 rounded-2xl flex items-center justify-center shadow-sm">
+                                        <ClipboardList size={32} className="md:w-8 md:h-8" aria-hidden="true" />
+                                    </div>
+                                    Resumen Final
+                                </h2>
+                                
+                                <div className="space-y-8 mb-12">
+                                    <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                                        <p className="text-gray-500 text-base font-medium mb-1">Servicio seleccionado</p>
+                                        <p className="font-bold text-gray-900 text-2xl">{selectedService}</p>
+                                    </div>
+                                    
+                                    <div className="bg-gray-50 rounded-xl p-6 border border-gray-100 flex items-center gap-4">
+                                        {selectedSpecialist?.profile_picture ? (
+                                            <img src={selectedSpecialist.profile_picture} alt="" className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-sm" />
+                                        ) : (
+                                            <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
+                                                <User size={32} className="text-gray-400" />
                                             </div>
                                         )}
+                                        <div>
+                                            <p className="text-gray-500 text-base font-medium mb-1">Especialista</p>
+                                            <p className="font-bold text-gray-900 text-2xl">
+                                                {selectedSpecialist ? (selectedSpecialist.name || selectedSpecialist.email) : ''}
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Right Column: Summary Box */}
-                        <div className="md:col-span-5 lg:col-span-4 mt-8 md:mt-0">
-                            <div className="bg-[#f7f9fc] rounded-2xl p-6 md:p-8 border border-[#edf1f7] md:sticky md:top-24 shadow-sm">
-                                <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Resumen de Turno</h2>
-                                <div className="h-px bg-gray-200 w-full mb-4 md:mb-6"></div>
-                                
-                                <div className="flex flex-col gap-4 mb-8">
-                                    <div className="flex justify-between items-center text-[15px] md:text-base">
-                                        <span className="text-gray-500">Servicio</span>
-                                        <span className="font-semibold text-gray-900 text-right w-1/2">{selectedService}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-[15px] md:text-base">
-                                        <span className="text-gray-500">Especialista</span>
-                                        <span className="font-semibold text-gray-900 text-right w-1/2 text-sm md:text-base">
-                                            {selectedSpecialist ? selectedSpecialist.name || selectedSpecialist.email : 'A definir'}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-[15px] md:text-base">
-                                        <span className="text-gray-500">Fecha</span>
-                                        <span className="font-semibold text-gray-900 text-right w-1/2 text-sm md:text-base capitalize">
-                                            {selectedDate ? selectedDate.fullDisplay : '-'}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-[15px] md:text-base">
-                                        <span className="text-gray-500">Hora</span>
-                                        <span className="font-semibold text-gray-900">{selectedTime || '-'}</span>
+                                    
+                                    <div className="flex flex-col sm:flex-row gap-6">
+                                        <div className="bg-blue-50 rounded-xl p-6 border border-blue-100 flex-1">
+                                            <p className="text-blue-800 text-base font-medium mb-1">Día asignado</p>
+                                            <p className="font-extrabold text-blue-900 text-2xl capitalize">
+                                                {selectedDate?.fullDisplay}
+                                            </p>
+                                        </div>
+                                        <div className="bg-blue-50 rounded-xl p-6 border border-blue-100 flex-1">
+                                            <p className="text-blue-800 text-base font-medium mb-1">Hora acordada</p>
+                                            <p className="font-extrabold text-blue-900 text-2xl">
+                                                {selectedTime}
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <button 
-                                    onClick={handleConfirmClick}
-                                    disabled={!isReadyToConfirm}
-                                    className={`w-full py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all md:text-lg
-                                        ${isReadyToConfirm ? 'bg-[#0a47d4] text-white hover:bg-blue-700 shadow-lg shadow-blue-500/30' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}
-                                    `}
-                                >
-                                    Confirmar Turno
-                                    <ArrowRight size={20} />
-                                </button>
-                                
-                                <p className="text-center text-[12px] md:text-[13px] text-gray-400 mt-5">
-                                    Al confirmar, acepta nuestras políticas de cancelación.
-                                </p>
-                            </div>
-                        </div>
+                                <div className="mt-12 pt-8 border-t border-gray-200 flex flex-col-reverse sm:flex-row justify-between gap-4">
+                                    <button 
+                                        onClick={() => setCurrentStep(2)}
+                                        className="py-4 px-8 rounded-2xl font-bold text-lg md:text-xl text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-4 focus:ring-gray-300 transition-colors flex items-center justify-center gap-3 w-full sm:w-auto"
+                                    >
+                                        <ChevronLeft size={24} /> Volver
+                                    </button>
+                                    <button 
+                                        onClick={handleConfirmClick}
+                                        className="py-4 px-10 rounded-2xl font-extrabold text-xl flex items-center justify-center gap-3 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 bg-blue-700 text-white hover:bg-blue-800 shadow-xl shadow-blue-700/20 transform hover:-translate-y-1 w-full sm:w-auto flex-1"
+                                    >
+                                        Confirmar Turno
+                                        <CheckCircle2 size={28} aria-hidden="true" />
+                                    </button>
+                                </div>
+                            </section>
+                        )}
                     </div>
-
                 </main>
-
             </div>
 
             {/* Modal de confirmación final */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/60 z-50 flex justify-center items-center p-4">
-                    <div className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl transform transition-all">
+                <div 
+                    className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-50 flex justify-center items-center p-4 overflow-y-auto"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="modal-title"
+                >
+                    <div className="bg-white rounded-3xl p-6 md:p-10 w-full max-w-2xl shadow-2xl my-8 mx-auto relative">
                         {isSuccess ? (
-                            <div className="flex flex-col items-center py-6">
-                                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 text-green-600">
-                                    <Check size={32} strokeWidth={3} />
+                            <div className="flex flex-col items-center py-10 text-center">
+                                <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6 text-green-600 shadow-inner">
+                                    <Check size={48} strokeWidth={3} aria-hidden="true" />
                                 </div>
-                                <h3 className="text-2xl font-bold text-gray-900 mb-2">¡Turno Confirmado!</h3>
-                                <p className="text-center text-gray-500">Tu reserva ha sido guardada exitosamente. Te esperamos.</p>
+                                <h3 id="modal-title" className="text-3xl font-extrabold text-gray-900 mb-4">¡Reserva Confirmada!</h3>
+                                <p className="text-lg text-gray-600 mb-2">Su turno ha sido guardado exitosamente en nuestro sistema.</p>
+                                <p className="text-lg font-medium text-gray-900 bg-gray-50 py-3 px-6 rounded-xl border border-gray-200 mt-4">
+                                    Lo esperamos el día <strong>{selectedDate?.fullDisplay}</strong> a las <strong>{selectedTime}</strong> hs.
+                                </p>
                             </div>
                         ) : (
                             <>
-                                <h3 className="text-2xl font-bold text-gray-900 mb-2">Completa tu Reserva</h3>
-                                <p className="text-gray-500 text-sm mb-6">Ingresa tus datos para finalizar la confirmación del turno.</p>
+                                <header className="mb-8">
+                                    <h3 id="modal-title" className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-2">Complete sus datos</h3>
+                                    <p className="text-gray-600 text-lg">Necesitamos esta información básica para registrar su reserva de forma segura.</p>
+                                </header>
                                 
-                                <div className="flex flex-col gap-4 mb-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="flex flex-col gap-6 mb-8">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1">Nombre Completo</label>
+                                            <label htmlFor="patientName" className="block text-base font-bold text-gray-900 mb-2">Nombre y Apellido *</label>
                                             <input 
+                                                id="patientName"
                                                 type="text" 
                                                 value={patientName}
                                                 onChange={(e) => setPatientName(e.target.value)}
                                                 placeholder="Ej. Juan Pérez"
-                                                className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-[#0a47d4] focus:ring-1 focus:ring-[#0a47d4]" 
+                                                className="w-full border-2 border-gray-300 rounded-xl px-5 py-4 text-lg text-gray-900 outline-none focus:border-blue-700 focus:ring-4 focus:ring-blue-100 transition-all bg-gray-50 focus:bg-white" 
+                                                required
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1">DNI</label>
+                                            <label htmlFor="patientDni" className="block text-base font-bold text-gray-900 mb-2">Documento (DNI) *</label>
                                             <input 
+                                                id="patientDni"
                                                 type="text" 
                                                 value={patientDni}
                                                 onChange={(e) => setPatientDni(e.target.value)}
                                                 placeholder="Ej. 12345678"
-                                                className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-[#0a47d4] focus:ring-1 focus:ring-[#0a47d4]" 
+                                                className="w-full border-2 border-gray-300 rounded-xl px-5 py-4 text-lg text-gray-900 outline-none focus:border-blue-700 focus:ring-4 focus:ring-blue-100 transition-all bg-gray-50 focus:bg-white" 
+                                                required
                                             />
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1">Teléfono</label>
+                                            <label htmlFor="patientPhone" className="block text-base font-bold text-gray-900 mb-2">Teléfono de contacto *</label>
                                             <input 
+                                                id="patientPhone"
                                                 type="tel" 
                                                 value={patientPhone}
                                                 onChange={(e) => setPatientPhone(e.target.value)}
                                                 placeholder="Ej. 1122334455"
-                                                className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-[#0a47d4] focus:ring-1 focus:ring-[#0a47d4]" 
+                                                className="w-full border-2 border-gray-300 rounded-xl px-5 py-4 text-lg text-gray-900 outline-none focus:border-blue-700 focus:ring-4 focus:ring-blue-100 transition-all bg-gray-50 focus:bg-white" 
+                                                required
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+                                            <label htmlFor="patientEmail" className="block text-base font-bold text-gray-900 mb-2">Correo Electrónico</label>
                                             <input 
+                                                id="patientEmail"
                                                 type="email" 
                                                 value={patientEmail}
                                                 onChange={(e) => setPatientEmail(e.target.value)}
                                                 placeholder="tu@email.com"
-                                                className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-[#0a47d4] focus:ring-1 focus:ring-[#0a47d4]" 
+                                                className="w-full border-2 border-gray-300 rounded-xl px-5 py-4 text-lg text-gray-900 outline-none focus:border-blue-700 focus:ring-4 focus:ring-blue-100 transition-all bg-gray-50 focus:bg-white" 
                                             />
                                         </div>
                                     </div>
+                                    
                                     {!accessToken && (
-                                        <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mt-2">
-                                            <p className="text-xs text-gray-500 mb-3 font-medium flex items-start gap-1.5">
-                                                <span className="text-[#0a47d4] mt-0.5"><CheckCircle2 size={14}/></span>
-                                                Crea una contraseña (opcional) para poder acceder a la sección "Mis Turnos" y gestionar tus reservas.
+                                        <div className="bg-blue-50 p-6 rounded-2xl border border-blue-200 mt-2">
+                                            <h4 className="font-bold text-blue-900 text-lg mb-2 flex items-center gap-2">
+                                                <User size={24} aria-hidden="true" />
+                                                Crea una cuenta (Opcional)
+                                            </h4>
+                                            <p className="text-base text-blue-800 mb-5">
+                                                Ingresa una contraseña para poder gestionar tus turnos desde nuestro sistema en el futuro.
                                             </p>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <div>
-                                                    <label className="block text-xs font-semibold text-gray-700 mb-1">Contraseña</label>
+                                                    <label htmlFor="password" className="block text-sm font-bold text-gray-900 mb-2">Crear Contraseña</label>
                                                     <div className="relative">
                                                         <input 
+                                                            id="password"
                                                             type={showPassword ? "text" : "password"}
                                                             value={password}
                                                             onChange={(e) => setPassword(e.target.value)}
                                                             placeholder="Mínimo 6 caracteres"
-                                                            className="w-full border border-gray-300 rounded-xl px-3 py-2 outline-none focus:border-[#0a47d4] focus:ring-1 focus:ring-[#0a47d4] text-sm pr-10" 
+                                                            className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 text-base text-gray-900 outline-none focus:border-blue-700 focus:ring-4 focus:ring-blue-100 transition-all bg-white pr-12" 
                                                         />
                                                         <button
                                                             type="button"
                                                             onClick={() => setShowPassword(!showPassword)}
-                                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-blue-700 focus:outline-none rounded-lg focus:ring-2 focus:ring-blue-600"
+                                                            aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                                                         >
-                                                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                            {showPassword ? <EyeOff size={24} aria-hidden="true" /> : <Eye size={24} aria-hidden="true" />}
                                                         </button>
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-xs font-semibold text-gray-700 mb-1">Confirmar Contraseña</label>
+                                                    <label htmlFor="confirmPassword" className="block text-sm font-bold text-gray-900 mb-2">Repetir Contraseña</label>
                                                     <div className="relative">
                                                         <input 
+                                                            id="confirmPassword"
                                                             type={showConfirmPassword ? "text" : "password"}
                                                             value={confirmPassword}
                                                             onChange={(e) => setConfirmPassword(e.target.value)}
-                                                            placeholder="Mínimo 6 caracteres"
-                                                            className="w-full border border-gray-300 rounded-xl px-3 py-2 outline-none focus:border-[#0a47d4] focus:ring-1 focus:ring-[#0a47d4] text-sm pr-10" 
+                                                            placeholder="Vuelva a escribirla"
+                                                            className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 text-base text-gray-900 outline-none focus:border-blue-700 focus:ring-4 focus:ring-blue-100 transition-all bg-white pr-12" 
                                                         />
                                                         <button
                                                             type="button"
                                                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-blue-700 focus:outline-none rounded-lg focus:ring-2 focus:ring-blue-600"
+                                                            aria-label={showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                                                         >
-                                                            {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                            {showConfirmPassword ? <EyeOff size={24} aria-hidden="true" /> : <Eye size={24} aria-hidden="true" />}
                                                         </button>
                                                     </div>
                                                 </div>
@@ -577,29 +725,52 @@ export default function BookingPage() {
                                 </div>
 
                                 {requiresPayment && (
-                                    <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-xl">
-                                        <p className="text-sm text-blue-800 text-center font-medium">
-                                            Se requiere abonar un monto de <strong>${selectedSpecialist.session_fee}</strong> para reservar el turno.
-                                            <br/>Serás redirigido a MercadoPago.
-                                        </p>
+                                    <div className="mb-8 p-6 bg-yellow-50 border-2 border-yellow-200 rounded-2xl flex gap-4 items-start">
+                                        <Activity className="text-yellow-700 shrink-0 mt-1" size={28} aria-hidden="true" />
+                                        <div>
+                                            <h4 className="font-bold text-yellow-900 text-lg mb-1">Pago requerido para reservar</h4>
+                                            <p className="text-base text-yellow-800">
+                                                Para confirmar su turno con el especialista, debe abonar el monto de la sesión (<strong>${selectedSpecialist.session_fee}</strong>). Al hacer clic en el botón de abajo, será redirigido a MercadoPago de forma segura.
+                                            </p>
+                                        </div>
                                     </div>
                                 )}
 
-                                <div className="flex gap-3">
+                                <div className="flex flex-col sm:flex-row gap-4 mt-8 pt-6 border-t border-gray-200">
                                     <button 
                                         onClick={() => setShowModal(false)}
-                                        className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-colors"
+                                        className="w-full sm:w-1/3 py-4 bg-gray-100 text-gray-800 rounded-xl font-bold text-lg hover:bg-gray-200 focus:outline-none focus:ring-4 focus:ring-gray-300 transition-colors"
                                     >
-                                        Cancelar
+                                        Volver atrás
                                     </button>
                                     <button 
                                         onClick={handleSubmitAppointment}
                                         disabled={isCreating || !patientName || !patientDni || !patientPhone}
-                                        className="flex-1 py-3 bg-[#0a47d4] text-white rounded-xl font-bold hover:bg-blue-700 transition-colors disabled:opacity-50 flex justify-center items-center gap-2"
+                                        className={`w-full sm:w-2/3 py-4 text-white rounded-xl font-bold text-lg flex justify-center items-center gap-3 transition-all focus:outline-none focus:ring-4 focus:ring-blue-300
+                                            ${isCreating || !patientName || !patientDni || !patientPhone 
+                                                ? 'bg-blue-400 cursor-not-allowed opacity-70' 
+                                                : 'bg-blue-700 hover:bg-blue-800 shadow-lg'
+                                            }
+                                        `}
                                     >
-                                        {isCreating ? <Loader2 className="animate-spin" size={18} /> : (requiresPayment ? 'Proceder al Pago' : 'Finalizar')}
+                                        {isCreating ? (
+                                            <>
+                                                <Loader2 className="animate-spin" size={24} aria-hidden="true" />
+                                                <span>Procesando...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span>{requiresPayment ? 'Pagar con MercadoPago' : 'Confirmar Turno Ahora'}</span>
+                                                <CheckCircle2 size={24} aria-hidden="true" />
+                                            </>
+                                        )}
                                     </button>
                                 </div>
+                                
+                                <p className="text-center text-sm text-gray-500 mt-6 flex items-center justify-center gap-2">
+                                    <Check size={16} className="text-green-600" aria-hidden="true"/>
+                                    Tus datos están protegidos y seguros con nosotros.
+                                </p>
                             </>
                         )}
                     </div>

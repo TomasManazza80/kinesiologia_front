@@ -263,18 +263,23 @@ export const kinesioApi = authApi.injectEndpoints({
             query: () => ({ url: '/api/public/professionals', method: 'GET' }),
         }),
         getAvailableSlots: build.query({
-            query: ({ professional_id, date, service }) => {
-                let url = `/api/public/available-slots?professional_id=${professional_id}&date=${date}`;
+            query: ({ professional_id, date, start_date, end_date, service }) => {
+                let url = `/api/public/available-slots?professional_id=${professional_id}`;
+                if (date) url += `&date=${date}`;
+                if (start_date) url += `&start_date=${start_date}`;
+                if (end_date) url += `&end_date=${end_date}`;
                 if (service) url += `&service=${service}`;
                 return { url, method: 'GET' };
-            }
+            },
+            providesTags: ['AvailableSlots']
         }),
         createPublicAppointment: build.mutation({
             query: (data) => ({
                 url: '/api/public/appointments',
                 method: 'POST',
                 body: data,
-            })
+            }),
+            invalidatesTags: ['AvailableSlots']
         }),
         getWhatsappStatus: build.query({
             query: (profId) => `/api/whatsapp/status${profId ? `?prof_id=${profId}` : ''}`,
