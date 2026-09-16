@@ -12,7 +12,7 @@ import {
     useDeleteSpecialtyMutation
 } from '../../services/api/kinesioApi.js';
 import { toast } from '../ui/use-toast.tsx';
-import { Plus, User, Mail, Shield, ShieldAlert, Loader2, X, Briefcase, Search, Filter, Camera, Check, Users, Edit2, Trash2, Calendar } from 'lucide-react';
+import { Plus, User, Mail, Shield, ShieldAlert, Loader2, X, Briefcase, Search, Filter, Camera, Check, Users, Edit2, Trash2, Calendar, RotateCcw } from 'lucide-react';
 import dayjs from 'dayjs';
 
 
@@ -336,7 +336,12 @@ const ProfessionalList = () => {
                                                         </div>
                                                     )}
                                                     <div>
-                                                        <p className="font-bold text-gray-900">{prof.name || '-'}</p>
+                                                        <p className="font-bold text-gray-900 flex items-center gap-2">
+                                                            {prof.name || '-'}
+                                                            {prof.is_active === false && (
+                                                                <span className="bg-red-100 text-red-700 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-red-200">Eliminado</span>
+                                                            )}
+                                                        </p>
                                                         <p className="text-xs text-gray-400 mt-0.5">{(prof.specialty && prof.specialty.length > 0) ? prof.specialty.join(', ') : 'Kinesiología'}</p>
                                                     </div>
                                                 </div>
@@ -391,14 +396,32 @@ const ProfessionalList = () => {
                                                      >
                                                          Ver Detalle
                                                      </button>
-                                                     <button 
-                                                         onClick={() => handleDeleteProfessional(prof.id, prof.name)}
-                                                         className="text-red-500 hover:text-red-700 font-semibold text-sm flex items-center gap-1"
-                                                         title="Eliminar profesional"
-                                                     >
-                                                         <Trash2 size={15} />
-                                                         Eliminar
-                                                     </button>
+                                                     {prof.is_active === false ? (
+                                                         <button 
+                                                             onClick={async () => {
+                                                                 try {
+                                                                     await updateProfessional({ id: prof.id, is_active: true }).unwrap();
+                                                                     toast({ title: 'Restaurado', description: 'Profesional restaurado correctamente.', variant: 'success' });
+                                                                 } catch (err) {
+                                                                     toast({ title: 'Error', description: 'Error al restaurar profesional.', variant: 'error' });
+                                                                 }
+                                                             }}
+                                                             className="text-green-500 hover:text-green-700 font-semibold text-sm flex items-center gap-1"
+                                                             title="Restaurar profesional"
+                                                         >
+                                                             <RotateCcw size={15} />
+                                                             Restaurar
+                                                         </button>
+                                                     ) : (
+                                                         <button 
+                                                             onClick={() => handleDeleteProfessional(prof.id, prof.name)}
+                                                             className="text-red-500 hover:text-red-700 font-semibold text-sm flex items-center gap-1"
+                                                             title="Eliminar profesional"
+                                                         >
+                                                             <Trash2 size={15} />
+                                                             Eliminar
+                                                         </button>
+                                                     )}
                                                  </div>
                                              </td>
                                         </tr>

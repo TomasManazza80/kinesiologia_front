@@ -70,7 +70,7 @@ const AppointmentCalendar = () => {
 
     // Data Fetching
     const { data: professionalsData, isLoading: isProfLoading } = useGetProfessionalsQuery();
-    const professionals = professionalsData?.data || [];
+    const professionals = (professionalsData?.data || []).filter(p => p.is_active !== false);
     const activeProfessionalId = (['ADMIN', 'EMPLOYEE'].includes(user?.role) && selectedProfessional) ? selectedProfessional : user?.id;
 
     const { data: patientsData } = useGetPatientsQuery();

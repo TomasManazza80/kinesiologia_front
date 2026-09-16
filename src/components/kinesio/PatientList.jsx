@@ -36,7 +36,7 @@ const PatientList = () => {
   const [createPatient, { isLoading: isCreating }] = useCreatePatientMutation();
   const [deletePatient] = useDeletePatientMutation();
   const { data: professionalsResponse } = useGetProfessionalsQuery();
-  const professionals = professionalsResponse?.data || [];
+  const professionals = (professionalsResponse?.data || []).filter(p => p.is_active !== false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
