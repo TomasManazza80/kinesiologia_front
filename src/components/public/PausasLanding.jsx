@@ -12,6 +12,11 @@ import {
 import { useGetPublicProfessionalsQuery } from '../../services/api/kinesioApi.js';
 import PublicNavbar from '../nav/PublicNavbar.jsx';
 
+// Import background videos
+import video1 from '../../videos/video1.mp4';
+import video2 from '../../videos/video 2.mp4';
+import video3 from '../../videos/video 3.mp4';
+
 // Register GSAP ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
 
@@ -93,6 +98,8 @@ export default function PausasLanding() {
     const containerRef = useRef(null);
     const [pageData, setPageData] = useState(initialPageData);
     const [currentSlide, setCurrentSlide] = useState(0);
+    const [activeVideoIndex, setActiveVideoIndex] = useState(0);
+    const backgroundVideos = [video1, video2, video3];
 
     // Guarantee slides is an array, even if the database saved it as an object
     const rawSlides = pageData?.hero?.slides;
@@ -128,6 +135,14 @@ export default function PausasLanding() {
         }, 5000);
         return () => clearInterval(interval);
     }, [slides.length]);
+
+    // Background Video Slider effect
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setActiveVideoIndex(prev => (prev + 1) % backgroundVideos.length);
+        }, 5000); // Change video every 5 seconds
+        return () => clearInterval(interval);
+    }, []);
 
     useEffect(() => {
         const fetchContent = async () => {
@@ -171,13 +186,6 @@ export default function PausasLanding() {
                 stagger: 0.06,
                 ease: "power2.out"
             }, "-=0.2");
-
-            heroTl.from(".gsap-hero-image", {
-                scale: 0.96,
-                opacity: 0,
-                duration: 0.45,
-                ease: "power2.out"
-            }, "-=0.3");
 
             heroTl.from(".gsap-floating-badge", {
                 y: 20,
@@ -305,37 +313,44 @@ export default function PausasLanding() {
             <PublicNavbar />
 
             {/* HERO SECTION */}
-            <section id="inicio" className="relative pt-8 pb-20 md:pt-16 md:pb-28 overflow-hidden">
-                {/* Fixed Background Video for the entire Hero section */}
-                <video 
-                    autoPlay 
-                    loop 
-                    muted 
-                    playsInline 
-                    className="absolute inset-0 w-full h-full object-cover"
-                >
-                    <source src="https://videos.pexels.com/video-files/3195394/3195394-uhd_2560_1440_25fps.mp4" type="video/mp4" />
-                </video>
-                <div className="absolute inset-0 bg-gradient-to-t from-[#f8fafc] from-5% via-white/70 via-50% to-transparent to-90% pointer-events-none" />
+            <section id="inicio" className="relative pt-8 pb-20 md:pt-16 md:pb-28 overflow-hidden bg-[#0a0a0a]">
+                {/* Background Video Slider for the entire Hero section */}
+                {backgroundVideos.map((videoSrc, index) => (
+                    <video
+                        key={index}
+                        src={videoSrc}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        ref={(el) => { if (el) el.playbackRate = 0.5; }}
+                        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+                            index === activeVideoIndex ? "opacity-100" : "opacity-0"
+                        }`}
+                    />
+                ))}
+                {/* Dark overlay to ensure white text readability */}
+                <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#f8fafc] from-0% via-[#f8fafc]/50 via-15% to-transparent to-40% pointer-events-none" />
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                         
                         {/* Left Column Text */}
-                        <div ref={heroTextRef} className="lg:col-span-7 space-y-6 text-left">
+                        <div ref={heroTextRef} className="lg:col-span-7 space-y-6 text-left drop-shadow-lg">
                             {/* Eyebrow badge */}
-                            <div className="gsap-hero-item inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#B59970]/15/70 border border-[#B59970]/30/80 text-[#13263E] text-xs font-bold tracking-wide">
+                            <div className="gsap-hero-item inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 text-white text-xs font-bold tracking-wide shadow-lg">
                                 <Sparkles className="w-3.5 h-3.5 text-[#B59970]" />
                                 <span>{currentData.badge}</span>
                             </div>
 
                             {/* Main Title */}
-                            <h1 className="gsap-hero-item text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.12]">
+                            <h1 className="gsap-hero-item text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.12]">
                                 {currentData.title1} <br />
-                                <span className="text-[#B59970] italic font-serif">{currentData.title2}</span>
+                                <span className="text-[#e2c697] italic font-serif drop-shadow-md">{currentData.title2}</span>
                             </h1>
 
-                            <p className="gsap-hero-item text-base sm:text-lg text-slate-600 max-w-xl font-medium leading-relaxed">
+                            <p className="gsap-hero-item text-base sm:text-lg text-white/90 max-w-xl font-medium leading-relaxed">
                                 {currentData.subtitle}
                             </p>
 
@@ -366,11 +381,11 @@ export default function PausasLanding() {
 
                             {/* Stats Row */}
                             {currentData.stats && Array.isArray(currentData.stats) && (
-                                <div className="gsap-hero-item pt-8 border-t border-slate-200/80 grid grid-cols-3 gap-6 max-w-lg">
+                                <div className="gsap-hero-item pt-8 border-t border-white/20 grid grid-cols-3 gap-6 max-w-lg">
                                     {currentData.stats.map((stat, idx) => (
                                         <div key={idx}>
-                                            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900">{stat.value}</div>
-                                            <div className="text-xs text-slate-500 font-semibold mt-0.5">{stat.label}</div>
+                                            <div className="text-2xl sm:text-3xl font-extrabold text-white">{stat.value}</div>
+                                            <div className="text-xs text-white/80 font-semibold mt-0.5">{stat.label}</div>
                                         </div>
                                     ))}
                                 </div>
@@ -606,8 +621,8 @@ export default function PausasLanding() {
                                         <div className="space-y-4">
                                             <div className="flex items-center gap-4">
                                                 <div className="w-16 h-16 rounded-2xl bg-[#B59970]/15 border border-[#B59970]/30 overflow-hidden flex-shrink-0 flex items-center justify-center text-[#B59970] group-hover:scale-105 transition-transform">
-                                                    {prof.avatar_url || prof.image ? (
-                                                        <img src={prof.avatar_url || prof.image} alt={prof.name} className="w-full h-full object-cover" />
+                                                    {prof.profile_picture || prof.avatar_url || prof.image ? (
+                                                        <img src={prof.profile_picture || prof.avatar_url || prof.image} alt={prof.name} className="w-full h-full object-cover" />
                                                     ) : (
                                                         <User className="w-8 h-8" />
                                                     )}

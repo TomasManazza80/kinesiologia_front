@@ -6,6 +6,11 @@ import { Star, ChevronDown, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { properties } from "@/lib/data"
 
+// Import background videos
+import video1 from "@/videos/video1.mp4"
+import video2 from "@/videos/video 2.mp4"
+import video3 from "@/videos/video 3.mp4"
+
 export function Hero() {
   const heroRef = useRef<HTMLElement>(null)
   const navigate = useNavigate()
@@ -57,15 +62,15 @@ export function Hero() {
       ];
 
   useEffect(() => {
-    if (heroSlides.length > 1) {
-      const interval = setInterval(() => {
-        setCurrentImageIndex((prevIndex) => (prevIndex + 1) % heroSlides.length);
-      }, 5000); // Change image every 5 seconds
-      return () => clearInterval(interval);
-    }
-  }, [heroSlides.length]);
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => prevIndex + 1);
+    }, 5000); // Change every 5 seconds
+    return () => clearInterval(interval);
+  }, []);
 
-  const currentSlide = heroSlides[currentImageIndex] || heroSlides[0];
+  const currentSlide = heroSlides[currentImageIndex % Math.max(1, heroSlides.length)] || heroSlides[0];
+  const activeVideoIndex = currentImageIndex % 3;
+  const backgroundVideos = [video1, video2, video3];
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -106,15 +111,18 @@ export function Hero() {
       id="inicio"
       className="relative min-h-[100dvh] flex flex-col md:flex-row items-center justify-center z-40 bg-[#0a0a0a]"
     >
-      {/* Background Image Slider */}
+      {/* Background Video Slider */}
       <div className="relative w-full h-[40vh] md:h-auto md:absolute md:inset-0 z-0 bg-black flex-shrink-0">
-        {heroSlides.map((slide: any, index: number) => (
-          <img
-            key={slide.id || index}
-            src={slide.imageUrl || "/images/hero-property.jpg"}
-            alt={`Hero Background ${index + 1}`}
+        {backgroundVideos.map((videoSrc, index) => (
+          <video
+            key={index}
+            src={videoSrc}
+            autoPlay
+            loop
+            muted
+            playsInline
             className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-1000 ${
-              index === currentImageIndex ? "opacity-100" : "opacity-0"
+              index === activeVideoIndex ? "opacity-100" : "opacity-0"
             }`}
           />
         ))}
