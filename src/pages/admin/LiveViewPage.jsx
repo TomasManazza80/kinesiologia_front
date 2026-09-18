@@ -3,6 +3,7 @@ import { LiveEditorProvider, useLiveEditor } from '../../components/admin/conten
 import LiveEditorToolbar from '../../components/admin/contenido/LiveEditorToolbar';
 import HeroSection from '../../components/admin/contenido/sections/HeroSection';
 import StatementSection from '../../components/admin/contenido/sections/StatementSection';
+import ProcedureSection from '../../components/admin/contenido/sections/ProcedureSection';
 import ServicesSection from '../../components/admin/contenido/sections/ServicesSection';
 import ContactSection from '../../components/admin/contenido/sections/ContactSection';
 
@@ -29,6 +30,7 @@ const LiveViewContent = () => {
       <div className="w-full">
         <HeroSection />
         <StatementSection />
+        <ProcedureSection />
         <ServicesSection />
         <ContactSection />
       </div>

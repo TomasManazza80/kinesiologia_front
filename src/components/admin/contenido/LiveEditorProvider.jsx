@@ -71,6 +71,43 @@ const initialPageData = {
     title: 'Contacto',
     email: 'contacto@centrokinesiologico.com',
     phone: '+54 11 1234-5678'
+  },
+  procedure: {
+    badge: 'TU CAMINO AL BIENESTAR',
+    title: 'Programa Integral de 3 Meses',
+    subtitle: 'Un recorrido estructurado donde serás acompañado paso a paso por nuestro equipo interdisciplinario.',
+    items: [
+      {
+        id: 1,
+        title: 'Evaluación Inicial',
+        description: 'Consulta exhaustiva con endocrinología, clínica médica y evaluación kinesiológica para definir tu plan personalizado.',
+        badge: 'M1',
+        icon: 'CalendarCheck',
+        image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&q=80&w=600&h=400',
+        color: 'bg-[#13263E]',
+        textColor: 'text-white'
+      },
+      {
+        id: 2,
+        title: 'Intervención Activa',
+        description: 'Sesiones semanales focalizadas con especialistas asignados: suelo pélvico, apoyo psicológico y nutrición.',
+        badge: 'M2',
+        icon: 'Activity',
+        image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80&w=600&h=400',
+        color: 'bg-[#B59970]',
+        textColor: 'text-white'
+      },
+      {
+        id: 3,
+        title: 'Reevaluación y Alta',
+        description: 'Análisis de resultados, ajustes metabólicos finales y entrega de pautas de mantenimiento a largo plazo.',
+        badge: 'M3',
+        icon: 'Award',
+        image: 'https://images.unsplash.com/photo-1582750433449-648ed127d09e?auto=format&fit=crop&q=80&w=600&h=400',
+        color: 'bg-emerald-600',
+        textColor: 'text-white'
+      }
+    ]
   }
 };
 
@@ -92,6 +129,10 @@ export const LiveEditorProvider = ({ children }) => {
             // Migrate old hero data to new slides structure if necessary
             if (fetchedData.hero && !fetchedData.hero.slides) {
               fetchedData.hero = { slides: [ { ...fetchedData.hero } ] };
+            }
+            // Ensure procedure exists (migration for existing data)
+            if (!fetchedData.procedure) {
+              fetchedData.procedure = initialPageData.procedure;
             }
             setPageData(fetchedData);
             setOriginalData(fetchedData);

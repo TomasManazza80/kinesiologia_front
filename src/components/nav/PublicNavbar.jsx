@@ -6,6 +6,10 @@ import {
     CalendarCheck, LogIn, ArrowUpRight, Menu, X, LayoutDashboard, LogOut, User
 } from 'lucide-react';
 import { logoutUser } from '../../services/auth/authActions.js';
+import gsap from 'gsap';
+import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
+
+gsap.registerPlugin(ScrollToPlugin);
 
 const springConfig = { type: "spring", stiffness: 300, damping: 24 };
 
@@ -25,11 +29,10 @@ export default function PublicNavbar({ className = '' }) {
         if (location.pathname !== '/' && location.pathname !== '/pausas') {
             navigate('/' + hash);
         } else {
-            const el = document.querySelector(hash);
-            if (el) {
-                el.scrollIntoView({ behavior: 'smooth' });
-            } else if (hash === '#inicio') {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (hash === '#inicio') {
+                gsap.to(window, { duration: 1, scrollTo: { y: 0 }, ease: "power3.inOut" });
+            } else {
+                gsap.to(window, { duration: 1, scrollTo: { y: hash, offsetY: 80 }, ease: "power3.inOut" });
             }
         }
     };

@@ -255,4 +255,10 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   content: "";
 }
 
+@media (min-width: 768px) {
+    .zoom-desktop {
+        zoom: 0.8;
+    }
+}
+
 

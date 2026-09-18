@@ -66,7 +66,7 @@ const Navbar = ({children}) => {
     }
 
     return (
-        <div className="flex h-screen bg-[#F0F4F8] font-sans overflow-hidden">
+        <div className="flex h-screen md:h-[125vh] bg-[#F0F4F8] font-sans overflow-hidden">
             {/* Main App Container */}
             <div className="flex-1 bg-white flex flex-col overflow-hidden">
                 
@@ -106,7 +106,7 @@ const Navbar = ({children}) => {
                     {/* Right Actions */}
                     <div className="flex items-center gap-5">
                         <Link 
-                            to="/reservar" 
+                            to="/" 
                             className="flex items-center gap-2 px-3 py-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors border border-transparent hover:border-gray-200"
                             title="Ir a la web del sistema"
                         >
@@ -189,7 +189,7 @@ const Navbar = ({children}) => {
                             <Settings size={20} /> Mi Perfil
                         </Link>
                         <Link 
-                            to="/reservar" 
+                            to="/" 
                             onClick={() => setIsMobileMenuOpen(false)}
                             className="flex items-center gap-3 px-4 py-3 rounded-xl text-[15px] font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
                         >

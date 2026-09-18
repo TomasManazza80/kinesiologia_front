@@ -31,7 +31,7 @@ import LiveViewPage from "./pages/admin/LiveViewPage.jsx";
 
 function App() {
     return (
-        <div className="min-h-screen w-full">
+        <div className="min-h-screen w-full max-w-full overflow-x-hidden zoom-desktop">
             <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
                 <Provider store={store}>
                     <Router>
@@ -54,11 +54,22 @@ const AppContent = () => {
     const [isAppLoading, setIsAppLoading] = useState(true);
 
     useEffect(() => {
+        let isLanding = location.pathname === '/' || location.pathname === '/pausas';
+        
         const timer = setTimeout(() => {
-            setIsAppLoading(false);
+            if (!isLanding) {
+                setIsAppLoading(false);
+            }
         }, 400);
-        return () => clearTimeout(timer);
-    }, []);
+
+        const handleLandingLoaded = () => setIsAppLoading(false);
+        window.addEventListener('pausas-loaded', handleLandingLoaded);
+
+        return () => {
+            clearTimeout(timer);
+            window.removeEventListener('pausas-loaded', handleLandingLoaded);
+        };
+    }, [location.pathname]);
 
     const isPublicRoute = location.pathname === '/' || location.pathname === '/pausas' || location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/signup-admin' || location.pathname === '/reservar' || location.pathname === '/mis-turnos';
     const showNavbar = !isPublicRoute;

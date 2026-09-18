@@ -9,7 +9,7 @@ import {
     MapPin, Users, Zap, Award, Stethoscope, ChevronRight, ChevronLeft, Menu, X, LogIn, CalendarCheck,
     Check, ArrowRight, User
 } from 'lucide-react';
-import { useGetPublicProfessionalsQuery } from '../../services/api/kinesioApi.js';
+import { useGetPublicProfessionalsQuery, useGetAvailableSlotsQuery } from '../../services/api/kinesioApi.js';
 import PublicNavbar from '../nav/PublicNavbar.jsx';
 
 // Import background videos
@@ -86,10 +86,84 @@ const initialPageData = {
     title: 'Contacto',
     email: 'contacto@centrokinesiologico.com',
     phone: '+54 11 1234-5678'
+  },
+  procedure: {
+    badge: 'TU CAMINO AL BIENESTAR',
+    title: 'Programa Integral de 3 Meses',
+    subtitle: 'Un recorrido estructurado donde serás acompañado paso a paso por nuestro equipo interdisciplinario.',
+    items: [
+      {
+        id: 1,
+        title: 'Evaluación Inicial',
+        description: 'Consulta exhaustiva con endocrinología, clínica médica y evaluación kinesiológica para definir tu plan personalizado.',
+        badge: 'M1',
+        icon: 'CalendarCheck',
+        image: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&q=80&w=600&h=400',
+        color: 'bg-[#13263E]',
+        textColor: 'text-white'
+      },
+      {
+        id: 2,
+        title: 'Intervención Activa',
+        description: 'Sesiones semanales focalizadas con especialistas asignados: suelo pélvico, apoyo psicológico y nutrición.',
+        badge: 'M2',
+        icon: 'Activity',
+        image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80&w=600&h=400',
+        color: 'bg-[#B59970]',
+        textColor: 'text-white'
+      },
+      {
+        id: 3,
+        title: 'Reevaluación y Alta',
+        description: 'Análisis de resultados, ajustes metabólicos finales y entrega de pautas de mantenimiento a largo plazo.',
+        badge: 'M3',
+        icon: 'Award',
+        image: 'https://images.unsplash.com/photo-1582750433449-648ed127d09e?auto=format&fit=crop&q=80&w=600&h=400',
+        color: 'bg-emerald-600',
+        textColor: 'text-white'
+      }
+    ]
   }
 };
 
 const IconMap = { Activity, Calendar, Clock, UserCheck, ShieldCheck, Heart, Sparkles, Zap, Award, Stethoscope, Users, Phone, Mail, MapPin };
+
+const AvailabilityIndicator = ({ professionalId }) => {
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const { data: slotsData, isLoading } = useGetAvailableSlotsQuery({ 
+        professional_id: professionalId, 
+        date: dateStr 
+    }, { skip: !professionalId });
+    
+    if (isLoading) {
+        return (
+             <span className="text-xs font-bold text-slate-400 flex items-center gap-1.5">
+                 <span className="w-2 h-2 rounded-full bg-slate-300 animate-pulse" />
+                 ...
+             </span>
+        );
+    }
+    
+    const slots = slotsData?.data || [];
+    const hasSlots = slots.length > 0;
+    
+    if (hasSlots) {
+        return (
+             <span className="text-xs font-bold text-emerald-600 flex items-center gap-1.5">
+                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                 Turnos hoy
+             </span>
+        );
+    }
+    
+    return (
+         <span className="text-xs font-bold text-slate-400 flex items-center gap-1.5">
+             <span className="w-2 h-2 rounded-full bg-slate-300" />
+             Sin turnos hoy
+         </span>
+    );
+};
 
 export default function PausasLanding() {
     const navigate = useNavigate();
@@ -97,6 +171,7 @@ export default function PausasLanding() {
     const [activeFaq, setActiveFaq] = useState(null);
     const containerRef = useRef(null);
     const [pageData, setPageData] = useState(initialPageData);
+    const [isContentLoading, setIsContentLoading] = useState(true);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [activeVideoIndex, setActiveVideoIndex] = useState(0);
     const backgroundVideos = [video1, video2, video3];
@@ -111,6 +186,7 @@ export default function PausasLanding() {
     const heroMediaRef = useRef(null);
 
     useEffect(() => {
+        if (isContentLoading) return;
         const ctx = gsap.context(() => {
             if (heroTextRef.current) {
                 gsap.fromTo(heroTextRef.current, 
@@ -126,7 +202,7 @@ export default function PausasLanding() {
             }
         });
         return () => ctx.revert();
-    }, [currentSlide]);
+    }, [currentSlide, isContentLoading]);
 
     useEffect(() => {
         if (slides.length <= 1) return;
@@ -147,15 +223,28 @@ export default function PausasLanding() {
     useEffect(() => {
         const fetchContent = async () => {
             try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/settings/content`);
+                // Hacemos el fetch y un delay mínimo de 1200ms en paralelo
+                const [response] = await Promise.all([
+                    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/settings/content`),
+                    new Promise(resolve => setTimeout(resolve, 1200))
+                ]);
+                
                 if (response.ok) {
                     const result = await response.json();
                     if (result.success && result.data) {
-                        setPageData(result.data);
+                        let fetchedData = result.data;
+                        if (!fetchedData.procedure) {
+                            fetchedData.procedure = initialPageData.procedure;
+                        }
+                        setPageData(fetchedData);
                     }
                 }
             } catch (error) {
                 console.error("Error loading page content:", error);
+            } finally {
+                setIsContentLoading(false);
+                // Le avisamos a App.jsx que ya cargó todo para que oculte el loader blanco original
+                setTimeout(() => window.dispatchEvent(new Event('pausas-loaded')), 50);
             }
         };
         fetchContent();
@@ -167,6 +256,7 @@ export default function PausasLanding() {
 
     // GSAP ScrollTrigger & Entrance Animations
     useEffect(() => {
+        if (isContentLoading) return;
         const ctx = gsap.context(() => {
             
             // 1. Initial Hero Entrance (fast & snappy)
@@ -278,7 +368,7 @@ export default function PausasLanding() {
         }, containerRef);
 
         return () => ctx.revert();
-    }, [professionals]);
+    }, [professionals, isContentLoading]);
 
     const toggleFaq = (index) => {
         setActiveFaq(activeFaq === index ? null : index);
@@ -304,6 +394,10 @@ export default function PausasLanding() {
     ];
 
     const currentData = slides[currentSlide] || slides[0] || {};
+
+    if (isContentLoading) {
+        return null;
+    }
 
     return (
         <div ref={containerRef} className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-[#B59970]/50/20 selection:text-[#13263E] pb-16 md:pb-0 overflow-x-clip">
@@ -467,7 +561,7 @@ export default function PausasLanding() {
             </section>
 
             {/* STATEMENT SECTION */}
-            <section className="py-16 bg-[#B59970]/5/50 border-y border-blue-100/80">
+            <section id="pausas" className="py-16 bg-[#B59970]/5/50 border-y border-blue-100/80">
                 <div className="gsap-statement max-w-4xl mx-auto px-4 text-center space-y-6">
                     <span className="text-xs font-bold uppercase tracking-widest text-[#B59970] bg-[#B59970]/15/80 px-3.5 py-1.5 rounded-full">
                         {pageData.statement.badge}
@@ -491,7 +585,7 @@ export default function PausasLanding() {
             </section>
 
             {/* SECCIÓN INFORMACIÓN DE PAUSAS Y SERVICIOS */}
-            <section id="pausas" className="py-20 bg-[#f8fafc]">
+            <section id="servicios" className="py-20 bg-[#f8fafc]">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     
                     <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
@@ -508,92 +602,70 @@ export default function PausasLanding() {
                     </div>
 
                     {/* Procedimiento de 3 Meses */}
-                    <div id="procedure-section" className="mb-24 pt-8">
-                        <div className="gsap-procedure-title text-center max-w-2xl mx-auto mb-14">
-                            <span className="inline-block py-1.5 px-4 rounded-full bg-[#13263E]/5 text-[#13263E] text-xs font-bold tracking-widest mb-3 border border-[#13263E]/10">TU CAMINO AL BIENESTAR</span>
-                            <h3 className="text-3xl sm:text-4xl font-extrabold text-slate-900">Programa Integral de 3 Meses</h3>
-                            <p className="text-slate-600 text-base mt-4 font-medium">Un recorrido estructurado donde serás acompañado paso a paso por nuestro equipo interdisciplinario.</p>
+                    {pageData.procedure && (
+                        <div id="procedure-section" className="mb-24 pt-8">
+                            <div className="gsap-procedure-title text-center max-w-2xl mx-auto mb-14">
+                                <span className="inline-block py-1.5 px-4 rounded-full bg-[#13263E]/5 text-[#13263E] text-xs font-bold tracking-widest mb-3 border border-[#13263E]/10">
+                                    {pageData.procedure.badge}
+                                </span>
+                                <h3 className="text-3xl sm:text-4xl font-extrabold text-slate-900">{pageData.procedure.title}</h3>
+                                <p className="text-slate-600 text-base mt-4 font-medium">{pageData.procedure.subtitle}</p>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+                                {/* Línea conectora animada (solo desktop) */}
+                                <div className="hidden md:block absolute top-8 left-[16%] right-[16%] h-[2px] bg-gradient-to-r from-[#13263E] via-[#B59970] to-emerald-600 opacity-40 z-0 animate-pulse"></div>
+                                
+                                {pageData.procedure.items && pageData.procedure.items.map((item, index) => {
+                                    const delay = 0.1 + (index * 0.15);
+                                    let ringColor = '';
+                                    let borderColorHover = '';
+                                    
+                                    if (index === 0) {
+                                        ringColor = 'bg-[#13263E]';
+                                        borderColorHover = 'hover:border-[#13263E]/30';
+                                    } else if (index === 1) {
+                                        ringColor = 'bg-[#B59970]';
+                                        borderColorHover = 'hover:border-[#B59970]/40';
+                                    } else {
+                                        ringColor = 'bg-emerald-600';
+                                        borderColorHover = 'hover:border-emerald-500/40';
+                                    }
+                                    
+                                    const hoverBgColor = index === 0 ? 'group-hover:bg-[#B59970]' : index === 1 ? 'group-hover:bg-[#13263E]' : 'group-hover:bg-[#B59970]';
+                                    
+                                    const IconComp = IconMap[item.icon] || CalendarCheck;
+
+                                    return (
+                                        <motion.div 
+                                            key={item.id || index}
+                                            initial={{ opacity: 0, y: 80, scale: 0.9 }}
+                                            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                                            viewport={{ once: true, amount: 0.3 }}
+                                            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: delay }}
+                                            className={`bg-white rounded-3xl border border-slate-200 shadow-lg hover:shadow-2xl ${borderColorHover} transition-all duration-300 relative z-10 flex flex-col overflow-hidden group hover:-translate-y-2 hover:scale-[1.02]`}
+                                        >
+                                            <div className="w-full h-52 relative overflow-hidden">
+                                                <img src={item.image || "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&q=80&w=600&h=400"} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={item.title} />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                                                <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md rounded-full p-2 border border-white/30 text-white shadow-lg">
+                                                    <IconComp className="w-5 h-5" />
+                                                </div>
+                                            </div>
+                                            <div className="p-8 pt-12 flex flex-col items-center text-center relative flex-1">
+                                                <div className={`absolute -top-10 w-20 h-20 rounded-full ${ringColor} text-white flex items-center justify-center font-extrabold text-2xl shadow-xl border-4 border-white ${hoverBgColor} transition-colors duration-300`}>
+                                                    {item.badge}
+                                                </div>
+                                                <h4 className="font-bold text-slate-900 text-xl mb-3">{item.title}</h4>
+                                                <p className="text-sm text-slate-600 font-medium leading-relaxed">
+                                                    {item.description}
+                                                </p>
+                                            </div>
+                                        </motion.div>
+                                    );
+                                })}
+                            </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-                            {/* Línea conectora animada (solo desktop) */}
-                            <div className="hidden md:block absolute top-8 left-[16%] right-[16%] h-[2px] bg-gradient-to-r from-[#13263E] via-[#B59970] to-emerald-600 opacity-40 z-0 animate-pulse"></div>
-                            
-                            {/* Mes 1 */}
-                            <motion.div 
-                                initial={{ opacity: 0, y: 80, scale: 0.9 }}
-                                whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                                viewport={{ once: true, amount: 0.3 }}
-                                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-                                className="bg-white rounded-3xl border border-slate-200 shadow-lg hover:shadow-2xl hover:border-[#13263E]/30 transition-all duration-300 relative z-10 flex flex-col overflow-hidden group hover:-translate-y-2 hover:scale-[1.02]">
-                                <div className="w-full h-52 relative overflow-hidden">
-                                    <img src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&q=80&w=600&h=400" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Evaluación Inicial" />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                                    <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md rounded-full p-2 border border-white/30 text-white shadow-lg">
-                                        <CalendarCheck className="w-5 h-5" />
-                                    </div>
-                                </div>
-                                <div className="p-8 pt-12 flex flex-col items-center text-center relative flex-1">
-                                    <div className="absolute -top-10 w-20 h-20 rounded-full bg-[#13263E] text-white flex items-center justify-center font-extrabold text-2xl shadow-xl border-4 border-white group-hover:bg-[#B59970] transition-colors duration-300">
-                                        M1
-                                    </div>
-                                    <h4 className="font-bold text-slate-900 text-xl mb-3">Evaluación Inicial</h4>
-                                    <p className="text-sm text-slate-600 font-medium leading-relaxed">
-                                        Consulta exhaustiva con endocrinología, clínica médica y evaluación kinesiológica para definir tu plan personalizado.
-                                    </p>
-                                </div>
-                            </motion.div>
-                            
-                            {/* Mes 2 */}
-                            <motion.div 
-                                initial={{ opacity: 0, y: 80, scale: 0.9 }}
-                                whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                                viewport={{ once: true, amount: 0.3 }}
-                                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.25 }}
-                                className="bg-white rounded-3xl border border-slate-200 shadow-lg hover:shadow-2xl hover:border-[#B59970]/40 transition-all duration-300 relative z-10 flex flex-col overflow-hidden group hover:-translate-y-2 hover:scale-[1.02]">
-                                <div className="w-full h-52 relative overflow-hidden">
-                                    <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80&w=600&h=400" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Intervención Activa" />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                                    <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md rounded-full p-2 border border-white/30 text-white shadow-lg">
-                                        <Activity className="w-5 h-5" />
-                                    </div>
-                                </div>
-                                <div className="p-8 pt-12 flex flex-col items-center text-center relative flex-1">
-                                    <div className="absolute -top-10 w-20 h-20 rounded-full bg-[#B59970] text-white flex items-center justify-center font-extrabold text-2xl shadow-xl border-4 border-white group-hover:bg-[#13263E] transition-colors duration-300">
-                                        M2
-                                    </div>
-                                    <h4 className="font-bold text-slate-900 text-xl mb-3">Intervención Activa</h4>
-                                    <p className="text-sm text-slate-600 font-medium leading-relaxed">
-                                        Sesiones semanales focalizadas con especialistas asignados: suelo pélvico, apoyo psicológico y nutrición.
-                                    </p>
-                                </div>
-                            </motion.div>
-                            
-                            {/* Mes 3 */}
-                            <motion.div 
-                                initial={{ opacity: 0, y: 80, scale: 0.9 }}
-                                whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                                viewport={{ once: true, amount: 0.3 }}
-                                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
-                                className="bg-white rounded-3xl border border-slate-200 shadow-lg hover:shadow-2xl hover:border-emerald-500/40 transition-all duration-300 relative z-10 flex flex-col overflow-hidden group hover:-translate-y-2 hover:scale-[1.02]">
-                                <div className="w-full h-52 relative overflow-hidden">
-                                    <img src="https://images.unsplash.com/photo-1582750433449-648ed127d09e?auto=format&fit=crop&q=80&w=600&h=400" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Reevaluación y Alta" />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                                    <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md rounded-full p-2 border border-white/30 text-white shadow-lg">
-                                        <Award className="w-5 h-5" />
-                                    </div>
-                                </div>
-                                <div className="p-8 pt-12 flex flex-col items-center text-center relative flex-1">
-                                    <div className="absolute -top-10 w-20 h-20 rounded-full bg-emerald-600 text-white flex items-center justify-center font-extrabold text-2xl shadow-xl border-4 border-white group-hover:bg-[#B59970] transition-colors duration-300">
-                                        M3
-                                    </div>
-                                    <h4 className="font-bold text-slate-900 text-xl mb-3">Reevaluación y Alta</h4>
-                                    <p className="text-sm text-slate-600 font-medium leading-relaxed">
-                                        Análisis de resultados, ajustes metabólicos finales y entrega de pautas de mantenimiento a largo plazo.
-                                    </p>
-                                </div>
-                            </motion.div>
-                        </div>
-                    </div>
+                    )}
 
                     {/* Services Cards Grid */}
                     <div id="services-grid" className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -736,10 +808,7 @@ export default function PausasLanding() {
                                         </div>
 
                                         <div className="pt-6 border-t border-slate-200/80 mt-6 flex items-center justify-between">
-                                            <span className="text-xs font-bold text-emerald-600 flex items-center gap-1.5">
-                                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                                Turnos hoy
-                                            </span>
+                                            <AvailabilityIndicator professionalId={prof.id} />
                                             <motion.button
                                                 whileHover={{ scale: 1.05 }}
                                                 whileTap={{ scale: 0.95 }}
