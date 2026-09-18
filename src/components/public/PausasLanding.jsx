@@ -209,17 +209,16 @@ export default function PausasLanding() {
                 ease: "power2.out"
             });
 
-            // Services Cards Scroll Animation
-            gsap.from(".gsap-service-card", {
+            // Procedure Section Scroll Animation
+            gsap.from(".gsap-procedure-title", {
                 scrollTrigger: {
-                    trigger: "#pausas",
+                    trigger: "#procedure-section",
                     start: "top 80%",
                     toggleActions: "play none none none"
                 },
-                y: 30,
+                y: -20,
                 opacity: 0,
-                duration: 0.4,
-                stagger: 0.08,
+                duration: 0.5,
                 ease: "power2.out"
             });
 
@@ -508,16 +507,107 @@ export default function PausasLanding() {
                         </a>
                     </div>
 
+                    {/* Procedimiento de 3 Meses */}
+                    <div id="procedure-section" className="mb-24 pt-8">
+                        <div className="gsap-procedure-title text-center max-w-2xl mx-auto mb-14">
+                            <span className="inline-block py-1.5 px-4 rounded-full bg-[#13263E]/5 text-[#13263E] text-xs font-bold tracking-widest mb-3 border border-[#13263E]/10">TU CAMINO AL BIENESTAR</span>
+                            <h3 className="text-3xl sm:text-4xl font-extrabold text-slate-900">Programa Integral de 3 Meses</h3>
+                            <p className="text-slate-600 text-base mt-4 font-medium">Un recorrido estructurado donde serás acompañado paso a paso por nuestro equipo interdisciplinario.</p>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+                            {/* Línea conectora animada (solo desktop) */}
+                            <div className="hidden md:block absolute top-8 left-[16%] right-[16%] h-[2px] bg-gradient-to-r from-[#13263E] via-[#B59970] to-emerald-600 opacity-40 z-0 animate-pulse"></div>
+                            
+                            {/* Mes 1 */}
+                            <motion.div 
+                                initial={{ opacity: 0, y: 80, scale: 0.9 }}
+                                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                                viewport={{ once: true, amount: 0.3 }}
+                                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+                                className="bg-white rounded-3xl border border-slate-200 shadow-lg hover:shadow-2xl hover:border-[#13263E]/30 transition-all duration-300 relative z-10 flex flex-col overflow-hidden group hover:-translate-y-2 hover:scale-[1.02]">
+                                <div className="w-full h-52 relative overflow-hidden">
+                                    <img src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&q=80&w=600&h=400" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Evaluación Inicial" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                                    <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md rounded-full p-2 border border-white/30 text-white shadow-lg">
+                                        <CalendarCheck className="w-5 h-5" />
+                                    </div>
+                                </div>
+                                <div className="p-8 pt-12 flex flex-col items-center text-center relative flex-1">
+                                    <div className="absolute -top-10 w-20 h-20 rounded-full bg-[#13263E] text-white flex items-center justify-center font-extrabold text-2xl shadow-xl border-4 border-white group-hover:bg-[#B59970] transition-colors duration-300">
+                                        M1
+                                    </div>
+                                    <h4 className="font-bold text-slate-900 text-xl mb-3">Evaluación Inicial</h4>
+                                    <p className="text-sm text-slate-600 font-medium leading-relaxed">
+                                        Consulta exhaustiva con endocrinología, clínica médica y evaluación kinesiológica para definir tu plan personalizado.
+                                    </p>
+                                </div>
+                            </motion.div>
+                            
+                            {/* Mes 2 */}
+                            <motion.div 
+                                initial={{ opacity: 0, y: 80, scale: 0.9 }}
+                                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                                viewport={{ once: true, amount: 0.3 }}
+                                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.25 }}
+                                className="bg-white rounded-3xl border border-slate-200 shadow-lg hover:shadow-2xl hover:border-[#B59970]/40 transition-all duration-300 relative z-10 flex flex-col overflow-hidden group hover:-translate-y-2 hover:scale-[1.02]">
+                                <div className="w-full h-52 relative overflow-hidden">
+                                    <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80&w=600&h=400" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Intervención Activa" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                                    <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md rounded-full p-2 border border-white/30 text-white shadow-lg">
+                                        <Activity className="w-5 h-5" />
+                                    </div>
+                                </div>
+                                <div className="p-8 pt-12 flex flex-col items-center text-center relative flex-1">
+                                    <div className="absolute -top-10 w-20 h-20 rounded-full bg-[#B59970] text-white flex items-center justify-center font-extrabold text-2xl shadow-xl border-4 border-white group-hover:bg-[#13263E] transition-colors duration-300">
+                                        M2
+                                    </div>
+                                    <h4 className="font-bold text-slate-900 text-xl mb-3">Intervención Activa</h4>
+                                    <p className="text-sm text-slate-600 font-medium leading-relaxed">
+                                        Sesiones semanales focalizadas con especialistas asignados: suelo pélvico, apoyo psicológico y nutrición.
+                                    </p>
+                                </div>
+                            </motion.div>
+                            
+                            {/* Mes 3 */}
+                            <motion.div 
+                                initial={{ opacity: 0, y: 80, scale: 0.9 }}
+                                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                                viewport={{ once: true, amount: 0.3 }}
+                                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
+                                className="bg-white rounded-3xl border border-slate-200 shadow-lg hover:shadow-2xl hover:border-emerald-500/40 transition-all duration-300 relative z-10 flex flex-col overflow-hidden group hover:-translate-y-2 hover:scale-[1.02]">
+                                <div className="w-full h-52 relative overflow-hidden">
+                                    <img src="https://images.unsplash.com/photo-1582750433449-648ed127d09e?auto=format&fit=crop&q=80&w=600&h=400" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Reevaluación y Alta" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                                    <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md rounded-full p-2 border border-white/30 text-white shadow-lg">
+                                        <Award className="w-5 h-5" />
+                                    </div>
+                                </div>
+                                <div className="p-8 pt-12 flex flex-col items-center text-center relative flex-1">
+                                    <div className="absolute -top-10 w-20 h-20 rounded-full bg-emerald-600 text-white flex items-center justify-center font-extrabold text-2xl shadow-xl border-4 border-white group-hover:bg-[#B59970] transition-colors duration-300">
+                                        M3
+                                    </div>
+                                    <h4 className="font-bold text-slate-900 text-xl mb-3">Reevaluación y Alta</h4>
+                                    <p className="text-sm text-slate-600 font-medium leading-relaxed">
+                                        Análisis de resultados, ajustes metabólicos finales y entrega de pautas de mantenimiento a largo plazo.
+                                    </p>
+                                </div>
+                            </motion.div>
+                        </div>
+                    </div>
+
                     {/* Services Cards Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div id="services-grid" className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {pageData.services.items.map((item, index) => {
                             const IconComp = IconMap[item.icon] || Stethoscope;
                             if (item.isHighlighted) {
                                 return (
                                     <motion.div 
                                         key={item.id || index}
-                                        whileHover={{ y: -8, transition: springConfig }}
-                                        className="gsap-service-card bg-[#13263E] text-white rounded-3xl p-8 border border-[#13263E] shadow-2xl flex flex-col justify-between space-y-6 transform lg:-translate-y-2"
+                                        initial={{ opacity: 0, y: 60, scale: 0.95 }}
+                                        whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                                        viewport={{ once: true, amount: 0.2 }}
+                                        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: index * 0.15 }}
+                                        className="bg-[#13263E] text-white rounded-3xl p-8 border border-[#13263E] shadow-2xl flex flex-col justify-between space-y-6 transform lg:-translate-y-2 hover:-translate-y-4 hover:shadow-[0_20px_40px_rgba(19,38,62,0.3)] transition-all duration-300"
                                     >
                                         <div className="space-y-4">
                                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#B59970]/50/20 border border-[#B59970]/30 text-[#B59970] text-xs font-bold">
@@ -544,13 +634,16 @@ export default function PausasLanding() {
                                         </div>
                                     </motion.div>
                                 );
-                            } else {
-                                return (
-                                    <motion.div 
-                                        key={item.id || index}
-                                        whileHover={{ y: -8, transition: springConfig }}
-                                        className="gsap-service-card bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-[#B59970]/30 transition-all flex flex-col justify-between space-y-6"
-                                    >
+                        } else {
+                            return (
+                                <motion.div 
+                                    key={item.id || index}
+                                    initial={{ opacity: 0, y: 60, scale: 0.95 }}
+                                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                                    viewport={{ once: true, amount: 0.2 }}
+                                    transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: index * 0.15 }}
+                                    className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-[#B59970]/30 hover:-translate-y-2 transition-all duration-300 flex flex-col justify-between space-y-6"
+                                >
                                         <div className="space-y-4">
                                             <div className="w-12 h-12 rounded-2xl bg-[#B59970]/5 text-[#B59970] flex items-center justify-center">
                                                 <IconComp className="w-6 h-6" />
@@ -560,19 +653,19 @@ export default function PausasLanding() {
                                                 {item.description}
                                             </p>
                                         </div>
-                                        <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                                            <span className="text-xs font-bold text-slate-400">{item.footerText}</span>
-                                            <motion.button
-                                                whileTap={{ scale: 0.95 }}
-                                                onClick={() => navigate('/reservar')}
-                                                className="bg-slate-100 hover:bg-[#13263E] hover:text-white text-slate-700 text-xs font-bold px-4 py-2 rounded-xl transition-all"
-                                            >
-                                                {item.btnText}
-                                            </motion.button>
-                                        </div>
-                                    </motion.div>
-                                );
-                            }
+                                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                                        <span className="text-xs font-bold text-slate-400">{item.footerText}</span>
+                                        <motion.button
+                                            whileTap={{ scale: 0.95 }}
+                                            onClick={() => navigate('/reservar')}
+                                            className="bg-slate-100 hover:bg-[#13263E] hover:text-white text-slate-700 text-xs font-bold px-4 py-2 rounded-xl transition-all"
+                                        >
+                                            {item.btnText}
+                                        </motion.button>
+                                    </div>
+                                </motion.div>
+                            );
+                        }
                         })}
                     </div>
                 </div>
