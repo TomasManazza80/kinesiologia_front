@@ -382,7 +382,7 @@ const MedicalHistoryEntry = () => {
             {consultation.reason_for_visit && (
               <div>
                 <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Motivo de la Consulta</h4>
-                <p className="text-sm text-gray-800 font-medium bg-gray-50 p-3 rounded-xl border border-gray-100">
+                <p className="text-sm text-gray-800 font-medium bg-gray-50 p-3 rounded-xl border border-gray-100 whitespace-pre-wrap">
                   {consultation.reason_for_visit}
                 </p>
               </div>
@@ -407,7 +407,7 @@ const MedicalHistoryEntry = () => {
                   <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5 mb-1">
                     <Shield size={14} className="text-[#0A58CA]"/> Diagnóstico
                   </h4>
-                  <div className="text-sm text-gray-800 bg-gray-50 p-3 rounded-xl border border-gray-100 font-medium">
+                  <div className="text-sm text-gray-800 bg-gray-50 p-3 rounded-xl border border-gray-100 font-medium whitespace-pre-wrap">
                     {consultation.diagnostico}
                   </div>
                 </div>
@@ -778,7 +778,8 @@ const MedicalHistoryEntry = () => {
                       name="reason_for_visit"
                       value={formData.reason_for_visit}
                       onChange={handleInputChange}
-                      className="w-full bg-[#F1F5F9] border-transparent rounded-xl p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA] resize-none h-32"
+                      className="w-full bg-[#F1F5F9] border-transparent rounded-xl p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA] resize-none min-h-[120px] overflow-hidden"
+                      onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
                       placeholder="Ingrese los síntomas principales del paciente y su duración..."
                     ></textarea>
                   </div>
@@ -822,7 +823,8 @@ const MedicalHistoryEntry = () => {
                       name="physical_findings"
                       value={formData.physical_findings}
                       onChange={handleInputChange}
-                      className="w-full bg-[#F1F5F9] border-transparent rounded-xl p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA] resize-none h-32"
+                      className="w-full bg-[#F1F5F9] border-transparent rounded-xl p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA] resize-none min-h-[120px] overflow-hidden"
+                      onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
                       placeholder="Hallazgos físicos detallados..."
                     ></textarea>
                   </div>
@@ -843,7 +845,8 @@ const MedicalHistoryEntry = () => {
                         name="diagnostico"
                         value={formData.diagnostico}
                         onChange={handleInputChange}
-                        className="w-full bg-[#F1F5F9] border-transparent rounded-xl p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA] resize-none h-32"
+                        className="w-full bg-[#F1F5F9] border-transparent rounded-xl p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA] resize-none min-h-[120px] overflow-hidden"
+                      onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
                         placeholder="Diagnósticos principales y secundarios..."
                       ></textarea>
                     </div>
@@ -861,7 +864,8 @@ const MedicalHistoryEntry = () => {
                         name="tratamiento"
                         value={formData.tratamiento}
                         onChange={handleInputChange}
-                        className="w-full bg-[#F1F5F9] border-transparent rounded-xl p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA] resize-none h-32"
+                        className="w-full bg-[#F1F5F9] border-transparent rounded-xl p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA] resize-none min-h-[120px] overflow-hidden"
+                      onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
                         placeholder="Medicamentos, procedimientos y recomendaciones..."
                       ></textarea>
                     </div>
@@ -949,7 +953,8 @@ const MedicalHistoryEntry = () => {
                       name="reason_for_visit"
                       value={formData.reason_for_visit}
                       onChange={handleInputChange}
-                      className="w-full bg-[#F1F5F9] border-transparent rounded-xl p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA] resize-none h-32"
+                      className="w-full bg-[#F1F5F9] border-transparent rounded-xl p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA] resize-none min-h-[120px] overflow-hidden"
+                      onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
                       placeholder="Ingrese los síntomas principales del paciente y su duración..."
                     ></textarea>
                   </div>
@@ -993,7 +998,8 @@ const MedicalHistoryEntry = () => {
                       name="physical_findings"
                       value={formData.physical_findings}
                       onChange={handleInputChange}
-                      className="w-full bg-[#F1F5F9] border-transparent rounded-xl p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA] resize-none h-32"
+                      className="w-full bg-[#F1F5F9] border-transparent rounded-xl p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA] resize-none min-h-[120px] overflow-hidden"
+                      onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
                       placeholder="Hallazgos físicos detallados..."
                     ></textarea>
                   </div>
@@ -1014,7 +1020,8 @@ const MedicalHistoryEntry = () => {
                         name="diagnostico"
                         value={formData.diagnostico}
                         onChange={handleInputChange}
-                        className="w-full bg-[#F1F5F9] border-transparent rounded-xl p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA] resize-none h-32"
+                        className="w-full bg-[#F1F5F9] border-transparent rounded-xl p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA] resize-none min-h-[120px] overflow-hidden"
+                      onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
                         placeholder="Diagnósticos principales y secundarios..."
                       ></textarea>
                     </div>
@@ -1032,7 +1039,8 @@ const MedicalHistoryEntry = () => {
                         name="tratamiento"
                         value={formData.tratamiento}
                         onChange={handleInputChange}
-                        className="w-full bg-[#F1F5F9] border-transparent rounded-xl p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA] resize-none h-32"
+                        className="w-full bg-[#F1F5F9] border-transparent rounded-xl p-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0A58CA] resize-none min-h-[120px] overflow-hidden"
+                      onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
                         placeholder="Medicamentos, procedimientos y recomendaciones..."
                       ></textarea>
                     </div>

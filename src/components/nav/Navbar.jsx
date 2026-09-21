@@ -66,12 +66,12 @@ const Navbar = ({children}) => {
     }
 
     return (
-        <div className="flex h-screen md:h-[125vh] bg-[#F0F4F8] font-sans overflow-hidden">
+        <div className="flex min-h-screen bg-[#F0F4F8] font-sans">
             {/* Main App Container */}
-            <div className="flex-1 bg-white flex flex-col overflow-hidden">
+            <div className="flex-1 bg-white flex flex-col min-h-screen">
                 
                 {/* Top Navigation Bar */}
-                <header className="h-20 flex items-center justify-between px-8 border-b border-gray-100 shrink-0">
+                <header className="sticky top-0 z-[100] h-20 flex items-center justify-between px-8 border-b border-gray-100 shrink-0 bg-white/95 backdrop-blur-sm">
                     {/* Logo */}
                     <div className="flex items-center gap-3">
                         <button 
@@ -205,7 +205,7 @@ const Navbar = ({children}) => {
                 </div>
 
                 {/* Main Content Area */}
-                <main className="flex-1 overflow-x-hidden overflow-y-auto bg-white">
+                <main className="flex-1 bg-white">
                     <div className="min-h-full w-full">
                         {children}
                     </div>

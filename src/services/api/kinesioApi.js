@@ -60,10 +60,9 @@ export const kinesioApi = authApi.injectEndpoints({
             invalidatesTags: ['Professionals']
         }),
         deleteProfessional: build.mutation({
-            query: ({ id, adminPassword }) => ({
+            query: ({ id }) => ({
                 url: `/api/kinesio/professionals/${id}`,
-                method: 'DELETE',
-                body: { adminPassword }
+                method: 'DELETE'
             }),
             invalidatesTags: ['Professionals']
         }),
@@ -92,6 +91,18 @@ export const kinesioApi = authApi.injectEndpoints({
                 return { url, method: 'GET' };
             },
             providesTags: (result, error, arg) => [{ type: 'Appointments', id: arg?.professional_id || arg?.patient_id || 'LIST' }],
+        }),
+        getUnreadAppointments: build.query({
+            query: () => '/api/kinesio/appointments/unread',
+            providesTags: ['UnreadAppointments'],
+        }),
+        markAppointmentsAsRead: build.mutation({
+            query: (ids) => ({
+                url: '/api/kinesio/appointments/mark-read',
+                method: 'PUT',
+                body: { ids },
+            }),
+            invalidatesTags: ['UnreadAppointments']
         }),
 
         getMyAppointments: build.query({
@@ -375,6 +386,8 @@ export const {
     useGetPatientsQuery,
     useCreateAppointmentMutation,
     useUpdateAppointmentMutation,
+    useGetUnreadAppointmentsQuery,
+    useMarkAppointmentsAsReadMutation,
     useCancelAppointmentMutation,
     useDeleteAppointmentMutation,
     useCreatePatientMutation,

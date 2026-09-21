@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Activity, Calendar, Clock, UserCheck, ShieldCheck, Heart, 
     Sparkles, ArrowUpRight, ChevronDown, CheckCircle2, Phone, Mail, 
     MapPin, Users, Zap, Award, Stethoscope, ChevronRight, ChevronLeft, Menu, X, LogIn, CalendarCheck,
-    Check, ArrowRight, User
+    Check, ArrowRight, User, Target
 } from 'lucide-react';
 import { useGetPublicProfessionalsQuery, useGetAvailableSlotsQuery } from '../../services/api/kinesioApi.js';
 import PublicNavbar from '../nav/PublicNavbar.jsx';
@@ -16,9 +15,6 @@ import PublicNavbar from '../nav/PublicNavbar.jsx';
 import video1 from '../../videos/video1.mp4';
 import video2 from '../../videos/video 2.mp4';
 import video3 from '../../videos/video 3.mp4';
-
-// Register GSAP ScrollTrigger plugin
-gsap.registerPlugin(ScrollTrigger);
 
 // Framer Motion spring presets for interactive elements
 const springConfig = { type: "spring", stiffness: 300, damping: 24 };
@@ -167,6 +163,7 @@ const AvailabilityIndicator = ({ professionalId }) => {
 
 export default function PausasLanding() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [activeFaq, setActiveFaq] = useState(null);
     const containerRef = useRef(null);
@@ -212,13 +209,7 @@ export default function PausasLanding() {
         return () => clearInterval(interval);
     }, [slides.length]);
 
-    // Background Video Slider effect
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setActiveVideoIndex(prev => (prev + 1) % backgroundVideos.length);
-        }, 5000); // Change video every 5 seconds
-        return () => clearInterval(interval);
-    }, []);
+    // We no longer use a fixed interval. The transition is triggered by the onEnded event of each video.
 
     useEffect(() => {
         const fetchContent = async () => {
@@ -253,122 +244,6 @@ export default function PausasLanding() {
     // Queries
     const { data: profData, isLoading: isLoadingProfs } = useGetPublicProfessionalsQuery();
     const professionals = profData?.data || [];
-
-    // GSAP ScrollTrigger & Entrance Animations
-    useEffect(() => {
-        if (isContentLoading) return;
-        const ctx = gsap.context(() => {
-            
-            // 1. Initial Hero Entrance (fast & snappy)
-            const heroTl = gsap.timeline({ delay: 0.1 });
-
-            heroTl.from(".gsap-header", {
-                y: -30,
-                opacity: 0,
-                duration: 0.4,
-                ease: "power2.out"
-            });
-
-            heroTl.from(".gsap-hero-item", {
-                y: 25,
-                opacity: 0,
-                duration: 0.4,
-                stagger: 0.06,
-                ease: "power2.out"
-            }, "-=0.2");
-
-            heroTl.from(".gsap-floating-badge", {
-                y: 20,
-                opacity: 0,
-                duration: 0.35,
-                ease: "back.out(1.5)"
-            }, "-=0.2");
-
-            // 2. ScrollTrigger Animations as user scrolls down
-
-            // Statement Section Scroll Animation
-            gsap.from(".gsap-statement", {
-                scrollTrigger: {
-                    trigger: ".gsap-statement",
-                    start: "top 85%",
-                    toggleActions: "play none none none"
-                },
-                y: 30,
-                opacity: 0,
-                duration: 0.4,
-                ease: "power2.out"
-            });
-
-            // Procedure Section Scroll Animation
-            gsap.from(".gsap-procedure-title", {
-                scrollTrigger: {
-                    trigger: "#procedure-section",
-                    start: "top 80%",
-                    toggleActions: "play none none none"
-                },
-                y: -20,
-                opacity: 0,
-                duration: 0.5,
-                ease: "power2.out"
-            });
-
-            // Why Choose Us Section Scroll Animation
-            gsap.from(".gsap-why-img", {
-                scrollTrigger: {
-                    trigger: ".gsap-why-choose",
-                    start: "top 80%",
-                    toggleActions: "play none none none"
-                },
-                x: -30,
-                opacity: 0,
-                duration: 0.4,
-                ease: "power2.out"
-            });
-
-            gsap.from(".gsap-why-item", {
-                scrollTrigger: {
-                    trigger: ".gsap-why-choose",
-                    start: "top 80%",
-                    toggleActions: "play none none none"
-                },
-                x: 25,
-                opacity: 0,
-                duration: 0.4,
-                stagger: 0.06,
-                ease: "power2.out"
-            });
-
-            // Final Banner CTA Scroll Animation
-            gsap.from(".gsap-cta-banner", {
-                scrollTrigger: {
-                    trigger: ".gsap-cta-banner",
-                    start: "top 85%",
-                    toggleActions: "play none none none"
-                },
-                scale: 0.96,
-                opacity: 0,
-                duration: 0.4,
-                ease: "power2.out"
-            });
-
-            // FAQ Items Scroll Animation
-            gsap.from(".gsap-faq-item", {
-                scrollTrigger: {
-                    trigger: "#faq",
-                    start: "top 85%",
-                    toggleActions: "play none none none"
-                },
-                y: 20,
-                opacity: 0,
-                duration: 0.35,
-                stagger: 0.05,
-                ease: "power2.out"
-            });
-
-        }, containerRef);
-
-        return () => ctx.revert();
-    }, [professionals, isContentLoading]);
 
     const toggleFaq = (index) => {
         setActiveFaq(activeFaq === index ? null : index);
@@ -412,43 +287,78 @@ export default function PausasLanding() {
                     <video
                         key={index}
                         src={videoSrc}
-                        autoPlay
-                        loop
                         muted
                         playsInline
-                        ref={(el) => { if (el) el.playbackRate = 0.5; }}
+                        ref={(el) => { 
+                            if (el) {
+                                el.playbackRate = 0.75; 
+                                // Solamente reproducimos el video activo.
+                                // Usamos useEffect-like behaviour aquí o simplemente confiamos en el render.
+                                // Pero para asegurar el inicio, lo manejamos dinámicamente:
+                                if (index === activeVideoIndex && el.paused) {
+                                    el.play().catch(() => {});
+                                } else if (index !== activeVideoIndex && !el.paused) {
+                                    // Let it play for a bit during the fade out, then pause and reset
+                                    setTimeout(() => {
+                                        el.pause();
+                                        el.currentTime = 0;
+                                    }, 1000);
+                                }
+                            }
+                        }}
+                        onEnded={() => setActiveVideoIndex((prev) => (prev + 1) % backgroundVideos.length)}
                         className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
-                            index === activeVideoIndex ? "opacity-100" : "opacity-0"
+                            index === activeVideoIndex ? "opacity-100 z-10" : "opacity-0 z-0"
                         }`}
                     />
                 ))}
                 {/* Dark overlay to ensure white text readability */}
-                <div className="absolute inset-0 bg-black/40 pointer-events-none" />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#f8fafc] from-0% via-[#f8fafc]/50 via-15% to-transparent to-40% pointer-events-none" />
+                <div className="absolute inset-0 bg-black/40 pointer-events-none z-20" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#f8fafc] from-0% via-[#f8fafc]/50 via-15% to-transparent to-40% pointer-events-none z-20" />
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-30">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                         
                         {/* Left Column Text */}
                         <div ref={heroTextRef} className="lg:col-span-7 space-y-6 text-left drop-shadow-lg">
                             {/* Eyebrow badge */}
-                            <div className="gsap-hero-item inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 text-white text-xs font-bold tracking-wide shadow-lg">
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
+                                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 text-white text-xs font-bold tracking-wide shadow-lg"
+                            >
                                 <Sparkles className="w-3.5 h-3.5 text-[#B59970]" />
                                 <span>{currentData.badge}</span>
-                            </div>
+                            </motion.div>
 
                             {/* Main Title */}
-                            <h1 className="gsap-hero-item text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.12]">
+                            <motion.h1 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+                                className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.12]"
+                            >
                                 {currentData.title1} <br />
                                 <span className="text-[#e2c697] italic font-serif drop-shadow-md">{currentData.title2}</span>
-                            </h1>
+                            </motion.h1>
 
-                            <p className="gsap-hero-item text-base sm:text-lg text-white/90 max-w-xl font-medium leading-relaxed">
+                            <motion.p 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
+                                className="text-base sm:text-lg text-white/90 max-w-xl font-medium leading-relaxed"
+                            >
                                 {currentData.subtitle}
-                            </p>
+                            </motion.p>
 
                             {/* Hero Action Buttons */}
-                            <div className="gsap-hero-item pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: 0.4, ease: "easeOut" }}
+                                className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-4"
+                            >
                                 <motion.button
                                     whileHover={{ scale: 1.04, y: -2 }}
                                     whileTap={{ scale: 0.96 }}
@@ -470,18 +380,23 @@ export default function PausasLanding() {
                                     <span>{currentData.ctaSecondary}</span>
                                     <ChevronDown className="w-4 h-4 text-slate-500" />
                                 </motion.a>
-                            </div>
+                            </motion.div>
 
                             {/* Stats Row */}
                             {currentData.stats && Array.isArray(currentData.stats) && (
-                                <div className="gsap-hero-item pt-8 border-t border-white/20 grid grid-cols-3 gap-6 max-w-lg">
+                                <motion.div 
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.5, delay: 0.5, ease: "easeOut" }}
+                                    className="pt-8 border-t border-white/20 grid grid-cols-3 gap-6 max-w-lg"
+                                >
                                     {currentData.stats.map((stat, idx) => (
                                         <div key={idx}>
                                             <div className="text-2xl sm:text-3xl font-extrabold text-white">{stat.value}</div>
                                             <div className="text-xs text-white/80 font-semibold mt-0.5">{stat.label}</div>
                                         </div>
                                     ))}
-                                </div>
+                                </motion.div>
                             )}
                         </div>
 
@@ -529,7 +444,12 @@ export default function PausasLanding() {
 
                                 {/* Floating Overlay Badge */}
                                 {currentData.imageBadge && (
-                                    <div className="gsap-floating-badge absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-xl border border-white/40 space-y-2 z-10">
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        transition={{ type: "spring", stiffness: 100, damping: 12, delay: 0.6 }}
+                                        className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-xl border border-white/40 space-y-2 z-10"
+                                    >
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-xl bg-[#B59970]/15 flex items-center justify-center text-[#B59970]">
                                                 <Award className="w-5 h-5" />
@@ -539,7 +459,7 @@ export default function PausasLanding() {
                                                 <p className="text-xs text-slate-500 font-medium">{currentData.imageBadge.subtitle}</p>
                                             </div>
                                         </div>
-                                    </div>
+                                    </motion.div>
                                 )}
                             </div>
 
@@ -560,27 +480,106 @@ export default function PausasLanding() {
                 </div>
             </section>
 
-            {/* STATEMENT SECTION */}
-            <section id="pausas" className="py-16 bg-[#B59970]/5/50 border-y border-blue-100/80">
-                <div className="gsap-statement max-w-4xl mx-auto px-4 text-center space-y-6">
-                    <span className="text-xs font-bold uppercase tracking-widest text-[#B59970] bg-[#B59970]/15/80 px-3.5 py-1.5 rounded-full">
-                        {pageData.statement.badge}
-                    </span>
-                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 leading-relaxed max-w-3xl mx-auto">
-                        {pageData.statement.title1} <span className="text-[#B59970] italic font-serif">{pageData.statement.title2}</span> {pageData.statement.title3} <span className="text-[#B59970] italic font-serif">{pageData.statement.title4}</span>.
-                    </h2>
-                    <div>
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            transition={springConfig}
-                            onClick={() => navigate('/reservar')}
-                            className="inline-flex items-center gap-2 bg-[#B59970]/15 text-[#13263E] hover:bg-blue-200 font-bold text-xs px-5 py-2.5 rounded-full transition-colors"
+            {/* QUIÉNES SOMOS SECTION */}
+            <section id="quienes-somos" className="py-24 bg-[#B59970]/5/50 border-y border-blue-100/80 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-96 h-96 bg-[#B59970]/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+                <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#13263E]/5 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none"></div>
+                
+                <div className="gsap-statement max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                    <motion.div 
+                        initial={{ opacity: 0, y: -20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, amount: 0.3 }}
+                        transition={{ duration: 0.6, ease: "easeOut" }}
+                        className="text-center mb-16"
+                    >
+                        <span className="text-xs font-bold uppercase tracking-widest text-[#B59970] bg-[#B59970]/15/80 px-3.5 py-1.5 rounded-full mb-4 inline-block">
+                            Quiénes Somos
+                        </span>
+                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#13263E] max-w-4xl mx-auto mt-4 leading-tight">
+                            La Menopausia y la Andropausia son el inicio de una nueva forma de vivir
+                        </h2>
+                        <p className="text-lg sm:text-xl text-slate-600 font-medium max-w-2xl mx-auto mt-6 italic">
+                            "Merecen algo más que una consulta rápida, merecen tiempo y una mirada completa."
+                        </p>
+                    </motion.div>
+
+                    <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
+                        <div className="space-y-8">
+                            <motion.div 
+                                initial={{ opacity: 0, x: -30 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                viewport={{ once: true, amount: 0.3 }}
+                                transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+                                className="bg-white p-8 rounded-3xl border border-slate-100 shadow-xl shadow-[#13263E]/5 hover:-translate-y-2 transition-transform duration-300"
+                            >
+                                <div className="w-14 h-14 bg-[#13263E] rounded-2xl flex items-center justify-center mb-6 text-[#B59970] shadow-md">
+                                    <Users className="w-7 h-7" />
+                                </div>
+                                <h3 className="text-xl font-bold text-slate-900 mb-3">Programa Integral</h3>
+                                <p className="text-slate-600 leading-relaxed">
+                                    <strong className="text-[#13263E]">Pauses</strong> es un espacio donde cinco profesionales de la salud fusionamos nuestras especialidades para acompañarte de manera personalizada, derribando tabúes, devolviendo el control de tu cuerpo y tu bienestar.
+                                </p>
+                            </motion.div>
+
+                            <motion.div 
+                                initial={{ opacity: 0, x: -30 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                viewport={{ once: true, amount: 0.3 }}
+                                transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
+                                className="bg-white p-8 rounded-3xl border border-slate-100 shadow-xl shadow-[#13263E]/5 hover:-translate-y-2 transition-transform duration-300"
+                            >
+                                <div className="w-14 h-14 bg-[#B59970] rounded-2xl flex items-center justify-center mb-6 text-white shadow-md">
+                                    <ShieldCheck className="w-7 h-7" />
+                                </div>
+                                <h3 className="text-xl font-bold text-slate-900 mb-3">Salud Sin Fragmentar</h3>
+                                <p className="text-slate-600 leading-relaxed">
+                                    En lugar de fragmentar tu salud, unimos las piezas. Cuando ingresas al programa no tenés varias consultas aisladas, sino un <strong>equipo médico trabajando en sintonía para vos</strong>.
+                                </p>
+                            </motion.div>
+                        </div>
+
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            whileInView={{ opacity: 1, scale: 1 }}
+                            viewport={{ once: true, amount: 0.3 }}
+                            transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
+                            className="relative"
                         >
-                            <span>{pageData.statement.cta}</span>
-                            <ArrowUpRight className="w-3.5 h-3.5" />
-                        </motion.button>
+                            <div className="bg-gradient-to-br from-[#13263E] to-[#1d3a5f] p-10 sm:p-12 rounded-[2.5rem] border border-[#B59970]/20 shadow-2xl relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-[#B59970]/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+                                <div className="relative z-10 space-y-6">
+                                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-[#B59970] text-sm font-bold">
+                                        <Target className="w-4 h-4" />
+                                        Tu Hoja de Ruta
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-white leading-tight">
+                                        Diseñamos un plan de acción personalizado
+                                    </h3>
+                                    <p className="text-slate-300 leading-relaxed text-sm sm:text-base">
+                                        Cada persona que ingrese al programa tendrá a disposición una consulta individual y profunda con cada una de las profesionales. 
+                                        Una vez finalizada estas evaluaciones, con una historia clínica única y compartida, y con una visión completa de tu estado actual, creamos una hoja de ruta con <strong>tratamientos médicos, pautas nutricionales, fitoterapéuticas, acompañamiento psicológico, Kinesiología</strong> y soporte integral adaptado exclusivamente a tus necesidades.
+                                    </p>
+                                </div>
+                            </div>
+                        </motion.div>
                     </div>
+
+                    <motion.div 
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, amount: 0.5 }}
+                        transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+                        className="max-w-3xl mx-auto text-center mt-20"
+                    >
+                        <Heart className="w-10 h-10 text-[#B59970] mx-auto mb-6 animate-pulse" />
+                        <p className="text-xl sm:text-2xl font-medium text-slate-800 leading-relaxed mb-8">
+                            No creemos en las soluciones de talla única ni en las recetas universales, queremos conocer tu historia, tus antecedentes, tus síntomas, tus deseos, tus miedos y tus metas.
+                        </p>
+                        <span className="inline-block px-8 py-3 bg-[#13263E] text-white font-bold rounded-full shadow-lg text-lg tracking-wide">
+                            Grupo Pauses
+                        </span>
+                    </motion.div>
                 </div>
             </section>
 
@@ -604,13 +603,19 @@ export default function PausasLanding() {
                     {/* Procedimiento de 3 Meses */}
                     {pageData.procedure && (
                         <div id="procedure-section" className="mb-24 pt-8">
-                            <div className="gsap-procedure-title text-center max-w-2xl mx-auto mb-14">
+                            <motion.div 
+                            initial={{ opacity: 0, y: -20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, amount: 0.8 }}
+                            transition={{ duration: 0.5, ease: "easeOut" }}
+                            className="text-center max-w-2xl mx-auto mb-14"
+                        >
                                 <span className="inline-block py-1.5 px-4 rounded-full bg-[#13263E]/5 text-[#13263E] text-xs font-bold tracking-widest mb-3 border border-[#13263E]/10">
                                     {pageData.procedure.badge}
                                 </span>
                                 <h3 className="text-3xl sm:text-4xl font-extrabold text-slate-900">{pageData.procedure.title}</h3>
                                 <p className="text-slate-600 text-base mt-4 font-medium">{pageData.procedure.subtitle}</p>
-                            </div>
+                            </motion.div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
                                 {/* Línea conectora animada (solo desktop) */}
                                 <div className="hidden md:block absolute top-8 left-[16%] right-[16%] h-[2px] bg-gradient-to-r from-[#13263E] via-[#B59970] to-emerald-600 opacity-40 z-0 animate-pulse"></div>
@@ -868,12 +873,18 @@ export default function PausasLanding() {
             </section>
 
             {/* SECCIÓN POR QUÉ ELEGIRNOS */}
-            <section className="gsap-why-choose py-20 bg-[#f8fafc]">
+            <section className="py-20 bg-[#f8fafc]">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                         
                         {/* Image Left */}
-                        <div className="gsap-why-img lg:col-span-5 relative">
+                        <motion.div 
+                            initial={{ opacity: 0, x: -30 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true, amount: 0.3 }}
+                            transition={{ duration: 0.5, ease: "easeOut" }}
+                            className="lg:col-span-5 relative"
+                        >
                             <div className="rounded-3xl overflow-hidden shadow-xl border border-slate-200 bg-white">
                                 <img 
                                     src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=800" 
@@ -881,7 +892,7 @@ export default function PausasLanding() {
                                     className="w-full h-[440px] object-cover"
                                 />
                             </div>
-                        </div>
+                        </motion.div>
 
                         {/* Features Right */}
                         <div className="lg:col-span-7 space-y-8">
@@ -893,7 +904,13 @@ export default function PausasLanding() {
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                <div className="gsap-why-item space-y-2">
+                                <motion.div 
+                                    initial={{ opacity: 0, y: 20 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true, amount: 0.3 }}
+                                    transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
+                                    className="space-y-2"
+                                >
                                     <div className="w-10 h-10 rounded-xl bg-[#B59970]/15 text-[#B59970] flex items-center justify-center">
                                         <Stethoscope className="w-5 h-5" />
                                     </div>
@@ -901,9 +918,15 @@ export default function PausasLanding() {
                                     <p className="text-xs text-slate-600 font-medium leading-relaxed">
                                         Tecnología kinésica de vanguardia para acelerar tu proceso de recuperación.
                                     </p>
-                                </div>
+                                </motion.div>
 
-                                <div className="gsap-why-item space-y-2">
+                                <motion.div 
+                                    initial={{ opacity: 0, y: 20 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true, amount: 0.3 }}
+                                    transition={{ duration: 0.4, delay: 0.2, ease: "easeOut" }}
+                                    className="space-y-2"
+                                >
                                     <div className="w-10 h-10 rounded-xl bg-[#B59970]/15 text-[#B59970] flex items-center justify-center">
                                         <Users className="w-5 h-5" />
                                     </div>
@@ -911,9 +934,15 @@ export default function PausasLanding() {
                                     <p className="text-xs text-slate-600 font-medium leading-relaxed">
                                         Profesionales altamente capacitados con amplia trayectoria clínica.
                                     </p>
-                                </div>
+                                </motion.div>
 
-                                <div className="gsap-why-item space-y-2">
+                                <motion.div 
+                                    initial={{ opacity: 0, y: 20 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true, amount: 0.3 }}
+                                    transition={{ duration: 0.4, delay: 0.3, ease: "easeOut" }}
+                                    className="space-y-2"
+                                >
                                     <div className="w-10 h-10 rounded-xl bg-[#B59970]/15 text-[#B59970] flex items-center justify-center">
                                         <Clock className="w-5 h-5" />
                                     </div>
@@ -921,9 +950,15 @@ export default function PausasLanding() {
                                     <p className="text-xs text-slate-600 font-medium leading-relaxed">
                                         Reserva rápida y sin demoras en cualquier momento del día.
                                     </p>
-                                </div>
+                                </motion.div>
 
-                                <div className="gsap-why-item space-y-2">
+                                <motion.div 
+                                    initial={{ opacity: 0, y: 20 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true, amount: 0.3 }}
+                                    transition={{ duration: 0.4, delay: 0.4, ease: "easeOut" }}
+                                    className="space-y-2"
+                                >
                                     <div className="w-10 h-10 rounded-xl bg-[#B59970]/15 text-[#B59970] flex items-center justify-center">
                                         <Heart className="w-5 h-5" />
                                     </div>
@@ -931,7 +966,7 @@ export default function PausasLanding() {
                                     <p className="text-xs text-slate-600 font-medium leading-relaxed">
                                         Tratamientos que contemplan cuerpo, mente y salud hormonal.
                                     </p>
-                                </div>
+                                </motion.div>
                             </div>
                         </div>
 
@@ -941,7 +976,13 @@ export default function PausasLanding() {
 
             {/* SECCIÓN BANNER CTA FINAL */}
             <section className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="gsap-cta-banner bg-[#13263E] rounded-3xl p-10 sm:p-14 text-center text-white space-y-6 shadow-2xl relative overflow-hidden">
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true, amount: 0.3 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                    className="bg-[#13263E] rounded-3xl p-10 sm:p-14 text-center text-white space-y-6 shadow-2xl relative overflow-hidden"
+                >
                     <div className="max-w-2xl mx-auto space-y-4">
                         <h2 className="text-white text-3xl sm:text-4xl font-extrabold tracking-tight">
                             ¿Listo para vivir tu transición con plenitud?
@@ -962,7 +1003,7 @@ export default function PausasLanding() {
                             <ArrowUpRight className="w-5 h-5" />
                         </motion.button>
                     </div>
-                </div>
+                </motion.div>
             </section>
 
             {/* SECCIÓN FAQ */}
@@ -973,9 +1014,16 @@ export default function PausasLanding() {
                         <h2 className="text-3xl font-extrabold text-slate-900">Preguntas Frecuentes</h2>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-4 max-w-4xl mx-auto">
                         {faqs.map((faq, idx) => (
-                            <div key={idx} className="gsap-faq-item bg-[#f8fafc] rounded-2xl border border-slate-200 overflow-hidden">
+                            <motion.div 
+                                key={idx} 
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true, amount: 0.5 }}
+                                transition={{ duration: 0.35, delay: idx * 0.05, ease: "easeOut" }}
+                                className="bg-[#f8fafc] rounded-2xl border border-slate-200 overflow-hidden"
+                            >
                                 <button
                                     onClick={() => toggleFaq(idx)}
                                     className="w-full p-5 text-left flex items-center justify-between font-bold text-slate-900 hover:text-[#B59970] transition-colors text-base"
@@ -997,7 +1045,7 @@ export default function PausasLanding() {
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
-                            </div>
+                            </motion.div>
                         ))}
                     </div>
                 </div>

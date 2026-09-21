@@ -1,4 +1,5 @@
 import {BrowserRouter as Router, Routes, Route, useLocation, Navigate} from "react-router-dom";
+import { ReactLenis } from '@studio-freight/react-lenis';
 import NotFound from "./pages/NotFound.jsx";
 import AuthVerify from "./services/auth/AuthVerify.js";
 import LoginCard from "./components/auth/LoginCard.js";
@@ -31,16 +32,18 @@ import LiveViewPage from "./pages/admin/LiveViewPage.jsx";
 
 function App() {
     return (
-        <div className="min-h-screen w-full max-w-full overflow-x-hidden zoom-desktop">
-            <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-                <Provider store={store}>
-                    <Router>
-                        <AppContent/>
-                    </Router>
-                    <AuthVerify/>
-                </Provider>
-            </ThemeProvider>
-        </div>
+        <ReactLenis root options={{ lerp: 0.08, duration: 1.2, smoothWheel: true }}>
+            <div className="min-h-screen w-full max-w-full overflow-x-hidden zoom-desktop">
+                <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+                    <Provider store={store}>
+                        <Router>
+                            <AppContent/>
+                        </Router>
+                        <AuthVerify/>
+                    </Provider>
+                </ThemeProvider>
+            </div>
+        </ReactLenis>
     )
 }
 

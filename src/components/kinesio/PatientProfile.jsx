@@ -150,109 +150,23 @@ const PatientProfile = () => {
 
             <div className="flex flex-col lg:flex-row gap-6 items-start">
 
-                {/* Left Column: General Info */}
-                <div className="w-full lg:w-1/3 bg-white rounded-2xl border border-gray-100 p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex flex-col gap-6 sticky top-6">
-                    <div className="flex flex-col items-center text-center">
-                        <div className="w-24 h-24 rounded-full flex items-center justify-center font-bold text-3xl bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700 mb-4 shadow-sm">
-                            {getInitials(patient.nombre)}
-                        </div>
-                        <h2
-                            className="text-xl font-bold text-gray-900 leading-tight cursor-pointer hover:text-blue-700 hover:underline transition-colors flex items-center gap-2"
-                            onClick={() => {
-                                setEditFormData({
-                                    nombre: patient.nombre || '',
-                                    dni: patient.dni || '',
-                                    fecha_nacimiento: patient.fecha_nacimiento ? patient.fecha_nacimiento.split('T')[0] : '',
-                                    gender: patient.gender || '',
-                                    blood_type: patient.blood_type || '',
-                                    phone: patient.datos_contacto?.phone || patient.datos_contacto?.telefono || '',
-                                    email: patient.datos_contacto?.email || ''
-                                });
-                                setIsEditModalOpen(true);
-                            }}
-                            title="Haz clic para editar información del paciente"
-                        >
-                            {patient.nombre}
-                            <Pencil size={14} className="text-gray-400" />
-                        </h2>
-                        <span className="mt-2 px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">
-                            {patient.status || 'Activo'}
-                        </span>
+                {/* Left Column: Ficha Médica */}
+                <div className="w-full lg:w-1/2 bg-white rounded-2xl border border-gray-100 p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex flex-col gap-6">
+                    <div className="flex justify-between items-center mb-2 border-b border-gray-200 pb-4">
+                        <h2 className="text-xl font-serif text-gray-900">Ficha Médica del Paciente</h2>
+                        <button className="flex items-center gap-2 text-xs text-gray-600 hover:text-gray-900 border border-gray-300 px-3 py-1.5 rounded-lg bg-gray-50" onClick={() => window.print()}>
+                            Imprimir Ficha
+                        </button>
                     </div>
-
-                    <div className="flex flex-col gap-4 pt-4 border-t border-gray-100">
-                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Datos Personales</h3>
-
-                        <div className="flex items-center gap-3 text-sm text-gray-700">
-                            <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 shrink-0"><User size={16} /></div>
-                            <div>
-                                <p className="text-xs text-gray-500 font-medium">DNI</p>
-                                <p className="font-semibold">{patient.dni || 'No registrado'}</p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 text-sm text-gray-700">
-                            <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 shrink-0"><Calendar size={16} /></div>
-                            <div>
-                                <p className="text-xs text-gray-500 font-medium">Edad y Género</p>
-                                <p className="font-semibold">{calculateAge(patient.fecha_nacimiento)} años • {patient.gender || 'N/A'}</p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 text-sm text-gray-700">
-                            <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center text-red-400 shrink-0"><Droplet size={16} /></div>
-                            <div>
-                                <p className="text-xs text-gray-500 font-medium">Grupo Sanguíneo</p>
-                                <p className="font-semibold text-red-600">{patient.blood_type || 'No especificado'}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col gap-4 pt-4 border-t border-gray-100">
-                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Contacto</h3>
-
-                        <div className="flex items-center gap-3 text-sm text-gray-700">
-                            <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 shrink-0"><Phone size={16} /></div>
-                            <div>
-                                <p className="text-xs text-gray-500 font-medium">Teléfono</p>
-                                <p className="font-semibold">{patient.datos_contacto?.phone || 'No registrado'}</p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 text-sm text-gray-700 overflow-hidden">
-                            <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-500 shrink-0"><Mail size={16} /></div>
-                            <div className="truncate">
-                                <p className="text-xs text-gray-500 font-medium">Email</p>
-                                <p className="font-semibold truncate">{patient.datos_contacto?.email || 'No registrado'}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col gap-4 pt-4 border-t border-gray-100">
-                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Equipo Médico</h3>
-
-                        {patient.professionals && patient.professionals.length > 0 ? (
-                            <div className="flex flex-col gap-3">
-                                {patient.professionals.map(prof => (
-                                    <div key={prof.id} className="flex items-center gap-3 text-sm text-gray-700">
-                                        <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0 font-bold text-xs">
-                                            {getInitials(prof.name)}
-                                        </div>
-                                        <div>
-                                            <p className="font-semibold">{prof.name}</p>
-                                            <p className="text-xs text-gray-500">{prof.specialty || 'Kinesiólogo'}</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <p className="text-sm text-gray-500">No hay profesionales asignados.</p>
-                        )}
-                    </div>
+                    <FichaMedicaView 
+                        patient={patient} 
+                        legacyHistory={allConsultations} 
+                        onUpdatePatient={(data) => updatePatient({ id: patient.id, ...data })}
+                    />
                 </div>
 
                 {/* Right Column: Tabs & Content */}
-                <div className="w-full lg:w-2/3 flex flex-col gap-4">
+                <div className="w-full lg:w-1/2 flex flex-col gap-4">
                     
                     <PatientRoadmap 
                         currentStage={patient.admissionData?.roadmapStage || 0}
@@ -278,12 +192,6 @@ const PatientProfile = () => {
                             className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'clinica' ? 'bg-[#0A58CA] text-white shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
                         >
                             Inicio y Datos
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('historial')}
-                            className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'historial' ? 'bg-[#0A58CA] text-white shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
-                        >
-                            Historial Médico
                         </button>
                         <button
                             onClick={() => setActiveTab('turnos')}
@@ -369,24 +277,7 @@ const PatientProfile = () => {
                         </div>
                     )}
 
-                    {/* Tab Content: Historial Médico (Ficha Completa) */}
-                    {activeTab === 'historial' && (
-                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-                            <div className="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
-                                <h2 className="text-2xl font-serif text-gray-900">Ficha Médica del Paciente</h2>
-                                <button className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 px-3 py-1.5 rounded-lg bg-gray-50" onClick={() => window.print()}>
-                                    Imprimir Ficha
-                                </button>
-                            </div>
-                            <p className="text-gray-500 text-sm mb-6 print:hidden">Visualización rápida de toda la información clínica centralizada.</p>
-                            
-                            <FichaMedicaView 
-                              patient={patient} 
-                              legacyHistory={allConsultations} 
-                              onUpdatePatient={(data) => updatePatient({ id: patient.id, ...data })}
-                            />
-                        </div>
-                    )}
+
 
                 </div>
             </div>

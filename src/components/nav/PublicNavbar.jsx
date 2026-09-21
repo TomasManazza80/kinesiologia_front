@@ -56,7 +56,7 @@ export default function PublicNavbar({ className = '' }) {
                     {/* Desktop Nav Links */}
                     <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
                         <a href="/#inicio" onClick={(e) => handleNavClick(e, '#inicio')} className="hover:text-[#B59970] transition-colors">Inicio</a>
-                        <a href="/#pausas" onClick={(e) => handleNavClick(e, '#pausas')} className="hover:text-[#B59970] transition-colors">Pausas Activas</a>
+                        <a href="/#quienes-somos" onClick={(e) => handleNavClick(e, '#quienes-somos')} className="hover:text-[#B59970] transition-colors">Quiénes Somos</a>
                         <a href="/#servicios" onClick={(e) => handleNavClick(e, '#servicios')} className="hover:text-[#B59970] transition-colors">Servicios</a>
                         <a href="/#profesionales" onClick={(e) => handleNavClick(e, '#profesionales')} className="hover:text-[#B59970] transition-colors">Profesionales</a>
                         <a href="/#faq" onClick={(e) => handleNavClick(e, '#faq')} className="hover:text-[#B59970] transition-colors">FAQ</a>
@@ -147,7 +147,7 @@ export default function PublicNavbar({ className = '' }) {
                     >
                         <nav className="flex flex-col space-y-3 font-semibold text-sm text-slate-700">
                             <a href="/#inicio" onClick={(e) => handleNavClick(e, '#inicio')}>Inicio</a>
-                            <a href="/#pausas" onClick={(e) => handleNavClick(e, '#pausas')}>Pausas Activas</a>
+                            <a href="/#quienes-somos" onClick={(e) => handleNavClick(e, '#quienes-somos')}>Quiénes Somos</a>
                             <a href="/#servicios" onClick={(e) => handleNavClick(e, '#servicios')}>Servicios</a>
                             <a href="/#profesionales" onClick={(e) => handleNavClick(e, '#profesionales')}>Profesionales</a>
                             <a href="/#faq" onClick={(e) => handleNavClick(e, '#faq')}>FAQ</a>

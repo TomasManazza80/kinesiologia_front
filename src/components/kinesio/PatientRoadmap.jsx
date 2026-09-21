@@ -144,6 +144,11 @@ const PatientRoadmap = ({ currentStage, roadmapNotes = {}, onCompleteStage }) =>
         <div className={`mt-2 text-[10px] font-bold tracking-wide uppercase text-center ${status === 'current' ? 'text-blue-600' : status === 'completed' ? 'text-green-600' : 'text-gray-400'}`}>
           {status === 'current' ? 'Actual' : `Inst. ${index + 1}`}
         </div>
+        {status === 'completed' && stageData?.date && (
+            <div className="text-[9px] text-gray-500 font-medium text-center mt-0.5 whitespace-nowrap">
+                {dayjs(stageData.date).format('DD/MM/YYYY')}
+            </div>
+        )}
       </div>
     );
   };
@@ -213,13 +218,21 @@ const PatientRoadmap = ({ currentStage, roadmapNotes = {}, onCompleteStage }) =>
             
             <div className="p-6 pb-2">
                 {selectedStage < safeCurrentStage && (
-                    <div className="mb-4 flex items-center gap-2 p-2 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold">
-                        <User size={14} /> 
-                        Completada por: {
-                            (typeof roadmapNotes[selectedStage] === 'object' && roadmapNotes[selectedStage]?.professional) 
-                            ? roadmapNotes[selectedStage].professional 
-                            : 'No registrado'
-                        }
+                    <div className="mb-4 flex items-center justify-between p-2 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold">
+                        <div className="flex items-center gap-2">
+                            <User size={14} /> 
+                            <span>Completada por: {
+                                (typeof roadmapNotes[selectedStage] === 'object' && roadmapNotes[selectedStage]?.professional) 
+                                ? roadmapNotes[selectedStage].professional 
+                                : 'No registrado'
+                            }</span>
+                        </div>
+                        {typeof roadmapNotes[selectedStage] === 'object' && roadmapNotes[selectedStage]?.date && (
+                            <div className="flex items-center gap-1.5 text-blue-600/80 bg-blue-100/50 px-2 py-1 rounded" title="Fecha de registro">
+                                <Clock size={12} />
+                                <span>{dayjs(roadmapNotes[selectedStage].date).format('DD/MM/YYYY HH:mm')} hs</span>
+                            </div>
+                        )}
                     </div>
                 )}
               <label className="block text-sm font-bold text-gray-700 mb-2">Anotaciones del profesional:</label>

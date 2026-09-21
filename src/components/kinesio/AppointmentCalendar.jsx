@@ -285,12 +285,11 @@ const AppointmentCalendar = () => {
         }
 
         const colors = [
-            { bg: '#FCF0FF', border: '#F2D5FA', text: '#83389A', timeText: '#A975BD' },
-            { bg: '#F0FDF4', border: '#D1FADF', text: '#059669', timeText: '#34D399' },
-            { bg: '#FEFCE8', border: '#FEF08A', text: '#CA8A04', timeText: '#FBBF24' },
-            { bg: '#F0FDFA', border: '#CCFBF1', text: '#0D9488', timeText: '#5EEAD4' },
-            { bg: '#FFF7ED', border: '#FFEDD5', text: '#EA580C', timeText: '#FDBA74' },
-            { bg: '#EFF6FF', border: '#BFDBFE', text: '#1D4ED8', timeText: '#60A5FA' },
+            { bg: '#FFFFFF', border: '#000000', text: '#000000', timeText: '#525252' }, // White background, black border
+            { bg: '#F3F4F6', border: '#374151', text: '#111827', timeText: '#6B7280' }, // Very light gray
+            { bg: '#E5E7EB', border: '#4B5563', text: '#1F2937', timeText: '#6B7280' }, // Light gray
+            { bg: '#FAFAFA', border: '#171717', text: '#0A0A0A', timeText: '#525252' }, // Neutral white
+            { bg: '#F9FAFB', border: '#1F2937', text: '#111827', timeText: '#4B5563' }, // Off-white
         ];
         const color = colors[appt.id % colors.length] || colors[0];
 
@@ -361,6 +360,15 @@ const AppointmentCalendar = () => {
                         className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors w-[120px] justify-center"
                     >
                         <CalendarDays size={16} /> {viewMode} <ChevronDown size={14} className="ml-1" />
+                    </button>
+                    <button
+                        onClick={() => {
+                            setViewMode('Diario');
+                            setMiniCalendarDate(new Date());
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-full text-sm font-medium text-blue-700 hover:bg-blue-100 transition-colors"
+                    >
+                        <CalendarDays size={16} /> Turnos de hoy
                     </button>
                     <button
                         onClick={() => setIsListModalOpen(true)}

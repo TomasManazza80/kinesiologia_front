@@ -55,11 +55,23 @@ const EditableField = ({ value, onSave, isTextArea = false, type = "text" }) => 
   const baseStyles = "w-full bg-transparent border-transparent hover:bg-gray-50 focus:bg-white focus:border-blue-400 focus:ring-1 focus:ring-blue-400 rounded outline-none p-1 transition-all text-sm";
 
   if (isTextArea) {
+    const handleInput = (e) => {
+      e.target.style.height = 'auto';
+      e.target.style.height = e.target.scrollHeight + 'px';
+      handleChange(e);
+    };
+
     return (
       <textarea
-        className={`${baseStyles} resize-none min-h-[3rem] h-full`}
+        ref={(el) => {
+          if (el) {
+            el.style.height = 'auto';
+            el.style.height = el.scrollHeight + 'px';
+          }
+        }}
+        className={`${baseStyles} resize-none min-h-[3rem] overflow-hidden`}
         value={currentValue}
-        onChange={handleChange}
+        onChange={handleInput}
         onBlur={handleBlur}
         placeholder="Click para añadir..."
       />

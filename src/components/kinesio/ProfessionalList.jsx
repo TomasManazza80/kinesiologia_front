@@ -25,20 +25,15 @@ const ProfessionalList = () => {
 
     const handleDeleteProfessional = (id, name) => {
         setProfessionalToDelete({ id, name });
-        setDeletePassword('');
         setIsDeleteModalOpen(true);
     };
 
     const confirmDeleteProfessional = async () => {
-        if (!deletePassword) {
-            toast({ title: 'Error', description: 'Debe ingresar su contraseña.', variant: 'error' });
-            return;
-        }
         try {
-            await deleteProfessional({ id: professionalToDelete.id, adminPassword: deletePassword }).unwrap();
+            await deleteProfessional({ id: professionalToDelete.id }).unwrap();
             toast({
                 title: 'Éxito',
-                description: 'Profesional eliminado correctamente.',
+                description: 'Profesional marcado como inactivo.',
                 variant: 'success'
             });
             setIsDeleteModalOpen(false);
@@ -46,7 +41,6 @@ const ProfessionalList = () => {
                 setSelectedProfessional(null);
             }
             setProfessionalToDelete(null);
-            setDeletePassword('');
         } catch (err) {
             toast({
                 title: 'Error',
@@ -108,7 +102,6 @@ const ProfessionalList = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [professionalToDelete, setProfessionalToDelete] = useState(null);
-    const [deletePassword, setDeletePassword] = useState('');
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -325,13 +318,13 @@ const ProfessionalList = () => {
                             <tbody className="divide-y divide-gray-100">
                                 {filteredProfessionals.length > 0 ? (
                                     filteredProfessionals.map((prof) => (
-                                        <tr key={prof.id} className="hover:bg-gray-50/50 transition-colors">
+                                        <tr key={prof.id} className={`hover:bg-gray-50/50 transition-colors ${prof.is_active === false ? 'opacity-60 bg-gray-50' : ''}`}>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
                                                     {prof.profile_picture ? (
-                                                        <img src={prof.profile_picture} alt={prof.name} className="w-10 h-10 rounded-full object-cover border border-gray-200 shadow-sm" />
+                                                        <img src={prof.profile_picture} alt={prof.name} className={`w-10 h-10 rounded-full object-cover border border-gray-200 shadow-sm ${prof.is_active === false ? 'grayscale' : ''}`} />
                                                     ) : (
-                                                        <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold shrink-0">
+                                                        <div className={`w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold shrink-0 ${prof.is_active === false ? 'grayscale bg-gray-200 text-gray-500' : ''}`}>
                                                             {(prof.name || prof.email).charAt(0).toUpperCase()}
                                                         </div>
                                                     )}
@@ -339,7 +332,7 @@ const ProfessionalList = () => {
                                                         <p className="font-bold text-gray-900 flex items-center gap-2">
                                                             {prof.name || '-'}
                                                             {prof.is_active === false && (
-                                                                <span className="bg-red-100 text-red-700 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-red-200">Eliminado</span>
+                                                                <span className="bg-gray-200 text-gray-600 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-gray-300">Inactivo</span>
                                                             )}
                                                         </p>
                                                         <p className="text-xs text-gray-400 mt-0.5">{(prof.specialty && prof.specialty.length > 0) ? prof.specialty.join(', ') : 'Kinesiología'}</p>
@@ -780,18 +773,8 @@ const ProfessionalList = () => {
                         </div>
                         <div className="p-6">
                             <p className="text-gray-600 mb-4">
-                                ¿Estás seguro de que deseas eliminar a <strong>{professionalToDelete?.name || 'este profesional'}</strong>? Esta acción eliminará permanentemente sus asignaciones y turnos.
+                                ¿Estás seguro de que deseas marcar a <strong>{professionalToDelete?.name || 'este profesional'}</strong> como inactivo? El profesional dejará de ser visible en el sistema pero podrás restaurarlo en cualquier momento.
                             </p>
-                            <p className="text-sm text-gray-500 mb-2 font-semibold">
-                                Para continuar, por favor ingresa tu contraseña de acceso:
-                            </p>
-                            <input 
-                                type="password" 
-                                value={deletePassword} 
-                                onChange={(e) => setDeletePassword(e.target.value)}
-                                placeholder="Tu contraseña..."
-                                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500" 
-                            />
                         </div>
                         <div className="p-6 border-t border-gray-100 flex gap-3 bg-gray-50 mt-auto">
                             <button 
