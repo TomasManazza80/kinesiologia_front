@@ -251,16 +251,18 @@ export default function PausasLanding() {
 
     const faqs = [
         {
-            q: "¿A quiénes están dirigidos sus tratamientos?",
-            a: "Nuestros tratamientos están diseñados para mujeres y hombres que atraviesan la etapa de la menopausia y andropausia, ofreciendo un abordaje integral para mejorar su calidad de vida."
+            q: "¿A quiénes están dirigidos?",
+            a: (
+                <ul className="list-disc pl-5 space-y-2 text-left">
+                    <li>A mujeres y hombres que atraviesan la etapa de la menopausia y andropausia.</li>
+                    <li>A hombres y mujeres adultos jóvenes que presentan algún disconfort al evacuar o durante las relaciones sexuales, alguna pérdida involuntaria de orina o materia fecal.</li>
+                    <li>A las mujeres que han transcurrido embarazos y partos para tratamiento preventivo de las alteraciones del suelo pélvico.</li>
+                </ul>
+            )
         },
         {
             q: "¿Cómo reservo mi turno online?",
             a: "Simplemente haz clic en el botón 'Reservar Turno', selecciona la especialidad (Endocrinología, Suelo Pélvico, Psicología, etc.) o tu profesional de preferencia, escoge el día y horario disponible y confirma tus datos en menos de 1 minuto."
-        },
-        {
-            q: "¿Qué especialistas trabajan en el centro?",
-            a: "Contamos con un equipo multidisciplinario que incluye endocrinólogos, kinesiólogos especializados en suelo pélvico, psicólogas, nutricionistas y ginecólogos enfocados en el climaterio."
         },
         {
             q: "¿Puedo cancelar o modificar la fecha de mi turno?",
@@ -872,107 +874,7 @@ export default function PausasLanding() {
                 </div>
             </section>
 
-            {/* SECCIÓN POR QUÉ ELEGIRNOS */}
-            <section className="py-20 bg-[#f8fafc]">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-                        
-                        {/* Image Left */}
-                        <motion.div 
-                            initial={{ opacity: 0, x: -30 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true, amount: 0.3 }}
-                            transition={{ duration: 0.5, ease: "easeOut" }}
-                            className="lg:col-span-5 relative"
-                        >
-                            <div className="rounded-3xl overflow-hidden shadow-xl border border-slate-200 bg-white">
-                                <img 
-                                    src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=800" 
-                                    alt="Por qué elegirnos"
-                                    className="w-full h-[440px] object-cover"
-                                />
-                            </div>
-                        </motion.div>
 
-                        {/* Features Right */}
-                        <div className="lg:col-span-7 space-y-8">
-                            <div>
-                                <span className="text-xs font-bold uppercase tracking-widest text-[#B59970]">POR QUÉ ELEGIRNOS</span>
-                                <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-1">
-                                    Excelencia en cada atención
-                                </h2>
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                <motion.div 
-                                    initial={{ opacity: 0, y: 20 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true, amount: 0.3 }}
-                                    transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
-                                    className="space-y-2"
-                                >
-                                    <div className="w-10 h-10 rounded-xl bg-[#B59970]/15 text-[#B59970] flex items-center justify-center">
-                                        <Stethoscope className="w-5 h-5" />
-                                    </div>
-                                    <h4 className="font-bold text-slate-900 text-base">Equipamiento Moderno</h4>
-                                    <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                                        Tecnología kinésica de vanguardia para acelerar tu proceso de recuperación.
-                                    </p>
-                                </motion.div>
-
-                                <motion.div 
-                                    initial={{ opacity: 0, y: 20 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true, amount: 0.3 }}
-                                    transition={{ duration: 0.4, delay: 0.2, ease: "easeOut" }}
-                                    className="space-y-2"
-                                >
-                                    <div className="w-10 h-10 rounded-xl bg-[#B59970]/15 text-[#B59970] flex items-center justify-center">
-                                        <Users className="w-5 h-5" />
-                                    </div>
-                                    <h4 className="font-bold text-slate-900 text-base">Kinesiologos Certificados</h4>
-                                    <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                                        Profesionales altamente capacitados con amplia trayectoria clínica.
-                                    </p>
-                                </motion.div>
-
-                                <motion.div 
-                                    initial={{ opacity: 0, y: 20 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true, amount: 0.3 }}
-                                    transition={{ duration: 0.4, delay: 0.3, ease: "easeOut" }}
-                                    className="space-y-2"
-                                >
-                                    <div className="w-10 h-10 rounded-xl bg-[#B59970]/15 text-[#B59970] flex items-center justify-center">
-                                        <Clock className="w-5 h-5" />
-                                    </div>
-                                    <h4 className="font-bold text-slate-900 text-base">Turnos Online 24/7</h4>
-                                    <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                                        Reserva rápida y sin demoras en cualquier momento del día.
-                                    </p>
-                                </motion.div>
-
-                                <motion.div 
-                                    initial={{ opacity: 0, y: 20 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true, amount: 0.3 }}
-                                    transition={{ duration: 0.4, delay: 0.4, ease: "easeOut" }}
-                                    className="space-y-2"
-                                >
-                                    <div className="w-10 h-10 rounded-xl bg-[#B59970]/15 text-[#B59970] flex items-center justify-center">
-                                        <Heart className="w-5 h-5" />
-                                    </div>
-                                    <h4 className="font-bold text-slate-900 text-base">Abordaje Integral</h4>
-                                    <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                                        Tratamientos que contemplan cuerpo, mente y salud hormonal.
-                                    </p>
-                                </motion.div>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </section>
 
             {/* SECCIÓN BANNER CTA FINAL */}
             <section className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
