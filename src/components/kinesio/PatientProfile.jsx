@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import MedicalHistoryLayout from './MedicalHistoryLayout';
+import CompletedCyclesList from './CompletedCyclesList';
 import FichaMedicaView from './FichaMedicaView';
 import PatientRoadmap from './PatientRoadmap';
 import {
@@ -184,6 +185,35 @@ const PatientProfile = () => {
                                 } 
                             });
                         }}
+                        onFinishCycle={() => {
+                            const currentNotes = patient.admissionData?.roadmapNotes || {};
+                            let startDate = 'Desconocida';
+                            let endDate = dayjs().format('DD/MM/YYYY HH:mm');
+                            if (currentNotes[0] && currentNotes[0].date) {
+                                startDate = dayjs(currentNotes[0].date).format('DD/MM/YYYY');
+                            }
+
+                            const newCycle = {
+                                id: Date.now(),
+                                startDate,
+                                endDate,
+                                closedAt: dayjs().format(),
+                                notes: currentNotes,
+                                previousStage: patient.admissionData?.roadmapStage || 0
+                            };
+
+                            const existingCycles = patient.admissionData?.completedCycles || [];
+
+                            updatePatient({ 
+                                id: patient.id, 
+                                admissionData: { 
+                                    ...(patient.admissionData || {}), 
+                                    roadmapStage: 0,
+                                    roadmapNotes: {},
+                                    completedCycles: [newCycle, ...existingCycles]
+                                } 
+                            });
+                        }}
                     />
 
                     <div className="flex bg-white rounded-xl border border-gray-100 p-1.5 shadow-sm w-full md:w-fit overflow-x-auto">
@@ -198,6 +228,12 @@ const PatientProfile = () => {
                             className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'turnos' ? 'bg-[#0A58CA] text-white shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
                         >
                             Historial de Turnos ({patientAppointments.length})
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('ciclos')}
+                            className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'ciclos' ? 'bg-[#0A58CA] text-white shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
+                        >
+                            Ciclos Terminados ({patient.admissionData?.completedCycles?.length || 0})
                         </button>
                     </div>
 
@@ -274,6 +310,40 @@ const PatientProfile = () => {
                     {activeTab === 'clinica' && (
                         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-2">
                            <MedicalHistoryLayout patient={patient} legacyHistory={allConsultations} />
+                        </div>
+                    )}
+
+                    {/* Tab Content: Ciclos Terminados */}
+                    {activeTab === 'ciclos' && (
+                        <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-6 min-h-[500px]">
+                            {patient.admissionData?.completedCycles?.length > 0 ? (
+                                <CompletedCyclesList 
+                                    cycles={patient.admissionData.completedCycles} 
+                                    onUndo={(cycleId) => {
+                                        const cycles = patient.admissionData.completedCycles || [];
+                                        const cycleToRestore = cycles.find(c => c.id === cycleId);
+                                        const remainingCycles = cycles.filter(c => c.id !== cycleId);
+                                        if (cycleToRestore) {
+                                            updatePatient({
+                                                id: patient.id,
+                                                admissionData: {
+                                                    ...(patient.admissionData || {}),
+                                                    roadmapStage: cycleToRestore.previousStage || 12,
+                                                    roadmapNotes: cycleToRestore.notes || {},
+                                                    completedCycles: remainingCycles
+                                                }
+                                            });
+                                        }
+                                    }}
+                                />
+                            ) : (
+                                <div className="h-full flex flex-col items-center justify-center py-20">
+                                    <div className="w-16 h-16 bg-green-50 text-green-300 rounded-full flex items-center justify-center mb-4">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-file-check"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m9 15 2 2 4-4"/></svg>
+                                    </div>
+                                    <p className="text-gray-500 font-medium text-center max-w-sm">Este paciente aún no ha completado ningún ciclo de tratamiento de 3 meses.</p>
+                                </div>
+                            )}
                         </div>
                     )}
 

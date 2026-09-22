@@ -322,7 +322,7 @@ export default function BookingPage() {
                                             <p className="text-yellow-800 text-lg font-medium">No hay especialistas disponibles actualmente.</p>
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-3 gap-2 md:gap-4 lg:gap-5">
+                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 lg:gap-5">
                                             {professionals.map(prof => {
                                                 const isSelected = selectedSpecialistId === prof.id;
                                                 return (

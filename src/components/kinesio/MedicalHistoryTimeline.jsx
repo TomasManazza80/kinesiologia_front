@@ -646,7 +646,7 @@ const MedicalHistoryEntry = () => {
                     {patients && patients.filter(p => p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || (p.dni && p.dni.includes(searchTerm))).map(p => (
                         <div 
                             key={p.id}
-                            onClick={() => navigate(`/historial/${p.id}`)}
+                            onClick={() => navigate(`/pacientes/${p.id}`)}
                             className="flex items-center gap-4 p-4 hover:bg-blue-50 rounded-xl cursor-pointer border border-transparent hover:border-blue-100 transition-colors group"
                         >
                             <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold shadow-sm">

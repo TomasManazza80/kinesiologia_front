@@ -67,6 +67,7 @@ const AppointmentCalendar = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [statusFilter, setStatusFilter] = useState('');
+    const [historySearchTerm, setHistorySearchTerm] = useState('');
 
     // Data Fetching
     const { data: professionalsData, isLoading: isProfLoading } = useGetProfessionalsQuery();
@@ -563,13 +564,13 @@ const AppointmentCalendar = () => {
 
             {/* Modal Nuevo Turno */}
             {isModalOpen && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-                    <div className="bg-white rounded-2xl shadow-xl w-[400px] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                        <div className="flex justify-between items-center p-4 border-b border-gray-100">
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-[400px] max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        <div className="flex justify-between items-center p-4 border-b border-gray-100 shrink-0">
                             <h3 className="font-bold text-lg text-gray-900">Nuevo Turno</h3>
                             <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
                         </div>
-                        <form onSubmit={handleCreateAppointment} className="p-4 flex flex-col gap-4">
+                        <form onSubmit={handleCreateAppointment} className="p-4 flex flex-col gap-4 overflow-y-auto flex-1">
                             <div>
                                 <div className="flex justify-between items-center mb-1">
                                     <label className="block text-sm font-semibold text-gray-700">Paciente</label>
@@ -660,7 +661,7 @@ const AppointmentCalendar = () => {
                                     onChange={(e) => setNewAppt({ ...newAppt, motivo: e.target.value })}
                                 />
                             </div>
-                            <div className="mt-4 flex justify-end gap-2">
+                            <div className="mt-4 flex justify-end gap-2 shrink-0">
                                 <button
                                     type="button"
                                     onClick={() => setIsModalOpen(false)}
@@ -683,13 +684,13 @@ const AppointmentCalendar = () => {
 
             {/* Modal Detalles del Turno */}
             {selectedApptDetail && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-                    <div className="bg-white rounded-2xl shadow-xl w-[400px] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                        <div className="flex justify-between items-center p-4 border-b border-gray-100">
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-[400px] max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        <div className="flex justify-between items-center p-4 border-b border-gray-100 shrink-0">
                             <h3 className="font-bold text-lg text-gray-900">Detalles del Turno</h3>
                             <button onClick={() => setSelectedApptDetail(null)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
                         </div>
-                        <div className="p-5 flex flex-col gap-4">
+                        <div className="p-5 flex flex-col gap-4 overflow-y-auto flex-1">
                             <div>
                                 <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Paciente</p>
                                 <p className="text-base font-semibold text-gray-900">{selectedApptDetail.patient?.nombre || 'Sin nombre'}</p>
@@ -736,7 +737,10 @@ const AppointmentCalendar = () => {
                             {selectedApptDetail.patient && (
                                 <div className="mt-4 pt-4 border-t border-gray-100">
                                     <button
-                                        onClick={() => navigate(`/historial/${selectedApptDetail.patient.id}`)}
+                                        onClick={() => {
+                                            navigate(`/pacientes/${selectedApptDetail.patient.id}`);
+                                            setSelectedApptDetail(null); // Optional: close modal
+                                        }}
                                         className="w-full bg-[#0A58CA] hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg font-bold shadow-sm transition-colors text-sm flex items-center justify-center gap-2"
                                     >
                                         Ver Perfil / Historial
@@ -750,13 +754,13 @@ const AppointmentCalendar = () => {
 
             {/* Modal Cancelar Turno */}
             {isCancelModalOpen && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[60]">
-                    <div className="bg-white rounded-2xl shadow-xl w-[400px] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                        <div className="flex justify-between items-center p-4 border-b border-gray-100 bg-red-50">
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-[400px] max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        <div className="flex justify-between items-center p-4 border-b border-gray-100 bg-red-50 shrink-0">
                             <h3 className="font-bold text-lg text-red-700">Cancelar Turno</h3>
                             <button onClick={() => setIsCancelModalOpen(false)} className="text-red-400 hover:text-red-600"><X size={20} /></button>
                         </div>
-                        <div className="p-5 flex flex-col gap-4">
+                        <div className="p-5 flex flex-col gap-4 overflow-y-auto flex-1">
                             <p className="text-sm text-gray-600">Por favor, seleccione el motivo de la cancelación. Si el paciente falta, se registrará una inasistencia en su historial.</p>
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">Motivo de cancelación</label>
@@ -769,7 +773,7 @@ const AppointmentCalendar = () => {
                                     <option value="cancelacion_profesional">Cancelación por parte del profesional / clínica</option>
                                 </select>
                             </div>
-                            <div className="mt-4 flex justify-end gap-2">
+                            <div className="mt-4 flex justify-end gap-2 shrink-0">
                                 <button
                                     onClick={() => setIsCancelModalOpen(false)}
                                     className="px-4 py-2 text-gray-600 font-semibold hover:bg-gray-100 rounded-lg text-sm"
@@ -790,8 +794,8 @@ const AppointmentCalendar = () => {
 
             {/* Modal Listado de Turnos del Día */}
             {isListModalOpen && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-                    <div className="bg-white rounded-2xl shadow-xl w-[500px] max-h-[80vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-[500px] max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                         <div className="flex justify-between items-center p-4 border-b border-gray-100 shrink-0">
                             <h3 className="font-bold text-lg text-gray-900">Turnos del {currentDate.toLocaleDateString()}</h3>
                             <button onClick={() => setIsListModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
@@ -830,8 +834,8 @@ const AppointmentCalendar = () => {
 
             {/* Modal Todos los Turnos */}
             {isAllApptsModalOpen && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-                    <div className="bg-white rounded-2xl shadow-xl w-[800px] max-w-[95vw] h-[80vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-[800px] h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                         <div className="flex justify-between items-center p-5 border-b border-gray-100 shrink-0 bg-gray-50">
                             <h3 className="font-bold text-xl text-gray-900 flex items-center gap-2">
                                 <History size={24} className="text-purple-600" />
@@ -839,7 +843,19 @@ const AppointmentCalendar = () => {
                             </h3>
                             <button onClick={() => setIsAllApptsModalOpen(false)} className="text-gray-400 hover:text-gray-600 bg-white p-1.5 rounded-full shadow-sm"><X size={20} /></button>
                         </div>
-                        <div className="flex-1 overflow-hidden flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-gray-200 bg-white">
+                        <div className="p-3 border-b border-gray-100 shrink-0 bg-white">
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                <input
+                                    type="text"
+                                    placeholder="Buscar paciente por nombre o DNI..."
+                                    value={historySearchTerm}
+                                    onChange={(e) => setHistorySearchTerm(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 bg-gray-50/50"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex-1 min-h-0 flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-gray-200 bg-white">
                             {isAllApptsLoading ? (
                                 <div className="p-8 flex justify-center items-center w-full h-full">
                                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
@@ -847,20 +863,37 @@ const AppointmentCalendar = () => {
                             ) : (
                                 <>
                                     {/* Past Appointments */}
-                                    <div className="flex-1 flex flex-col overflow-hidden">
+                                    <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
                                         <div className="p-4 bg-gray-50/80 border-b border-gray-100 shrink-0">
                                             <h4 className="font-bold text-gray-700 flex items-center gap-2">
                                                 <div className="w-2 h-2 rounded-full bg-gray-400"></div>
                                                 Turnos Pasados
                                                 <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full ml-auto">
-                                                    {allAppointments?.filter(a => parseLocalDate(a.fecha_hora).isBefore(dayjs())).length || 0}
+                                                    {(() => {
+                                                        let past = allAppointments?.filter(a => parseLocalDate(a.fecha_hora).isBefore(dayjs())) || [];
+                                                        if (historySearchTerm) {
+                                                            const term = historySearchTerm.toLowerCase();
+                                                            past = past.filter(a => 
+                                                                (a.patient?.nombre || '').toLowerCase().includes(term) || 
+                                                                String(a.patient?.dni || '').toLowerCase().includes(term)
+                                                            );
+                                                        }
+                                                        return past.length;
+                                                    })()}
                                                 </span>
                                             </h4>
                                         </div>
                                         <div className="p-4 overflow-y-auto flex-1 flex flex-col gap-3">
                                             {(() => {
-                                                const past = allAppointments?.filter(a => parseLocalDate(a.fecha_hora).isBefore(dayjs())).sort((a,b) => parseLocalDate(b.fecha_hora).valueOf() - parseLocalDate(a.fecha_hora).valueOf()) || [];
-                                                if (past.length === 0) return <p className="text-sm text-gray-500 text-center py-4">No hay turnos pasados.</p>;
+                                                let past = allAppointments?.filter(a => parseLocalDate(a.fecha_hora).isBefore(dayjs())).sort((a,b) => parseLocalDate(b.fecha_hora).valueOf() - parseLocalDate(a.fecha_hora).valueOf()) || [];
+                                                if (historySearchTerm) {
+                                                    const term = historySearchTerm.toLowerCase();
+                                                    past = past.filter(a => 
+                                                        (a.patient?.nombre || '').toLowerCase().includes(term) || 
+                                                        String(a.patient?.dni || '').toLowerCase().includes(term)
+                                                    );
+                                                }
+                                                if (past.length === 0) return <p className="text-sm text-gray-500 text-center py-4">No se encontraron turnos pasados.</p>;
                                                 return past.map(appt => (
                                                     <div key={appt.id} className="flex justify-between items-start p-3 border border-gray-100 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors" onClick={() => { setSelectedApptDetail(appt); setIsAllApptsModalOpen(false); }}>
                                                         <div className="flex-1 min-w-0 pr-4">
@@ -880,20 +913,37 @@ const AppointmentCalendar = () => {
                                     </div>
 
                                     {/* Future Appointments */}
-                                    <div className="flex-1 flex flex-col overflow-hidden">
+                                    <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
                                         <div className="p-4 bg-blue-50/50 border-b border-gray-100 shrink-0">
                                             <h4 className="font-bold text-blue-800 flex items-center gap-2">
                                                 <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                                                 Próximos Turnos
                                                 <span className="text-xs bg-blue-200 text-blue-700 px-2 py-0.5 rounded-full ml-auto">
-                                                    {allAppointments?.filter(a => !parseLocalDate(a.fecha_hora).isBefore(dayjs())).length || 0}
+                                                    {(() => {
+                                                        let future = allAppointments?.filter(a => !parseLocalDate(a.fecha_hora).isBefore(dayjs())) || [];
+                                                        if (historySearchTerm) {
+                                                            const term = historySearchTerm.toLowerCase();
+                                                            future = future.filter(a => 
+                                                                (a.patient?.nombre || '').toLowerCase().includes(term) || 
+                                                                String(a.patient?.dni || '').toLowerCase().includes(term)
+                                                            );
+                                                        }
+                                                        return future.length;
+                                                    })()}
                                                 </span>
                                             </h4>
                                         </div>
                                         <div className="p-4 overflow-y-auto flex-1 flex flex-col gap-3">
                                             {(() => {
-                                                const future = allAppointments?.filter(a => !parseLocalDate(a.fecha_hora).isBefore(dayjs())).sort((a,b) => parseLocalDate(a.fecha_hora).valueOf() - parseLocalDate(b.fecha_hora).valueOf()) || [];
-                                                if (future.length === 0) return <p className="text-sm text-gray-500 text-center py-4">No hay próximos turnos.</p>;
+                                                let future = allAppointments?.filter(a => !parseLocalDate(a.fecha_hora).isBefore(dayjs())).sort((a,b) => parseLocalDate(a.fecha_hora).valueOf() - parseLocalDate(b.fecha_hora).valueOf()) || [];
+                                                if (historySearchTerm) {
+                                                    const term = historySearchTerm.toLowerCase();
+                                                    future = future.filter(a => 
+                                                        (a.patient?.nombre || '').toLowerCase().includes(term) || 
+                                                        String(a.patient?.dni || '').toLowerCase().includes(term)
+                                                    );
+                                                }
+                                                if (future.length === 0) return <p className="text-sm text-gray-500 text-center py-4">No se encontraron próximos turnos.</p>;
                                                 return future.map(appt => (
                                                     <div key={appt.id} className="flex justify-between items-start p-3 border border-blue-100 bg-white rounded-lg hover:border-blue-300 hover:shadow-sm cursor-pointer transition-all" onClick={() => { setSelectedApptDetail(appt); setIsAllApptsModalOpen(false); }}>
                                                         <div className="flex-1 min-w-0 pr-4">

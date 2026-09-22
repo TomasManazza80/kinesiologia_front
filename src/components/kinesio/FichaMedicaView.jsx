@@ -78,23 +78,32 @@ const EditableField = ({ value, onSave, isTextArea = false, type = "text" }) => 
     );
   }
 
+  const [isDateFocused, setIsDateFocused] = useState(false);
+
   if (type === 'date') {
+    const displayValue = isDateFocused 
+      ? currentValue 
+      : (currentValue ? dayjs(currentValue).format('DD/MM/YYYY') : '');
+
     return (
       <div className="relative flex items-center w-full">
         <input
-          type="date"
-          className={`${baseStyles} cursor-pointer [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-50 hover:[&::-webkit-calendar-picker-indicator]:opacity-100`}
-          value={currentValue}
+          type={isDateFocused ? "date" : "text"}
+          className={`${baseStyles} cursor-pointer`}
+          value={displayValue}
           onChange={handleChange}
-          onBlur={handleBlur}
-          onClick={(e) => {
-            try {
-              if (e.target.showPicker) {
-                e.target.showPicker();
-              }
-            } catch (err) {
-              // Ignore if not supported
-            }
+          placeholder="DD/MM/AAAA"
+          onFocus={(e) => {
+            setIsDateFocused(true);
+            setTimeout(() => {
+              try {
+                if (e.target.showPicker) e.target.showPicker();
+              } catch (err) {}
+            }, 10);
+          }}
+          onBlur={(e) => {
+            setIsDateFocused(false);
+            handleBlur(e);
           }}
         />
       </div>

@@ -4,9 +4,10 @@ import { toast } from '../ui/use-toast';
 import { useSelector } from 'react-redux';
 import dayjs from 'dayjs';
 
-const PatientRoadmap = ({ currentStage, roadmapNotes = {}, onCompleteStage }) => {
+const PatientRoadmap = ({ currentStage, roadmapNotes = {}, onCompleteStage, onFinishCycle }) => {
   const [selectedStage, setSelectedStage] = useState(null);
   const [noteText, setNoteText] = useState('');
+  const [showConfirmClose, setShowConfirmClose] = useState(false);
   
   // Tratar de obtener al profesional logueado
   const userInfo = useSelector((state) => state.authSlice?.userInfo) || {};
@@ -203,20 +204,92 @@ const PatientRoadmap = ({ currentStage, roadmapNotes = {}, onCompleteStage }) =>
             </div>
           </div>
         </div>
+
+        {/* FINISH CYCLE UI */}
+        {safeCurrentStage === totalStages ? (
+          <div className="mt-8 p-6 bg-green-50 border border-green-200 rounded-xl flex items-center justify-between shadow-sm animate-in fade-in zoom-in">
+            <div>
+              <h3 className="text-green-800 font-bold text-lg flex items-center gap-2">
+                <Check size={20} className="text-green-600" />
+                ¡Ciclo Completado!
+              </h3>
+              <p className="text-green-700 text-sm mt-1">El paciente ha finalizado las 12 instancias del tratamiento.</p>
+            </div>
+            {showConfirmClose ? (
+               <div className="flex flex-col items-end gap-2 animate-in fade-in">
+                 <p className="text-green-800 text-sm font-bold mb-1">¿Estás completamente seguro de cerrar este ciclo?</p>
+                 <div className="flex gap-2">
+                    <button 
+                      onClick={() => setShowConfirmClose(false)}
+                      className="px-4 py-2 bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 font-bold rounded-lg shadow-sm transition-colors text-xs"
+                    >
+                      Cancelar
+                    </button>
+                    <button 
+                      onClick={() => { setShowConfirmClose(false); onFinishCycle && onFinishCycle(); }}
+                      className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow-sm transition-colors text-xs"
+                    >
+                      Sí, estoy seguro
+                    </button>
+                 </div>
+               </div>
+            ) : (
+                <button 
+                  onClick={() => setShowConfirmClose(true)}
+                  className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow-sm transition-colors text-sm"
+                >
+                  Finalizar Ciclo y Reiniciar
+                </button>
+            )}
+          </div>
+        ) : safeCurrentStage > 0 ? (
+          <div className="mt-8 p-4 bg-gray-50 border border-gray-200 rounded-xl flex items-center justify-between shadow-sm">
+            <div>
+              <h3 className="text-gray-700 font-bold text-sm">Ciclo en curso</h3>
+              <p className="text-gray-500 text-xs mt-1">Puedes cerrar el ciclo anticipadamente si el tratamiento ha concluido.</p>
+            </div>
+            {showConfirmClose ? (
+               <div className="flex flex-col items-end gap-2 animate-in fade-in">
+                 <p className="text-gray-700 text-sm font-bold mb-1">¿Estás completamente seguro de cerrarlo ahora?</p>
+                 <div className="flex gap-2">
+                    <button 
+                      onClick={() => setShowConfirmClose(false)}
+                      className="px-4 py-2 bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 font-bold rounded-lg shadow-sm transition-colors text-xs"
+                    >
+                      Cancelar
+                    </button>
+                    <button 
+                      onClick={() => { setShowConfirmClose(false); onFinishCycle && onFinishCycle(); }}
+                      className="px-4 py-2 bg-[#0A58CA] hover:bg-blue-700 text-white font-bold rounded-lg shadow-sm transition-colors text-xs"
+                    >
+                      Sí, cerrar ciclo
+                    </button>
+                 </div>
+               </div>
+            ) : (
+                <button 
+                  onClick={() => setShowConfirmClose(true)}
+                  className="px-4 py-2 bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 font-bold rounded-lg shadow-sm transition-colors text-sm"
+                >
+                  Cerrar Ciclo Ahora
+                </button>
+            )}
+          </div>
+        ) : null}
       </div>
 
       {/* Note Modal */}
       {selectedStage !== null && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center p-4 border-b border-gray-100 bg-gray-50">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center p-4 border-b border-gray-100 bg-gray-50 shrink-0">
               <h3 className="font-bold text-lg text-gray-900">Instancia {selectedStage + 1}</h3>
               <button onClick={() => setSelectedStage(null)} className="text-gray-400 hover:text-gray-600">
                 <X size={20} />
               </button>
             </div>
             
-            <div className="p-6 pb-2">
+            <div className="p-6 pb-2 overflow-y-auto flex-1">
                 {selectedStage < safeCurrentStage && (
                     <div className="mb-4 flex items-center justify-between p-2 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold">
                         <div className="flex items-center gap-2">
@@ -245,7 +318,7 @@ const PatientRoadmap = ({ currentStage, roadmapNotes = {}, onCompleteStage }) =>
               />
             </div>
 
-            <div className="p-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
+            <div className="p-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between shrink-0">
               <div>
                 {/* Botón para Desmarcar, solo visible si es una etapa ya completada (pero NO si es la Actual) */}
                 {selectedStage < safeCurrentStage && (

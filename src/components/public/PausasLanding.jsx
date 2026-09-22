@@ -401,7 +401,7 @@ export default function PausasLanding() {
                         </div>
 
                         {/* Right Column Image & Floating Card */}
-                        <div ref={heroMediaRef} className="gsap-hero-image lg:col-span-5 relative group">
+                        <div ref={heroMediaRef} className="gsap-hero-image hidden lg:block lg:col-span-5 relative group">
                             <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200 bg-black group h-[460px]">
                                 {currentData.mediaType === 'video' ? (
                                     <video 
@@ -616,7 +616,7 @@ export default function PausasLanding() {
                                 <h3 className="text-3xl sm:text-4xl font-extrabold text-slate-900">{pageData.procedure.title}</h3>
                                 <p className="text-slate-600 text-base mt-4 font-medium">{pageData.procedure.subtitle}</p>
                             </motion.div>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+                            <div className="flex md:grid flex-nowrap overflow-x-auto md:overflow-visible md:grid-cols-3 gap-6 md:gap-8 relative pb-8 md:pb-0 snap-x snap-mandatory hide-scrollbar">
                                 {/* Línea conectora animada (solo desktop) */}
                                 <div className="hidden md:block absolute top-8 left-[16%] right-[16%] h-[2px] bg-gradient-to-r from-[#13263E] via-[#B59970] to-emerald-600 opacity-40 z-0 animate-pulse"></div>
                                 
@@ -647,7 +647,7 @@ export default function PausasLanding() {
                                             whileInView={{ opacity: 1, y: 0, scale: 1 }}
                                             viewport={{ once: true, amount: 0.3 }}
                                             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: delay }}
-                                            className={`bg-white rounded-3xl border border-slate-200 shadow-lg hover:shadow-2xl ${borderColorHover} transition-all duration-300 relative z-10 flex flex-col overflow-hidden group hover:-translate-y-2 hover:scale-[1.02]`}
+                                            className={`w-[85vw] sm:w-[320px] md:w-auto flex-shrink-0 snap-center bg-white rounded-3xl border border-slate-200 shadow-lg hover:shadow-2xl ${borderColorHover} transition-all duration-300 relative z-10 flex flex-col overflow-hidden group hover:-translate-y-2 hover:scale-[1.02]`}
                                         >
                                             <div className="w-full h-52 relative overflow-hidden">
                                                 <img src={item.image || "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&q=80&w=600&h=400"} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={item.title} />
@@ -673,7 +673,7 @@ export default function PausasLanding() {
                     )}
 
                     {/* Services Cards Grid */}
-                    <div id="services-grid" className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div id="services-grid" className="flex md:grid flex-nowrap overflow-x-auto md:overflow-visible md:grid-cols-3 gap-6 md:gap-8 pb-8 md:pb-0 snap-x snap-mandatory hide-scrollbar">
                         {pageData.services.items.map((item, index) => {
                             const IconComp = IconMap[item.icon] || Stethoscope;
                             if (item.isHighlighted) {
@@ -684,7 +684,7 @@ export default function PausasLanding() {
                                         whileInView={{ opacity: 1, y: 0, scale: 1 }}
                                         viewport={{ once: true, amount: 0.2 }}
                                         transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: index * 0.15 }}
-                                        className="bg-[#13263E] text-white rounded-3xl p-8 border border-[#13263E] shadow-2xl flex flex-col justify-between space-y-6 transform lg:-translate-y-2 hover:-translate-y-4 hover:shadow-[0_20px_40px_rgba(19,38,62,0.3)] transition-all duration-300"
+                                        className="w-[85vw] sm:w-[320px] md:w-auto flex-shrink-0 snap-center bg-[#13263E] text-white rounded-3xl p-8 border border-[#13263E] shadow-2xl flex flex-col justify-between space-y-6 transform lg:-translate-y-2 hover:-translate-y-4 hover:shadow-[0_20px_40px_rgba(19,38,62,0.3)] transition-all duration-300"
                                     >
                                         <div className="space-y-4">
                                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#B59970]/50/20 border border-[#B59970]/30 text-[#B59970] text-xs font-bold">
@@ -719,7 +719,7 @@ export default function PausasLanding() {
                                     whileInView={{ opacity: 1, y: 0, scale: 1 }}
                                     viewport={{ once: true, amount: 0.2 }}
                                     transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: index * 0.15 }}
-                                    className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-[#B59970]/30 hover:-translate-y-2 transition-all duration-300 flex flex-col justify-between space-y-6"
+                                    className="w-[85vw] sm:w-[320px] md:w-auto flex-shrink-0 snap-center bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-[#B59970]/30 hover:-translate-y-2 transition-all duration-300 flex flex-col justify-between space-y-6"
                                 >
                                         <div className="space-y-4">
                                             <div className="w-12 h-12 rounded-2xl bg-[#B59970]/5 text-[#B59970] flex items-center justify-center">
@@ -766,13 +766,13 @@ export default function PausasLanding() {
 
                     {/* Professionals Grid */}
                     {isLoadingProfs ? (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="flex md:grid flex-nowrap overflow-x-auto md:overflow-visible md:grid-cols-3 gap-6 md:gap-8 pb-8 md:pb-0 snap-x snap-mandatory hide-scrollbar">
                             {[1, 2, 3].map((n) => (
-                                <div key={n} className="h-72 bg-slate-100 rounded-3xl animate-pulse" />
+                                <div key={n} className="w-[85vw] sm:w-[320px] md:w-auto flex-shrink-0 snap-center h-72 bg-slate-100 rounded-3xl animate-pulse" />
                             ))}
                         </div>
                     ) : professionals.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="flex md:grid flex-nowrap overflow-x-auto md:overflow-visible md:grid-cols-3 gap-6 md:gap-8 pb-8 md:pb-0 snap-x snap-mandatory hide-scrollbar">
                             {professionals.map((prof) => {
                                 const specialtiesList = Array.isArray(prof.specialty) 
                                     ? prof.specialty.join(', ') 
@@ -786,7 +786,7 @@ export default function PausasLanding() {
                                         viewport={{ once: true }}
                                         transition={{ duration: 0.35, ease: "easeOut" }}
                                         whileHover={{ y: -6, transition: springConfig }}
-                                        className="bg-[#f8fafc] rounded-3xl p-6 border border-slate-200 hover:border-[#B59970]/40 hover:shadow-xl transition-all flex flex-col justify-between group"
+                                        className="w-[85vw] sm:w-[320px] md:w-auto flex-shrink-0 snap-center bg-[#f8fafc] rounded-3xl p-6 border border-slate-200 hover:border-[#B59970]/40 hover:shadow-xl transition-all flex flex-col justify-between group"
                                     >
                                         <div className="space-y-4">
                                             <div className="flex items-center gap-4">
@@ -830,7 +830,7 @@ export default function PausasLanding() {
                         </div>
                     ) : (
                         // Fallback Professionals Grid
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="flex md:grid flex-nowrap overflow-x-auto md:overflow-visible md:grid-cols-3 gap-6 md:gap-8 pb-8 md:pb-0 snap-x snap-mandatory hide-scrollbar">
                             {[
                                 { name: "Dra. Carolina Rossi", spec: "Endocrinología", desc: "Especialista en climaterio, menopausia y regulación metabólica integral." },
                                 { name: "Lic. Martín Gómez", spec: "Kinesiólogo Pélvico", desc: "Experto en rehabilitación de suelo pélvico, incontinencia y disfunciones sexuales." },
