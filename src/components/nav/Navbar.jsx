@@ -34,7 +34,7 @@ const Navbar = ({children}) => {
         },
         {
             path: '/pacientes',
-            title: 'Pacientes',
+            title: 'Historiales Medicos',
         },
         {
             path: '/balance',

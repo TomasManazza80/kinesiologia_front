@@ -267,6 +267,14 @@ export default function PausasLanding() {
         {
             q: "¿Puedo cancelar o modificar la fecha de mi turno?",
             a: "Por supuesto. Desde el apartado 'Mis Turnos' en nuestra plataforma o vía WhatsApp puedes gestionar tus citas de forma rápida."
+        },
+        {
+            q: "¿donde estamos ubicados?",
+            a: "San Geronimo 3194 primer piso timbre 6"
+        },
+        {
+            q: "¿donde mas nos podes encontrar?",
+            a: "en instagram como pauses.info y mail pauses.info@gmail.com"
         }
     ];
 

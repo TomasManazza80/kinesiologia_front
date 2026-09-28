@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { toast } from '../../components/ui/use-toast';
 import { 
     Menu, X, CheckCircle2, Circle, ChevronLeft, ChevronRight, 
-    ArrowRight, Home, CalendarPlus, ClipboardList, User, Activity, Loader2, Check, Eye, EyeOff
+    ArrowRight, Home, CalendarPlus, ClipboardList, User, Activity, Loader2, Check, Eye, EyeOff, Download
 } from 'lucide-react';
 import { 
     useGetPublicProfessionalsQuery, 
@@ -188,10 +188,111 @@ export default function BookingPage() {
                 setPatientPhone('');
                 setPassword('');
                 setConfirmPassword('');
-            }, 3000);
+            }, 8000);
         } catch (error) {
             toast({ title: 'Error', description: error?.data?.message || 'Error al confirmar el turno', variant: 'destructive' });
         }
+    };
+
+    const handleDownloadVoucher = () => {
+        const specialistName = selectedSpecialist?.name || selectedSpecialist?.email || 'Profesional';
+        const html = `
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8" />
+            <title>Comprobante de Turno</title>
+            <style>
+                * { box-sizing: border-box; margin: 0; padding: 0; }
+                body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; display: flex; justify-content: center; align-items: flex-start; padding: 40px 20px; }
+                .card { background: #fff; border-radius: 16px; padding: 40px 48px; max-width: 600px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,0.1); }
+                .header { display: flex; align-items: center; gap: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 24px; margin-bottom: 28px; }
+                .logo-circle { width: 56px; height: 56px; border-radius: 50%; background: #13263E; display: flex; align-items: center; justify-content: center; color: white; font-size: 22px; font-weight: 800; flex-shrink: 0; }
+                .clinic-name { font-size: 20px; font-weight: 800; color: #13263E; }
+                .clinic-sub { font-size: 13px; color: #64748b; margin-top: 2px; }
+                h1 { font-size: 26px; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
+                .subtitle { font-size: 14px; color: #64748b; margin-bottom: 32px; }
+                .badge { display: inline-block; background: #dcfce7; color: #15803d; font-weight: 700; font-size: 12px; padding: 4px 14px; border-radius: 999px; margin-bottom: 24px; letter-spacing: 0.05em; text-transform: uppercase; }
+                .row { display: flex; gap: 16px; margin-bottom: 16px; }
+                .field { flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 20px; }
+                .field.accent { background: #eff6ff; border-color: #bfdbfe; }
+                .field-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+                .field-value { font-size: 17px; font-weight: 800; color: #0f172a; }
+                .field.accent .field-value { color: #1e40af; }
+                .footer { border-top: 1px solid #e2e8f0; margin-top: 32px; padding-top: 20px; text-align: center; font-size: 12px; color: #94a3b8; }
+                @media print { body { background: white; padding: 0; } .card { box-shadow: none; border-radius: 0; } }
+            </style>
+        </head>
+        <body>
+            <div class="card">
+                <div class="header">
+                    <div class="logo-circle">P</div>
+                    <div>
+                        <div class="clinic-name">Pauses Centro Kinesiológico</div>
+                        <div class="clinic-sub">San Gerónimo 3194, Primer Piso, Timbre 6</div>
+                    </div>
+                </div>
+                <div class="badge">✓ Turno Confirmado</div>
+                <h1>Comprobante de Turno</h1>
+                <p class="subtitle">Generado el ${dayjs().format('D [de] MMMM [de] YYYY, HH:mm')} hs</p>
+
+                <div class="row">
+                    <div class="field">
+                        <div class="field-label">Paciente</div>
+                        <div class="field-value">${patientName || 'Paciente'}</div>
+                    </div>
+                    <div class="field">
+                        <div class="field-label">DNI</div>
+                        <div class="field-value">${patientDni || '-'}</div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="field">
+                        <div class="field-label">Especialista</div>
+                        <div class="field-value">${specialistName}</div>
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Servicio</div>
+                        <div class="field-value">${selectedService || '-'}</div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="field accent">
+                        <div class="field-label">Fecha</div>
+                        <div class="field-value">${selectedDate?.fullDisplay || '-'}</div>
+                    </div>
+                    <div class="field accent">
+                        <div class="field-label">Hora</div>
+                        <div class="field-value">${selectedTime || '-'} hs</div>
+                    </div>
+                </div>
+
+                <div class="footer">
+                    Por favor, presentá este comprobante el día del turno.<br/>
+                    Pauses · pauses.info@gmail.com · Instagram: @pauses.info
+                </div>
+            </div>
+        </body>
+        </html>`;
+
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.right = '0';
+        iframe.style.bottom = '0';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = '0';
+        document.body.appendChild(iframe);
+        iframe.contentDocument.open();
+        iframe.contentDocument.write(html);
+        iframe.contentDocument.close();
+        iframe.contentWindow.focus();
+        setTimeout(() => {
+            iframe.contentWindow.print();
+            setTimeout(() => document.body.removeChild(iframe), 1000);
+        }, 500);
     };
 
     const selectedSpecialist = professionals.find(p => p.id === selectedSpecialistId);
@@ -511,7 +612,7 @@ export default function BookingPage() {
                                             selectedTime ? 'bg-blue-700 text-white hover:bg-blue-800 shadow-lg transform hover:-translate-y-1' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                                         }`}
                                     >
-                                        <span>Ver Resumen</span>
+                                        <span>Continuar</span>
                                         <ArrowRight size={24} aria-hidden="true" />
                                     </button>
                                 </div>
@@ -602,10 +703,28 @@ export default function BookingPage() {
                                     <Check size={48} strokeWidth={3} aria-hidden="true" />
                                 </div>
                                 <h3 id="modal-title" className="text-3xl font-extrabold text-gray-900 mb-4">¡Reserva Confirmada!</h3>
-                                <p className="text-lg text-gray-600 mb-2">Su turno ha sido guardado exitosamente en nuestro sistema.</p>
-                                <p className="text-lg font-medium text-gray-900 bg-gray-50 py-3 px-6 rounded-xl border border-gray-200 mt-4">
-                                    Lo esperamos el día <strong>{selectedDate?.fullDisplay}</strong> a las <strong>{selectedTime}</strong> hs.
-                                </p>
+                                <p className="text-lg text-gray-600 mb-6">Su turno ha sido guardado exitosamente en nuestro sistema.</p>
+                                <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 text-left w-full max-w-md mx-auto space-y-4">
+                                    <div>
+                                        <p className="text-sm text-gray-500 font-semibold uppercase">Especialista</p>
+                                        <p className="text-lg font-bold text-gray-900">{selectedSpecialist?.name || selectedSpecialist?.email || 'Profesional'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-500 font-semibold uppercase">Servicio</p>
+                                        <p className="text-lg font-bold text-gray-900">{selectedService}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-500 font-semibold uppercase">Fecha y Hora</p>
+                                        <p className="text-lg font-bold text-gray-900">{selectedDate?.fullDisplay} a las {selectedTime} hs</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={handleDownloadVoucher}
+                                    className="mt-6 inline-flex items-center gap-2 bg-[#13263E] hover:bg-[#13263E]/80 text-white font-bold px-7 py-3 rounded-xl shadow-md transition-all duration-200 hover:-translate-y-0.5 text-base"
+                                >
+                                    <Download size={20} />
+                                    Descargar Comprobante
+                                </button>
                             </div>
                         ) : (
                             <>
