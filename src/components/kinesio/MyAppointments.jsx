@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import 'dayjs/locale/es';
+import { AnimatePresence, motion } from 'framer-motion';
 import PublicNavbar from '../nav/PublicNavbar.jsx';
 
 dayjs.extend(utc);
@@ -18,9 +19,12 @@ const MyAppointments = () => {
     const [cancelAppointment] = useCancelAppointmentMutation();
     const navigate = useNavigate();
     const [cancellingId, setCancellingId] = useState(null);
+    const [appointmentToCancel, setAppointmentToCancel] = useState(null);
 
-    const handleCancel = async (id) => {
-        if (!window.confirm('¿Estás seguro de que deseas cancelar este turno?')) return;
+    const confirmCancel = async () => {
+        if (!appointmentToCancel) return;
+        const id = appointmentToCancel;
+        setAppointmentToCancel(null);
         setCancellingId(id);
         try {
             await cancelAppointment({ id, cancel_reason: 'ausencia_paciente' }).unwrap();
@@ -119,7 +123,7 @@ const MyAppointments = () => {
                             ) : (
                                 <div className="grid gap-4">
                                     {upcoming.map(appt => (
-                                        <AppointmentCard key={appt.id} appt={appt} getStatusStyle={getStatusStyle} getStatusIcon={getStatusIcon} handleCancel={handleCancel} isCancelling={cancellingId === appt.id} isUpcoming={true} />
+                                        <AppointmentCard key={appt.id} appt={appt} getStatusStyle={getStatusStyle} getStatusIcon={getStatusIcon} handleCancel={setAppointmentToCancel} isCancelling={cancellingId === appt.id} isUpcoming={true} />
                                     ))}
                                 </div>
                             )}
@@ -145,6 +149,52 @@ const MyAppointments = () => {
                     </div>
                 )}
             </div>
+
+            <AnimatePresence>
+                {appointmentToCancel && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
+                            className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl relative"
+                        >
+                            <button
+                                onClick={() => setAppointmentToCancel(null)}
+                                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                            >
+                                <X size={20} />
+                            </button>
+                            
+                            <div className="flex flex-col items-center text-center mt-2">
+                                <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4">
+                                    <XCircle size={32} strokeWidth={2} />
+                                </div>
+                                <h3 className="text-2xl font-bold text-gray-900 mb-2">¿Cancelar Turno?</h3>
+                                <p className="text-gray-600 mb-8 text-base">
+                                    Estás a punto de cancelar tu turno. Esta acción no se puede deshacer y el horario volverá a quedar disponible para otros pacientes.
+                                </p>
+                                
+                                <div className="flex flex-col sm:flex-row gap-3 w-full">
+                                    <button
+                                        onClick={() => setAppointmentToCancel(null)}
+                                        className="flex-1 px-4 py-3 rounded-xl font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+                                    >
+                                        Mantener Turno
+                                    </button>
+                                    <button
+                                        onClick={confirmCancel}
+                                        className="flex-1 px-4 py-3 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 transition-colors flex justify-center items-center gap-2"
+                                    >
+                                        Sí, Cancelar
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

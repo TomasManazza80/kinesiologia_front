@@ -1,17 +1,17 @@
 import React, { useState, useMemo } from 'react';
 import { toast } from '../../components/ui/use-toast';
-import { 
-    Menu, X, CheckCircle2, Circle, ChevronLeft, ChevronRight, 
+import {
+    Menu, X, CheckCircle2, Circle, ChevronLeft, ChevronRight,
     ArrowRight, Home, CalendarPlus, ClipboardList, User, Activity, Loader2, Check, Eye, EyeOff, Download
 } from 'lucide-react';
-import { 
-    useGetPublicProfessionalsQuery, 
-    useGetAvailableSlotsQuery, 
-    useCreatePublicAppointmentMutation 
+import {
+    useGetPublicProfessionalsQuery,
+    useGetAvailableSlotsQuery,
+    useCreatePublicAppointmentMutation
 } from '../../services/api/kinesioApi.js';
 import { useLogoutMutation } from '../../services/api/authApi.js';
 import { useGetUserQuery } from '../../services/api/userApi.js';
-import { logout } from '../../services/auth/authSlice.js';
+import { logout, setAccessToken, setUser } from '../../services/auth/authSlice.js';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import dayjs from 'dayjs';
@@ -122,7 +122,7 @@ export default function BookingPage() {
         // Empezamos la semana actual (offset = 0) o avanzamos semanas completas
         const startOfWeek = dayjs().startOf('isoWeek').add(weekOffset, 'weeks');
         // Mostrar de lunes a viernes (5 días)
-        for(let i=0; i<5; i++) {
+        for (let i = 0; i < 5; i++) {
             const current = dayjs(startOfWeek).add(i, 'days');
             d.push({
                 day: current.format('ddd').charAt(0).toUpperCase() + current.format('ddd').slice(1, 3), // Lun, Mar
@@ -141,7 +141,7 @@ export default function BookingPage() {
         { professional_id: selectedSpecialistId, start_date: weekStartDate, end_date: weekEndDate, service: selectedService },
         { skip: !selectedSpecialistId || !weekStartDate || !weekEndDate }
     );
-    
+
     const weeklySlots = weeklySlotsData?.data || {};
     const availableSlots = selectedDate ? (weeklySlots[selectedDate.date] || []) : [];
 
@@ -171,6 +171,11 @@ export default function BookingPage() {
                 patient_email: patientEmail,
                 password: password || undefined
             }).unwrap();
+
+            if (response.accessToken) {
+                dispatch(setAccessToken(response.accessToken));
+                dispatch(setUser(response.user));
+            }
 
             if (response.init_point) {
                 // Redirect to MercadoPago
@@ -297,25 +302,25 @@ export default function BookingPage() {
 
     const selectedSpecialist = professionals.find(p => p.id === selectedSpecialistId);
     const requiresPayment = selectedSpecialist && selectedSpecialist.require_payment && selectedSpecialist.session_fee > 0 && !!selectedSpecialist.mp_access_token;
-    
+
     const currentMonthLabel = dayjs().startOf('isoWeek').add(weekOffset, 'weeks').format('MMMM YYYY');
     const isReadyToConfirm = selectedSpecialistId && selectedDate && selectedTime;
 
     return (
         <div className="bg-gray-50 min-h-screen font-sans text-gray-900 pb-20 md:pb-0 overflow-x-hidden">
             <PublicNavbar />
-            
+
             {/* Main Container */}
             <div className="max-w-md md:max-w-4xl mx-auto bg-transparent min-h-screen relative flex flex-col">
 
                 {/* Mobile Navigation Drawer & Overlay */}
-                <div 
+                <div
                     className={`fixed inset-0 bg-gray-900/60 z-40 transition-opacity duration-300 md:hidden ${isMobileMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
                     onClick={() => setIsMobileMenuOpen(false)}
                     aria-hidden="true"
                 />
 
-                <div 
+                <div
                     className={`fixed top-0 left-0 h-full w-[300px] bg-white z-50 transform transition-transform duration-300 ease-in-out md:hidden shadow-2xl flex flex-col ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
                     role="dialog"
                     aria-modal="true"
@@ -323,8 +328,8 @@ export default function BookingPage() {
                 >
                     <div className="flex items-center justify-between p-6 border-b border-gray-200">
                         <span className="text-xl font-bold text-gray-900">Menú</span>
-                        <button 
-                            onClick={() => setIsMobileMenuOpen(false)} 
+                        <button
+                            onClick={() => setIsMobileMenuOpen(false)}
                             className="p-2 -mr-2 text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-600 rounded-lg transition-colors"
                             aria-label="Cerrar menú"
                         >
@@ -332,23 +337,23 @@ export default function BookingPage() {
                         </button>
                     </div>
                     <div className="flex flex-col p-6 gap-4">
-                        <button 
-                            onClick={() => { setIsMobileMenuOpen(false); navigate('/reservar-turno'); }} 
+                        <button
+                            onClick={() => { setIsMobileMenuOpen(false); navigate('/reservar-turno'); }}
                             className="text-left text-lg font-bold text-blue-700 py-3 px-4 bg-blue-50 rounded-xl hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-colors flex items-center gap-3"
                         >
                             <CalendarPlus size={24} aria-hidden="true" />
                             Reservar Turno
                         </button>
-                        <button 
-                            onClick={() => { setIsMobileMenuOpen(false); navigate('/mis-turnos'); }} 
+                        <button
+                            onClick={() => { setIsMobileMenuOpen(false); navigate('/mis-turnos'); }}
                             className="text-left text-lg font-medium text-gray-700 py-3 px-4 hover:bg-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 transition-colors flex items-center gap-3"
                         >
                             <ClipboardList size={24} aria-hidden="true" />
                             Mis Turnos
                         </button>
-                        
+
                         {userInfo?.role === 'ADMIN' || userInfo?.role === 'EMPLOYEE' ? (
-                            <button 
+                            <button
                                 onClick={() => { setIsMobileMenuOpen(false); navigate('/dashboard'); }}
                                 className="text-left text-lg font-medium text-blue-700 py-3 px-4 hover:bg-blue-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 transition-colors flex items-center gap-3"
                             >
@@ -360,7 +365,7 @@ export default function BookingPage() {
                         <hr className="border-gray-200 my-2" />
 
                         {accessToken ? (
-                            <button 
+                            <button
                                 onClick={() => { setIsMobileMenuOpen(false); handleLogout(); }}
                                 className="text-left text-lg font-medium text-red-700 py-3 px-4 hover:bg-red-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600 transition-colors flex items-center gap-3"
                             >
@@ -368,7 +373,7 @@ export default function BookingPage() {
                                 Cerrar Sesión
                             </button>
                         ) : (
-                            <button 
+                            <button
                                 onClick={() => { setIsMobileMenuOpen(false); navigate('/login'); }}
                                 className="text-left text-lg font-medium text-blue-700 py-3 px-4 hover:bg-blue-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 transition-colors flex items-center gap-3"
                             >
@@ -410,11 +415,11 @@ export default function BookingPage() {
                                     <h2 className="text-xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Elija un especialista</h2>
                                 </header>
                                 <p className="text-gray-600 text-base md:text-lg mb-6 ml-0 md:ml-16">Seleccione el profesional para su atención.</p>
-                                
+
                                 <div className="ml-0 md:ml-16 min-h-[250px]">
                                     {isLoadingProfs ? (
                                         <div className="flex items-center justify-center h-[200px] gap-3 text-gray-600 bg-gray-50 rounded-xl border border-gray-200 text-xl font-medium">
-                                            <Loader2 className="animate-spin text-blue-700" size={32} aria-hidden="true" /> 
+                                            <Loader2 className="animate-spin text-blue-700" size={32} aria-hidden="true" />
                                             <span>Buscando especialistas disponibles...</span>
                                         </div>
                                     ) : professionals.length === 0 ? (
@@ -427,19 +432,18 @@ export default function BookingPage() {
                                             {professionals.map(prof => {
                                                 const isSelected = selectedSpecialistId === prof.id;
                                                 return (
-                                                    <button 
+                                                    <button
                                                         key={prof.id}
-                                                        onClick={() => { 
-                                                            setSelectedSpecialistId(prof.id); 
+                                                        onClick={() => {
+                                                            setSelectedSpecialistId(prof.id);
                                                             setSelectedTime(null);
                                                             const spec = Array.isArray(prof.specialty) && prof.specialty.length > 0 ? prof.specialty[0] : (prof.specialty || 'Kinesiología General');
                                                             setSelectedService(spec);
                                                         }}
-                                                        className={`rounded-xl border-2 transition-all duration-300 ease-in-out flex flex-col items-center text-center focus:outline-none focus:ring-4 focus:ring-blue-200 overflow-hidden transform ${
-                                                            isSelected 
-                                                            ? 'border-blue-700 bg-blue-50 shadow-lg -translate-y-1' 
+                                                        className={`rounded-xl border-2 transition-all duration-300 ease-in-out flex flex-col items-center text-center focus:outline-none focus:ring-4 focus:ring-blue-200 overflow-hidden transform ${isSelected
+                                                            ? 'border-blue-700 bg-blue-50 shadow-lg -translate-y-1'
                                                             : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-md hover:-translate-y-1'
-                                                        }`}
+                                                            }`}
                                                         aria-pressed={isSelected}
                                                     >
                                                         <div className="w-full h-24 md:h-32 bg-gray-100 flex items-center justify-center flex-shrink-0 relative overflow-hidden group" aria-hidden="true">
@@ -469,12 +473,11 @@ export default function BookingPage() {
                                 </div>
 
                                 <div className="mt-12 pt-8 border-t border-gray-200 flex justify-end ml-0 md:ml-16">
-                                    <button 
+                                    <button
                                         onClick={() => setCurrentStep(2)}
                                         disabled={!selectedSpecialistId}
-                                        className={`w-full sm:w-auto py-4 px-10 rounded-2xl font-extrabold text-xl flex items-center justify-center gap-3 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 ${
-                                            selectedSpecialistId ? 'bg-blue-700 text-white hover:bg-blue-800 shadow-xl shadow-blue-700/20 transform hover:-translate-y-1' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                        }`}
+                                        className={`w-full sm:w-auto py-4 px-10 rounded-2xl font-extrabold text-xl flex items-center justify-center gap-3 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 ${selectedSpecialistId ? 'bg-blue-700 text-white hover:bg-blue-800 shadow-xl shadow-blue-700/20 transform hover:-translate-y-1' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                            }`}
                                     >
                                         <span>Siguiente paso</span>
                                         <ArrowRight size={24} aria-hidden="true" />
@@ -491,29 +494,29 @@ export default function BookingPage() {
                                     <h2 className="text-2xl md:text-4xl font-extrabold text-gray-900 tracking-tight">Seleccione fecha y hora</h2>
                                 </header>
                                 <p className="text-gray-600 text-lg md:text-xl mb-10 ml-0 md:ml-16">Elija el día y el horario que mejor se adapte a usted.</p>
-                                
+
                                 <div className="ml-0 md:ml-16">
                                     <div className="bg-gray-50/50 rounded-3xl p-6 md:p-10 border border-gray-200 min-h-[400px]">
-                                        
+
                                         {/* Calendar Header */}
                                         <div className="flex items-center justify-between mb-8 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                                            <button 
-                                                onClick={() => setWeekOffset(w => w - 1)} 
+                                            <button
+                                                onClick={() => setWeekOffset(w => w - 1)}
                                                 className="p-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 flex items-center justify-center"
                                                 aria-label="Ver semana anterior"
                                             >
                                                 <ChevronLeft size={24} className="text-gray-700" aria-hidden="true" />
                                             </button>
                                             <h3 className="font-bold text-xl text-gray-900 capitalize" aria-live="polite">{currentMonthLabel}</h3>
-                                            <button 
-                                                onClick={() => setWeekOffset(w => w + 1)} 
+                                            <button
+                                                onClick={() => setWeekOffset(w => w + 1)}
                                                 className="p-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 flex items-center justify-center"
                                                 aria-label="Ver semana siguiente"
                                             >
                                                 <ChevronRight size={24} className="text-gray-700" aria-hidden="true" />
                                             </button>
                                         </div>
-                                        
+
                                         {/* Days */}
                                         <div className="grid grid-cols-5 gap-3 md:gap-6 mb-8">
                                             {days.map((d) => {
@@ -522,19 +525,18 @@ export default function BookingPage() {
                                                 const hasSlots = weeklySlots[d.date] && weeklySlots[d.date].length > 0;
                                                 const isUnavailable = !isLoading && !hasSlots;
                                                 const isDisabled = isLoading || isUnavailable;
-                                                
+
                                                 return (
-                                                    <button 
-                                                        key={d.date} 
+                                                    <button
+                                                        key={d.date}
                                                         onClick={() => { setSelectedDate(d); setSelectedTime(null); }}
                                                         disabled={isDisabled}
-                                                        className={`flex flex-col items-center justify-center py-5 px-2 rounded-xl border-2 transition-all focus:outline-none focus:ring-4 focus:ring-blue-200 relative overflow-hidden ${
-                                                            isUnavailable
-                                                                ? 'bg-gray-200 border-gray-300 cursor-not-allowed opacity-80 shadow-inner'
-                                                                : isSelected 
-                                                                    ? 'bg-blue-700 border-blue-700 text-white shadow-md transform -translate-y-1' 
-                                                                    : 'bg-white border-gray-200 text-gray-700 hover:border-blue-400 hover:shadow-sm'
-                                                        }`}
+                                                        className={`flex flex-col items-center justify-center py-5 px-2 rounded-xl border-2 transition-all focus:outline-none focus:ring-4 focus:ring-blue-200 relative overflow-hidden ${isUnavailable
+                                                            ? 'bg-gray-200 border-gray-300 cursor-not-allowed opacity-80 shadow-inner'
+                                                            : isSelected
+                                                                ? 'bg-blue-700 border-blue-700 text-white shadow-md transform -translate-y-1'
+                                                                : 'bg-white border-gray-200 text-gray-700 hover:border-blue-400 hover:shadow-sm'
+                                                            }`}
                                                         aria-pressed={isSelected}
                                                         aria-disabled={isDisabled}
                                                         aria-label={`Día ${d.displayNum}, ${d.day}`}
@@ -565,7 +567,7 @@ export default function BookingPage() {
                                                 </div>
                                             ) : isFetchingSlots || isLoadingSlots ? (
                                                 <div className="flex flex-col items-center justify-center h-[150px] gap-4 text-gray-600">
-                                                    <Loader2 className="animate-spin text-blue-700" size={40} aria-hidden="true" /> 
+                                                    <Loader2 className="animate-spin text-blue-700" size={40} aria-hidden="true" />
                                                     <span className="text-lg font-medium">Consultando disponibilidad...</span>
                                                 </div>
                                             ) : availableSlots.length === 0 ? (
@@ -578,14 +580,13 @@ export default function BookingPage() {
                                                     {availableSlots.map((time) => {
                                                         const isSelected = selectedTime === time;
                                                         return (
-                                                            <button 
+                                                            <button
                                                                 key={time}
                                                                 onClick={() => setSelectedTime(time)}
-                                                                className={`py-4 px-4 rounded-xl text-xl font-bold border-2 transition-all focus:outline-none focus:ring-4 focus:ring-blue-200 ${
-                                                                    isSelected 
-                                                                    ? 'border-blue-700 bg-blue-700 text-white shadow-md' 
+                                                                className={`py-4 px-4 rounded-xl text-xl font-bold border-2 transition-all focus:outline-none focus:ring-4 focus:ring-blue-200 ${isSelected
+                                                                    ? 'border-blue-700 bg-blue-700 text-white shadow-md'
                                                                     : 'border-gray-200 bg-white text-gray-700 hover:border-blue-400 hover:text-blue-700 hover:bg-blue-50'
-                                                                }`}
+                                                                    }`}
                                                                 aria-pressed={isSelected}
                                                             >
                                                                 {time}
@@ -599,18 +600,17 @@ export default function BookingPage() {
                                 </div>
 
                                 <div className="mt-12 pt-8 border-t border-gray-200 flex flex-col sm:flex-row justify-between gap-4 ml-0 md:ml-16">
-                                    <button 
+                                    <button
                                         onClick={() => setCurrentStep(1)}
                                         className="py-4 px-8 rounded-2xl font-bold text-lg md:text-xl text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-4 focus:ring-gray-300 transition-colors flex items-center justify-center gap-3"
                                     >
                                         <ChevronLeft size={24} /> Atrás
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={() => setCurrentStep(3)}
                                         disabled={!selectedTime}
-                                        className={`py-4 px-10 rounded-2xl font-extrabold text-xl flex items-center justify-center gap-3 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 ${
-                                            selectedTime ? 'bg-blue-700 text-white hover:bg-blue-800 shadow-lg transform hover:-translate-y-1' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                        }`}
+                                        className={`py-4 px-10 rounded-2xl font-extrabold text-xl flex items-center justify-center gap-3 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 ${selectedTime ? 'bg-blue-700 text-white hover:bg-blue-800 shadow-lg transform hover:-translate-y-1' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                            }`}
                                     >
                                         <span>Continuar</span>
                                         <ArrowRight size={24} aria-hidden="true" />
@@ -628,13 +628,13 @@ export default function BookingPage() {
                                     </div>
                                     Resumen Final
                                 </h2>
-                                
+
                                 <div className="space-y-8 mb-12">
                                     <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
                                         <p className="text-gray-500 text-base font-medium mb-1">Servicio seleccionado</p>
                                         <p className="font-bold text-gray-900 text-2xl">{selectedService}</p>
                                     </div>
-                                    
+
                                     <div className="bg-gray-50 rounded-xl p-6 border border-gray-100 flex items-center gap-4">
                                         {selectedSpecialist?.profile_picture ? (
                                             <img src={selectedSpecialist.profile_picture} alt="" className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-sm" />
@@ -650,7 +650,7 @@ export default function BookingPage() {
                                             </p>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="flex flex-col sm:flex-row gap-6">
                                         <div className="bg-blue-50 rounded-xl p-6 border border-blue-100 flex-1">
                                             <p className="text-blue-800 text-base font-medium mb-1">Día asignado</p>
@@ -668,17 +668,17 @@ export default function BookingPage() {
                                 </div>
 
                                 <div className="mt-12 pt-8 border-t border-gray-200 flex flex-col-reverse sm:flex-row justify-between gap-4">
-                                    <button 
+                                    <button
                                         onClick={() => setCurrentStep(2)}
                                         className="py-4 px-8 rounded-2xl font-bold text-lg md:text-xl text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-4 focus:ring-gray-300 transition-colors flex items-center justify-center gap-3 w-full sm:w-auto"
                                     >
                                         <ChevronLeft size={24} /> Volver
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={handleConfirmClick}
                                         className="py-4 px-10 rounded-2xl font-extrabold text-xl flex items-center justify-center gap-3 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 bg-blue-700 text-white hover:bg-blue-800 shadow-xl shadow-blue-700/20 transform hover:-translate-y-1 w-full sm:w-auto flex-1"
                                     >
-                                        Confirmar Turno
+                                        Continuar
                                         <CheckCircle2 size={28} aria-hidden="true" />
                                     </button>
                                 </div>
@@ -690,7 +690,7 @@ export default function BookingPage() {
 
             {/* Modal de confirmación final */}
             {showModal && (
-                <div 
+                <div
                     className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-50 flex justify-center items-center p-4 overflow-y-auto"
                     role="dialog"
                     aria-modal="true"
@@ -732,30 +732,30 @@ export default function BookingPage() {
                                     <h3 id="modal-title" className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-2">Complete sus datos</h3>
                                     <p className="text-gray-600 text-lg">Necesitamos esta información básica para registrar su reserva de forma segura.</p>
                                 </header>
-                                
+
                                 <div className="flex flex-col gap-6 mb-8">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
                                             <label htmlFor="patientName" className="block text-base font-bold text-gray-900 mb-2">Nombre y Apellido *</label>
-                                            <input 
+                                            <input
                                                 id="patientName"
-                                                type="text" 
+                                                type="text"
                                                 value={patientName}
                                                 onChange={(e) => setPatientName(e.target.value)}
                                                 placeholder="Ej. Juan Pérez"
-                                                className="w-full border-2 border-gray-300 rounded-xl px-5 py-4 text-lg text-gray-900 outline-none focus:border-blue-700 focus:ring-4 focus:ring-blue-100 transition-all bg-gray-50 focus:bg-white" 
+                                                className="w-full border-2 border-gray-300 rounded-xl px-5 py-4 text-lg text-gray-900 outline-none focus:border-blue-700 focus:ring-4 focus:ring-blue-100 transition-all bg-gray-50 focus:bg-white"
                                                 required
                                             />
                                         </div>
                                         <div>
                                             <label htmlFor="patientDni" className="block text-base font-bold text-gray-900 mb-2">Documento (DNI) *</label>
-                                            <input 
+                                            <input
                                                 id="patientDni"
-                                                type="text" 
+                                                type="text"
                                                 value={patientDni}
                                                 onChange={(e) => setPatientDni(e.target.value)}
                                                 placeholder="Ej. 12345678"
-                                                className="w-full border-2 border-gray-300 rounded-xl px-5 py-4 text-lg text-gray-900 outline-none focus:border-blue-700 focus:ring-4 focus:ring-blue-100 transition-all bg-gray-50 focus:bg-white" 
+                                                className="w-full border-2 border-gray-300 rounded-xl px-5 py-4 text-lg text-gray-900 outline-none focus:border-blue-700 focus:ring-4 focus:ring-blue-100 transition-all bg-gray-50 focus:bg-white"
                                                 required
                                             />
                                         </div>
@@ -763,29 +763,29 @@ export default function BookingPage() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
                                             <label htmlFor="patientPhone" className="block text-base font-bold text-gray-900 mb-2">Teléfono de contacto *</label>
-                                            <input 
+                                            <input
                                                 id="patientPhone"
-                                                type="tel" 
+                                                type="tel"
                                                 value={patientPhone}
                                                 onChange={(e) => setPatientPhone(e.target.value)}
                                                 placeholder="Ej. 1122334455"
-                                                className="w-full border-2 border-gray-300 rounded-xl px-5 py-4 text-lg text-gray-900 outline-none focus:border-blue-700 focus:ring-4 focus:ring-blue-100 transition-all bg-gray-50 focus:bg-white" 
+                                                className="w-full border-2 border-gray-300 rounded-xl px-5 py-4 text-lg text-gray-900 outline-none focus:border-blue-700 focus:ring-4 focus:ring-blue-100 transition-all bg-gray-50 focus:bg-white"
                                                 required
                                             />
                                         </div>
                                         <div>
                                             <label htmlFor="patientEmail" className="block text-base font-bold text-gray-900 mb-2">Correo Electrónico</label>
-                                            <input 
+                                            <input
                                                 id="patientEmail"
-                                                type="email" 
+                                                type="email"
                                                 value={patientEmail}
                                                 onChange={(e) => setPatientEmail(e.target.value)}
                                                 placeholder="tu@email.com"
-                                                className="w-full border-2 border-gray-300 rounded-xl px-5 py-4 text-lg text-gray-900 outline-none focus:border-blue-700 focus:ring-4 focus:ring-blue-100 transition-all bg-gray-50 focus:bg-white" 
+                                                className="w-full border-2 border-gray-300 rounded-xl px-5 py-4 text-lg text-gray-900 outline-none focus:border-blue-700 focus:ring-4 focus:ring-blue-100 transition-all bg-gray-50 focus:bg-white"
                                             />
                                         </div>
                                     </div>
-                                    
+
                                     {!accessToken && (
                                         <div className="bg-blue-50 p-6 rounded-2xl border border-blue-200 mt-2">
                                             <h4 className="font-bold text-blue-900 text-lg mb-2 flex items-center gap-2">
@@ -799,13 +799,13 @@ export default function BookingPage() {
                                                 <div>
                                                     <label htmlFor="password" className="block text-sm font-bold text-gray-900 mb-2">Crear Contraseña</label>
                                                     <div className="relative">
-                                                        <input 
+                                                        <input
                                                             id="password"
                                                             type={showPassword ? "text" : "password"}
                                                             value={password}
                                                             onChange={(e) => setPassword(e.target.value)}
                                                             placeholder="Mínimo 6 caracteres"
-                                                            className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 text-base text-gray-900 outline-none focus:border-blue-700 focus:ring-4 focus:ring-blue-100 transition-all bg-white pr-12" 
+                                                            className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 text-base text-gray-900 outline-none focus:border-blue-700 focus:ring-4 focus:ring-blue-100 transition-all bg-white pr-12"
                                                         />
                                                         <button
                                                             type="button"
@@ -820,13 +820,13 @@ export default function BookingPage() {
                                                 <div>
                                                     <label htmlFor="confirmPassword" className="block text-sm font-bold text-gray-900 mb-2">Repetir Contraseña</label>
                                                     <div className="relative">
-                                                        <input 
+                                                        <input
                                                             id="confirmPassword"
                                                             type={showConfirmPassword ? "text" : "password"}
                                                             value={confirmPassword}
                                                             onChange={(e) => setConfirmPassword(e.target.value)}
                                                             placeholder="Vuelva a escribirla"
-                                                            className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 text-base text-gray-900 outline-none focus:border-blue-700 focus:ring-4 focus:ring-blue-100 transition-all bg-white pr-12" 
+                                                            className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 text-base text-gray-900 outline-none focus:border-blue-700 focus:ring-4 focus:ring-blue-100 transition-all bg-white pr-12"
                                                         />
                                                         <button
                                                             type="button"
@@ -856,18 +856,18 @@ export default function BookingPage() {
                                 )}
 
                                 <div className="flex flex-col sm:flex-row gap-4 mt-8 pt-6 border-t border-gray-200">
-                                    <button 
+                                    <button
                                         onClick={() => setShowModal(false)}
                                         className="w-full sm:w-1/3 py-4 bg-gray-100 text-gray-800 rounded-xl font-bold text-lg hover:bg-gray-200 focus:outline-none focus:ring-4 focus:ring-gray-300 transition-colors"
                                     >
                                         Volver atrás
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={handleSubmitAppointment}
                                         disabled={isCreating || !patientName || !patientDni || !patientPhone}
                                         className={`w-full sm:w-2/3 py-4 text-white rounded-xl font-bold text-lg flex justify-center items-center gap-3 transition-all focus:outline-none focus:ring-4 focus:ring-blue-300
-                                            ${isCreating || !patientName || !patientDni || !patientPhone 
-                                                ? 'bg-blue-400 cursor-not-allowed opacity-70' 
+                                            ${isCreating || !patientName || !patientDni || !patientPhone
+                                                ? 'bg-blue-400 cursor-not-allowed opacity-70'
                                                 : 'bg-blue-700 hover:bg-blue-800 shadow-lg'
                                             }
                                         `}
@@ -885,9 +885,9 @@ export default function BookingPage() {
                                         )}
                                     </button>
                                 </div>
-                                
+
                                 <p className="text-center text-sm text-gray-500 mt-6 flex items-center justify-center gap-2">
-                                    <Check size={16} className="text-green-600" aria-hidden="true"/>
+                                    <Check size={16} className="text-green-600" aria-hidden="true" />
                                     Tus datos están protegidos y seguros con nosotros.
                                 </p>
                             </>
