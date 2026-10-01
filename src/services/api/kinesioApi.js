@@ -365,6 +365,34 @@ export const kinesioApi = authApi.injectEndpoints({
                 body: data,
             }),
             invalidatesTags: ['MedicalRecords']
+        }),
+        // Tasks
+        getTasks: build.query({
+            query: () => '/api/kinesio/tasks',
+            providesTags: ['Tasks']
+        }),
+        createTask: build.mutation({
+            query: (data) => ({
+                url: '/api/kinesio/tasks',
+                method: 'POST',
+                body: data,
+            }),
+            invalidatesTags: ['Tasks']
+        }),
+        updateTask: build.mutation({
+            query: ({ id, ...data }) => ({
+                url: `/api/kinesio/tasks/${id}`,
+                method: 'PUT',
+                body: data,
+            }),
+            invalidatesTags: ['Tasks']
+        }),
+        deleteTask: build.mutation({
+            query: (id) => ({
+                url: `/api/kinesio/tasks/${id}`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: ['Tasks']
         })
     }),
     overrideExisting: false,
@@ -419,5 +447,9 @@ export const {
     useUpdateTemplateMutation,
     useGetMedicalRecordsQuery,
     useCreateMedicalRecordMutation,
-    useUpdateMedicalRecordMutation
+    useUpdateMedicalRecordMutation,
+    useGetTasksQuery,
+    useCreateTaskMutation,
+    useUpdateTaskMutation,
+    useDeleteTaskMutation
 } = kinesioApi;

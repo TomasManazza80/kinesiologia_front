@@ -121,41 +121,41 @@ const PatientProfile = () => {
         return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     };
 
-    if (isLoadingPatients) return <div className="p-8 text-center text-gray-500">Cargando perfil del paciente...</div>;
-    if (!patient) return <div className="p-8 text-center text-red-500">Paciente no encontrado.</div>;
+    if (isLoadingPatients) return <div className="p-4 md:p-8 text-center text-gray-500">Cargando perfil del paciente...</div>;
+    if (!patient) return <div className="p-4 md:p-8 text-center text-red-500">Paciente no encontrado.</div>;
 
     return (
-        <div className="w-full min-h-full bg-[#F8FAFC] p-4 md:p-8 flex flex-col gap-6 font-sans">
+        <div className="w-full min-h-full bg-[#F8FAFC] p-3 md:p-8 flex flex-col gap-5 md:gap-6 font-sans">
             {/* Header / Back Button */}
-            <div className="flex items-center justify-between flex-wrap gap-4">
-                <div className="flex items-center gap-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-start md:items-center gap-3 md:gap-4">
                     <button
                         onClick={() => navigate(-1)}
-                        className="p-2.5 bg-white border border-gray-200 rounded-full hover:bg-gray-50 text-gray-600 transition-colors shadow-sm"
+                        className="flex items-center justify-center min-w-[44px] min-h-[44px] md:p-2.5 bg-white border border-gray-200 rounded-full hover:bg-gray-50 text-gray-600 transition-colors shadow-sm shrink-0"
                     >
                         <ArrowLeft size={20} />
                     </button>
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[#111827]">Perfil del Paciente</h1>
+                        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[#111827] leading-tight">Perfil del Paciente</h1>
                         <p className="text-gray-500 text-sm mt-1">Gestión completa de información y registros.</p>
                     </div>
                 </div>
                 <button
                     onClick={() => setIsShareModalOpen(true)}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl font-bold text-xs transition-all shadow-sm flex items-center gap-2"
+                    className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 md:py-2.5 rounded-xl font-bold text-sm md:text-xs transition-all shadow-sm flex items-center justify-center gap-2 min-h-[44px]"
                     title="Compartir o enviar ficha e historial médico a otro profesional"
                 >
-                    <Share2 size={16} /> Compartir Ficha / Historial
+                    <Share2 size={18} className="md:w-4 md:h-4" /> Compartir Ficha / Historial
                 </button>
             </div>
 
-            <div className="flex flex-col lg:flex-row gap-6 items-start">
+            <div className="flex flex-col lg:flex-row gap-5 md:gap-6 items-start">
 
                 {/* Left Column: Ficha Médica */}
-                <div className="w-full lg:w-1/2 bg-white rounded-2xl border border-gray-100 p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex flex-col gap-6">
-                    <div className="flex justify-between items-center mb-2 border-b border-gray-200 pb-4">
+                <div className="w-full lg:w-1/2 bg-white rounded-2xl border border-gray-100 p-4 md:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex flex-col gap-5 md:gap-6">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-1 md:mb-2 border-b border-gray-200 pb-4">
                         <h2 className="text-xl font-serif text-gray-900">Ficha Médica del Paciente</h2>
-                        <button className="flex items-center gap-2 text-xs text-gray-600 hover:text-gray-900 border border-gray-300 px-3 py-1.5 rounded-lg bg-gray-50" onClick={() => window.print()}>
+                        <button className="flex items-center justify-center gap-2 text-sm md:text-xs text-gray-600 hover:text-gray-900 border border-gray-300 px-4 md:px-3 py-2 md:py-1.5 rounded-lg bg-gray-50 min-h-[44px] w-full sm:w-auto" onClick={() => window.print()}>
                             Imprimir Ficha
                         </button>
                     </div>
@@ -167,7 +167,7 @@ const PatientProfile = () => {
                 </div>
 
                 {/* Right Column: Tabs & Content */}
-                <div className="w-full lg:w-1/2 flex flex-col gap-4">
+                <div className="w-full lg:w-1/2 flex flex-col gap-5 md:gap-4">
                     
                     <PatientRoadmap 
                         currentStage={patient.admissionData?.roadmapStage || 0}
@@ -216,22 +216,22 @@ const PatientProfile = () => {
                         }}
                     />
 
-                    <div className="flex bg-white rounded-xl border border-gray-100 p-1.5 shadow-sm w-full md:w-fit overflow-x-auto">
+                    <div className="flex flex-col sm:flex-row bg-white rounded-xl border border-gray-100 p-1.5 shadow-sm w-full lg:w-fit overflow-hidden gap-1 sm:gap-0">
                         <button
                             onClick={() => setActiveTab('clinica')}
-                            className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'clinica' ? 'bg-[#0A58CA] text-white shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
+                            className={`min-h-[44px] w-full sm:flex-1 md:flex-none px-6 py-3 md:py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center justify-center ${activeTab === 'clinica' ? 'bg-[#0A58CA] text-white shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
                         >
                             Inicio y Datos
                         </button>
                         <button
                             onClick={() => setActiveTab('turnos')}
-                            className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'turnos' ? 'bg-[#0A58CA] text-white shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
+                            className={`min-h-[44px] w-full sm:flex-1 md:flex-none px-6 py-3 md:py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center justify-center ${activeTab === 'turnos' ? 'bg-[#0A58CA] text-white shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
                         >
                             Historial de Turnos ({patientAppointments.length})
                         </button>
                         <button
                             onClick={() => setActiveTab('ciclos')}
-                            className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'ciclos' ? 'bg-[#0A58CA] text-white shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
+                            className={`min-h-[44px] w-full sm:flex-1 md:flex-none px-6 py-3 md:py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center justify-center ${activeTab === 'ciclos' ? 'bg-[#0A58CA] text-white shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
                         >
                             Ciclos Terminados ({patient.admissionData?.completedCycles?.length || 0})
                         </button>
@@ -240,19 +240,19 @@ const PatientProfile = () => {
                     {/* Tab Content: Turnos */}
                     {activeTab === 'turnos' && (
                         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex flex-col">
-                            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+                            <div className="p-4 md:p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><Calendar size={20} /></div>
+                                    <div className="p-2 bg-blue-50 text-blue-600 rounded-lg shrink-0"><Calendar size={20} /></div>
                                     <h3 className="font-bold text-gray-900 text-lg">Turnos Registrados ({patientAppointments.length})</h3>
                                 </div>
-                                <span className="text-xs text-gray-500 font-medium">Selecciona un turno para destacar</span>
+                                <span className="text-xs text-gray-500 font-medium sm:text-right">Selecciona un turno para destacar</span>
                             </div>
 
                             <div className="flex flex-col divide-y divide-gray-100">
                                 {isLoadingAppointments ? (
                                     <div className="p-8 text-center text-gray-500 text-sm font-medium">Cargando turnos...</div>
                                 ) : patientAppointments.length === 0 ? (
-                                    <div className="p-12 flex flex-col items-center justify-center text-center">
+                                    <div className="p-8 md:p-12 flex flex-col items-center justify-center text-center">
                                         <div className="w-16 h-16 bg-gray-50 text-gray-300 rounded-full flex items-center justify-center mb-4">
                                             <Calendar size={32} />
                                         </div>
@@ -268,36 +268,36 @@ const PatientProfile = () => {
                                             <div
                                                 key={appt.id}
                                                 onClick={() => setSelectedAppointmentId(isSelected ? null : appt.id)}
-                                                className={`p-5 transition-all cursor-pointer flex items-center justify-between ${isSelected ? 'bg-blue-50/80 border-l-4 border-l-[#0A58CA]' : 'hover:bg-gray-50/50'
+                                                className={`p-4 md:p-5 transition-all cursor-pointer flex items-center justify-between gap-2 md:gap-4 min-h-[64px] ${isSelected ? 'bg-blue-50/80 border-l-4 border-l-[#0A58CA]' : 'hover:bg-gray-50/50'
                                                     }`}
                                             >
-                                                <div className="flex items-center gap-4">
+                                                <div className="flex items-start sm:items-center gap-3 md:gap-4 w-full min-w-0">
                                                     <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center border shrink-0 ${isSelected ? 'bg-[#0A58CA] text-white border-[#0A58CA]' : isPast ? 'bg-gray-50 border-gray-200 text-gray-500' : 'bg-blue-50 border-blue-100 text-blue-700'
                                                         }`}>
                                                         <span className="text-xs font-bold uppercase">{date.format('MMM')}</span>
                                                         <span className="text-lg font-black leading-none">{date.format('DD')}</span>
                                                     </div>
-                                                    <div>
-                                                        <div className="flex items-center gap-2">
-                                                            <h4 className="font-bold text-gray-900">{date.format('dddd, DD MMMM YYYY')}</h4>
-                                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${appt.estado === 'completado' ? 'bg-green-100 text-green-700' : appt.estado === 'cancelado' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                                                    <div className="flex flex-col flex-1 min-w-0">
+                                                        <div className="flex flex-wrap items-center gap-2">
+                                                            <h4 className="font-bold text-gray-900 text-sm md:text-base truncate">{date.format('dddd, DD MMMM YYYY')}</h4>
+                                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide whitespace-nowrap ${appt.estado === 'completado' ? 'bg-green-100 text-green-700' : appt.estado === 'cancelado' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
                                                                 }`}>
                                                                 {appt.estado || 'Pendiente'}
                                                             </span>
                                                         </div>
-                                                        <div className="flex items-center gap-4 mt-1">
-                                                            <span className="text-sm font-medium text-gray-500 flex items-center gap-1.5">
-                                                                <Clock size={14} /> {date.format('HH:mm')} hs
+                                                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 mt-1">
+                                                            <span className="text-xs md:text-sm font-medium text-gray-500 flex items-center gap-1.5">
+                                                                <Clock size={14} className="shrink-0" /> {date.format('HH:mm')} hs
                                                             </span>
                                                             {appt.motivo && (
-                                                                <span className="text-sm text-gray-500 flex items-center gap-1.5 border-l border-gray-200 pl-4">
-                                                                    <Stethoscope size={14} /> {appt.motivo}
+                                                                <span className="text-xs md:text-sm text-gray-500 flex items-start sm:items-center gap-1.5 sm:border-l sm:border-gray-200 sm:pl-4">
+                                                                    <Stethoscope size={14} className="shrink-0 mt-0.5 sm:mt-0" /> <span className="line-clamp-2 sm:line-clamp-1">{appt.motivo}</span>
                                                                 </span>
                                                             )}
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <ChevronRight size={18} className={`transition-transform ${isSelected ? 'text-[#0A58CA] translate-x-1' : 'text-gray-300'}`} />
+                                                <ChevronRight size={18} className={`transition-transform shrink-0 ${isSelected ? 'text-[#0A58CA] translate-x-1' : 'text-gray-300'}`} />
                                             </div>
                                         );
                                     })
@@ -315,7 +315,7 @@ const PatientProfile = () => {
 
                     {/* Tab Content: Ciclos Terminados */}
                     {activeTab === 'ciclos' && (
-                        <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-6 min-h-[500px]">
+                        <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-4 md:p-6 min-h-[400px] md:min-h-[500px]">
                             {patient.admissionData?.completedCycles?.length > 0 ? (
                                 <CompletedCyclesList 
                                     cycles={patient.admissionData.completedCycles} 
@@ -337,11 +337,11 @@ const PatientProfile = () => {
                                     }}
                                 />
                             ) : (
-                                <div className="h-full flex flex-col items-center justify-center py-20">
+                                <div className="h-full flex flex-col items-center justify-center py-12 md:py-20">
                                     <div className="w-16 h-16 bg-green-50 text-green-300 rounded-full flex items-center justify-center mb-4">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-file-check"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m9 15 2 2 4-4"/></svg>
                                     </div>
-                                    <p className="text-gray-500 font-medium text-center max-w-sm">Este paciente aún no ha completado ningún ciclo de tratamiento de 3 meses.</p>
+                                    <p className="text-gray-500 font-medium text-center max-w-sm text-sm md:text-base">Este paciente aún no ha completado ningún ciclo de tratamiento de 3 meses.</p>
                                 </div>
                             )}
                         </div>
@@ -365,17 +365,17 @@ const PatientProfile = () => {
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
                         <div className="flex justify-between items-center p-4 border-b border-gray-100 bg-gray-50">
                             <h3 className="font-bold text-lg text-gray-900">Editar Información del Paciente</h3>
-                            <button onClick={() => setIsEditModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                            <button onClick={() => setIsEditModalOpen(false)} className="text-gray-400 hover:text-gray-600 min-w-[44px] min-h-[44px] flex items-center justify-center">
                                 <X size={20} />
                             </button>
                         </div>
-                        <div className="p-6 flex-1 overflow-y-auto">
+                        <div className="p-4 md:p-6 flex-1 overflow-y-auto">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="col-span-1 md:col-span-2">
                                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Nombre Completo</label>
                                     <input
                                         type="text"
-                                        className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                                        className="w-full border border-gray-200 rounded-lg p-3 md:p-2.5 text-base md:text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none min-h-[44px]"
                                         value={editFormData.nombre}
                                         onChange={(e) => setEditFormData({ ...editFormData, nombre: e.target.value })}
                                     />
@@ -384,7 +384,7 @@ const PatientProfile = () => {
                                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">DNI</label>
                                     <input
                                         type="text"
-                                        className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                                        className="w-full border border-gray-200 rounded-lg p-3 md:p-2.5 text-base md:text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none min-h-[44px]"
                                         value={editFormData.dni}
                                         onChange={(e) => setEditFormData({ ...editFormData, dni: e.target.value })}
                                     />
@@ -393,7 +393,7 @@ const PatientProfile = () => {
                                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Fecha Nacimiento</label>
                                     <input
                                         type="date"
-                                        className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                                        className="w-full border border-gray-200 rounded-lg p-3 md:p-2.5 text-base md:text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none min-h-[44px]"
                                         value={editFormData.fecha_nacimiento}
                                         onChange={(e) => setEditFormData({ ...editFormData, fecha_nacimiento: e.target.value })}
                                     />
@@ -401,7 +401,7 @@ const PatientProfile = () => {
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Género</label>
                                     <select
-                                        className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                                        className="w-full border border-gray-200 rounded-lg p-3 md:p-2.5 text-base md:text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none min-h-[44px] bg-white"
                                         value={editFormData.gender}
                                         onChange={(e) => setEditFormData({ ...editFormData, gender: e.target.value })}
                                     >
@@ -414,7 +414,7 @@ const PatientProfile = () => {
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Grupo Sanguíneo</label>
                                     <select
-                                        className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                                        className="w-full border border-gray-200 rounded-lg p-3 md:p-2.5 text-base md:text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none min-h-[44px] bg-white"
                                         value={editFormData.blood_type}
                                         onChange={(e) => setEditFormData({ ...editFormData, blood_type: e.target.value })}
                                     >
@@ -429,7 +429,7 @@ const PatientProfile = () => {
                                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Teléfono</label>
                                     <input
                                         type="tel"
-                                        className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                                        className="w-full border border-gray-200 rounded-lg p-3 md:p-2.5 text-base md:text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none min-h-[44px]"
                                         value={editFormData.phone}
                                         onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
                                     />
@@ -438,17 +438,17 @@ const PatientProfile = () => {
                                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Email</label>
                                     <input
                                         type="email"
-                                        className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                                        className="w-full border border-gray-200 rounded-lg p-3 md:p-2.5 text-base md:text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none min-h-[44px]"
                                         value={editFormData.email}
                                         onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
                                     />
                                 </div>
                             </div>
                         </div>
-                        <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+                        <div className="p-4 border-t border-gray-100 bg-gray-50 flex flex-col-reverse sm:flex-row justify-end gap-3">
                             <button
                                 onClick={() => setIsEditModalOpen(false)}
-                                className="px-5 py-2.5 rounded-lg text-gray-600 font-bold hover:bg-gray-200 transition-colors text-sm"
+                                className="w-full sm:w-auto px-5 py-3 md:py-2.5 rounded-lg text-gray-600 font-bold hover:bg-gray-200 transition-colors text-sm min-h-[44px]"
                             >
                                 Cancelar
                             </button>
@@ -474,7 +474,7 @@ const PatientProfile = () => {
                                         console.error(e);
                                     }
                                 }}
-                                className="px-5 py-2.5 rounded-lg bg-[#0A58CA] hover:bg-blue-700 text-white font-bold transition-colors shadow-sm text-sm disabled:opacity-50 flex items-center gap-2"
+                                className="w-full sm:w-auto px-5 py-3 md:py-2.5 rounded-lg bg-[#0A58CA] hover:bg-blue-700 text-white font-bold transition-colors shadow-sm text-sm disabled:opacity-50 flex items-center justify-center gap-2 min-h-[44px]"
                             >
                                 {isUpdatingPatient ? <Loader2 size={16} className="animate-spin" /> : 'Guardar Cambios'}
                             </button>

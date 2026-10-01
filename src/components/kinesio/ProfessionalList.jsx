@@ -124,6 +124,9 @@ const ProfessionalList = () => {
         return matchesSearch && matchesRole;
     });
 
+    const activeProfessionals = filteredProfessionals.filter(p => p.is_active !== false);
+    const inactiveProfessionals = filteredProfessionals.filter(p => p.is_active === false);
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
@@ -316,8 +319,8 @@ const ProfessionalList = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
-                                {filteredProfessionals.length > 0 ? (
-                                    filteredProfessionals.map((prof) => (
+                                {activeProfessionals.length > 0 ? (
+                                    activeProfessionals.map((prof) => (
                                         <tr key={prof.id} className={`hover:bg-gray-50/50 transition-colors ${prof.is_active === false ? 'opacity-60 bg-gray-50' : ''}`}>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
@@ -428,6 +431,135 @@ const ProfessionalList = () => {
                                 )}
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            )}
+
+            {inactiveProfessionals.length > 0 && (
+                <div className="mt-8">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <Trash2 size={20} className="text-gray-400" />
+                        Profesionales Inactivos / Eliminados
+                    </h3>
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden opacity-80">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm text-gray-500">
+                                <thead className="bg-[#F8FAFC] text-xs uppercase text-gray-700 font-bold border-b border-gray-100">
+                                    <tr>
+                                        <th className="px-6 py-4">Profesional</th>
+                                        <th className="px-6 py-4">Contacto</th>
+                                        <th className="px-6 py-4">Rol</th>
+                                        <th className="px-6 py-4">Registrado El</th>
+                                        <th className="px-6 py-4 text-center">Público (Web)</th>
+                                        <th className="px-6 py-4 text-right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {inactiveProfessionals.map((prof) => (
+                                        <tr key={prof.id} className={`hover:bg-gray-50/50 transition-colors ${prof.is_active === false ? 'opacity-60 bg-gray-50' : ''}`}>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    {prof.profile_picture ? (
+                                                        <img src={prof.profile_picture} alt={prof.name} className={`w-10 h-10 rounded-full object-cover border border-gray-200 shadow-sm ${prof.is_active === false ? 'grayscale' : ''}`} />
+                                                    ) : (
+                                                        <div className={`w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold shrink-0 ${prof.is_active === false ? 'grayscale bg-gray-200 text-gray-500' : ''}`}>
+                                                            {(prof.name || prof.email).charAt(0).toUpperCase()}
+                                                        </div>
+                                                    )}
+                                                    <div>
+                                                        <p className="font-bold text-gray-900 flex items-center gap-2">
+                                                            {prof.name || '-'}
+                                                            {prof.is_active === false && (
+                                                                <span className="bg-gray-200 text-gray-600 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-gray-300">Inactivo</span>
+                                                            )}
+                                                        </p>
+                                                        <p className="text-xs text-gray-400 mt-0.5">{(prof.specialty && prof.specialty.length > 0) ? prof.specialty.join(', ') : 'Kinesiología'}</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-2 text-gray-600">
+                                                    <Mail size={16} className="text-gray-400" />
+                                                    {prof.email}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className={`px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1 w-max ${
+                                                    prof.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700'
+                                                }`}>
+                                                    <Shield size={12} />
+                                                    {prof.role}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600">
+                                                    <Calendar size={14} className="text-gray-400" />
+                                                    {prof.createdAt ? dayjs(prof.createdAt).format('DD/MM/YYYY') : '-'}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <label className="relative inline-flex items-center cursor-pointer">
+                                                    <input 
+                                                        type="checkbox" 
+                                                        className="sr-only peer"
+                                                        checked={prof.is_public || false}
+                                                        onChange={async (e) => {
+                                                            try {
+                                                                await updateProfessional({ id: prof.id, is_public: e.target.checked }).unwrap();
+                                                                toast({ title: 'Actualizado', description: 'Visibilidad actualizada.', variant: 'success' });
+                                                            } catch(err) {
+                                                                toast({ title: 'Error', description: 'No se pudo actualizar.', variant: 'error' });
+                                                            }
+                                                        }}
+                                                    />
+                                                    <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500"></div>
+                                                </label>
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                 <div className="flex items-center justify-end gap-3">
+                                                     <button 
+                                                         onClick={() => {
+                                                             setSelectedProfessional(prof);
+                                                             setEditFormData(prof);
+                                                             setIsEditing(false);
+                                                         }}
+                                                         className="text-blue-500 hover:text-blue-700 font-semibold text-sm"
+                                                     >
+                                                         Ver Detalle
+                                                     </button>
+                                                     {prof.is_active === false ? (
+                                                         <button 
+                                                             onClick={async () => {
+                                                                 try {
+                                                                     await updateProfessional({ id: prof.id, is_active: true }).unwrap();
+                                                                     toast({ title: 'Restaurado', description: 'Profesional restaurado correctamente.', variant: 'success' });
+                                                                 } catch (err) {
+                                                                     toast({ title: 'Error', description: 'Error al restaurar profesional.', variant: 'error' });
+                                                                 }
+                                                             }}
+                                                             className="text-green-500 hover:text-green-700 font-semibold text-sm flex items-center gap-1"
+                                                             title="Restaurar profesional"
+                                                         >
+                                                             <RotateCcw size={15} />
+                                                             Restaurar
+                                                         </button>
+                                                     ) : (
+                                                         <button 
+                                                             onClick={() => handleDeleteProfessional(prof.id, prof.name)}
+                                                             className="text-red-500 hover:text-red-700 font-semibold text-sm flex items-center gap-1"
+                                                             title="Eliminar profesional"
+                                                         >
+                                                             <Trash2 size={15} />
+                                                             Eliminar
+                                                         </button>
+                                                     )}
+                                                 </div>
+                                             </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             )}

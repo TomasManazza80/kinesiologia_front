@@ -71,7 +71,7 @@ const AppointmentCalendar = () => {
 
     // Data Fetching
     const { data: professionalsData, isLoading: isProfLoading } = useGetProfessionalsQuery();
-    const professionals = (professionalsData?.data || []).filter(p => p.is_active !== false);
+    const professionals = (professionalsData?.data || []).filter(p => p.is_active !== false && p.is_active !== 0 && p.is_active !== 'false' && p.is_active !== null && (p.is_public === true || p.is_public === 1 || p.is_public === 'true'));
     const activeProfessionalId = (['ADMIN', 'EMPLOYEE'].includes(user?.role) && selectedProfessional) ? selectedProfessional : user?.id;
 
     const { data: patientsData } = useGetPatientsQuery();
@@ -127,6 +127,35 @@ const AppointmentCalendar = () => {
     }, {
         skip: !isAllApptsModalOpen || !activeProfessionalId
     });
+
+    const { data: availabilityData } = useGetAvailabilityQuery({
+        professional_id: activeProfessionalId
+    }, {
+        skip: !activeProfessionalId
+    });
+
+    const availabilityItems = availabilityData?.data || [];
+    const exceptions = availabilityItems.filter(item => item.is_exception).map(item => item.exception_date);
+    const availableDaysOfWeek = new Set(availabilityItems.filter(item => !item.is_exception).map(item => item.day_of_week));
+
+    const JS_TO_SPANISH_DAY = {
+        0: 'Domingo',
+        1: 'Lunes',
+        2: 'Martes',
+        3: 'Miércoles',
+        4: 'Jueves',
+        5: 'Viernes',
+        6: 'Sábado'
+    };
+
+    const isDayAvailable = (date) => {
+        if (!availabilityItems || availabilityItems.length === 0) return true;
+        const dateStr = dayjs(date).format('YYYY-MM-DD');
+        if (exceptions.includes(dateStr)) return false;
+        
+        const dayOfWeek = JS_TO_SPANISH_DAY[date.getDay()];
+        return availableDaysOfWeek.has(dayOfWeek);
+    };
 
     const displayDays = viewMode === 'Semanal'
         ? Array.from({ length: 7 }, (_, i) => {
@@ -513,6 +542,20 @@ const AppointmentCalendar = () => {
                                 <button onClick={prevWeek} className="p-1.5 text-gray-400 hover:text-gray-600"><ChevronLeft size={16} /></button>
                                 <button onClick={nextWeek} className="p-1.5 text-gray-400 hover:text-gray-600"><ChevronRight size={16} /></button>
                             </div>
+                            
+                            <div className="hidden md:flex items-center gap-4 ml-2 px-4 py-1.5 bg-white border border-gray-100 rounded-full shadow-sm">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-3.5 h-3.5 bg-white border border-gray-300 rounded-sm shadow-inner"></div>
+                                    <span className="text-[11px] uppercase tracking-wider font-bold text-gray-600">Disponibles</span>
+                                </div>
+                                <div className="w-px h-4 bg-gray-200"></div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-3.5 h-3.5 bg-gray-900/20 border border-gray-300 rounded-sm shadow-inner relative overflow-hidden">
+                                        <div className="absolute inset-0" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,0.2) 2px, rgba(0,0,0,0.2) 3px)' }}></div>
+                                    </div>
+                                    <span className="text-[11px] uppercase tracking-wider font-bold text-gray-600">No Disponibles</span>
+                                </div>
+                            </div>
                         </div>
                         {isApptLoading && <div className="text-sm text-gray-500 animate-pulse">Cargando turnos...</div>}
                     </div>
@@ -550,12 +593,21 @@ const AppointmentCalendar = () => {
                             </div>
 
                             {/* Dynamic Columns */}
-                            {appointmentsByDay.map((dayAppts, colIndex) => (
-                                <div key={colIndex} className="relative group border-r border-transparent">
+                            {appointmentsByDay.map((dayAppts, colIndex) => {
+                                const currentDay = displayDays[colIndex];
+                                const isAvailable = isDayAvailable(currentDay);
+
+                                return (
+                                <div key={colIndex} className={`relative group border-r border-transparent ${!isAvailable ? 'bg-gray-900/20' : ''}`}>
                                     <div className="absolute inset-0 bg-transparent group-hover:bg-gray-50/50 transition-colors pointer-events-none" />
+                                    {!isAvailable && (
+                                        <div className="absolute inset-0 pointer-events-none" style={{
+                                            backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(0,0,0,0.2) 8px, rgba(0,0,0,0.2) 9px)'
+                                        }}></div>
+                                    )}
                                     {dayAppts.map(renderAppointment)}
                                 </div>
-                            ))}
+                            )})}
                         </div>
                     </div>
                 </div>

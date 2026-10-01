@@ -140,7 +140,8 @@ const FichaMedicaView = ({ patient, legacyHistory, onUpdatePatient }) => {
     main_discomfort: patient?.admissionData?.main_discomfort || '',
     physical_exam: patient?.admissionData?.physical_exam || '',
     step_by_step_plan: patient?.admissionData?.step_by_step_plan || '',
-    next_referral: patient?.admissionData?.next_referral || ''
+    next_referral: patient?.admissionData?.next_referral || '',
+    fecha_valoracion: patient?.admissionData?.fecha_valoracion || dayjs().format('YYYY-MM-DD')
   });
 
   useEffect(() => {
@@ -162,7 +163,8 @@ const FichaMedicaView = ({ patient, legacyHistory, onUpdatePatient }) => {
         main_discomfort: patient.admissionData?.main_discomfort || '',
         physical_exam: patient.admissionData?.physical_exam || '',
         step_by_step_plan: patient.admissionData?.step_by_step_plan || '',
-        next_referral: patient.admissionData?.next_referral || ''
+        next_referral: patient.admissionData?.next_referral || '',
+        fecha_valoracion: patient.admissionData?.fecha_valoracion || dayjs().format('YYYY-MM-DD')
       });
     }
   }, [patient]);
@@ -264,7 +266,9 @@ const FichaMedicaView = ({ patient, legacyHistory, onUpdatePatient }) => {
           <tbody>
             <tr>
               <td className="border border-pink-300 bg-pink-100 font-bold px-2 py-1">Fecha de Valoración:</td>
-              <td className="border border-pink-300 px-4 py-1 bg-white">{dayjs().format('DD/MM/YYYY')}</td>
+              <td className="border border-pink-300 px-4 py-1 bg-white">
+                <EditableField type="date" value={localData.fecha_valoracion} onSave={(val) => updateField('fecha_valoracion', val)} />
+              </td>
             </tr>
           </tbody>
         </table>

@@ -6,7 +6,7 @@ import {
     Activity, Calendar, Clock, UserCheck, ShieldCheck, Heart, 
     Sparkles, ArrowUpRight, ChevronDown, CheckCircle2, Phone, Mail, 
     MapPin, Users, Zap, Award, Stethoscope, ChevronRight, ChevronLeft, Menu, X, LogIn, CalendarCheck,
-    Check, ArrowRight, User, Target
+    Check, ArrowRight, User, Target, Instagram
 } from 'lucide-react';
 import { useGetPublicProfessionalsQuery, useGetAvailableSlotsQuery } from '../../services/api/kinesioApi.js';
 import PublicNavbar from '../nav/PublicNavbar.jsx';
@@ -269,8 +269,16 @@ export default function PausasLanding() {
             a: "Por supuesto. Desde el apartado 'Mis Turnos' en nuestra plataforma o vía WhatsApp puedes gestionar tus citas de forma rápida."
         },
         {
-            q: "¿donde estamos ubicados?",
-            a: "San Geronimo 3194 primer piso timbre 6"
+            q: "¿Dónde estamos ubicados?",
+            a: (
+                <div className="flex items-start gap-2">
+                    <span className="text-[#B59970] mt-0.5 text-xl leading-none">•</span>
+                    <div>
+                        San Gerónimo 3194, 1er piso, timbre 6<br />
+                        Santa Fe Capital
+                    </div>
+                </div>
+            )
         },
         {
             q: "¿donde mas nos podes encontrar?",
@@ -958,6 +966,28 @@ export default function PausasLanding() {
                             </motion.div>
                         ))}
                     </div>
+                    
+                    {/* Mapa Permanente */}
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, amount: 0.5 }}
+                        transition={{ duration: 0.4, delay: 0.2, ease: "easeOut" }}
+                        className="max-w-4xl mx-auto mt-12 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm"
+                    >
+                        <div className="w-full h-[350px] rounded-xl overflow-hidden">
+                            <iframe 
+                                title="Ubicación Pauses"
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3396.84168279143!2d-60.70655089524536!3d-31.638184836126566!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95b5a9b915c79e43%3A0x28e1b110f6e5f8ac!2sSan%20Jer%C3%B3nimo%203194%2C%20S3000FQO%20Santa%20Fe%20de%20la%20Vera%20Cruz%2C%20Santa%20Fe!5e0!3m2!1ses-419!2sar!4v1790830598415!5m2!1ses-419!2sar" 
+                                width="100%" 
+                                height="100%" 
+                                style={{ border: 0 }} 
+                                allowFullScreen="" 
+                                loading="lazy" 
+                                referrerPolicy="strict-origin-when-cross-origin"
+                            ></iframe>
+                        </div>
+                    </motion.div>
                 </div>
             </section>
 
@@ -987,10 +1017,19 @@ export default function PausasLanding() {
 
                         <div>
                             <h4 className="font-bold text-slate-900 uppercase tracking-wider mb-3">Contacto</h4>
-                            <ul className="space-y-2 font-medium">
-                                <li>+54 9 342 554-7811</li>
-                                <li>contacto@centrokinesiologico.com</li>
-                                <li>Santa Fe, Argentina</li>
+                            <ul className="space-y-3 font-medium">
+                                <li className="flex items-center gap-2">
+                                    <Instagram className="w-4 h-4 text-[#B59970]" /> 
+                                    <a href="https://instagram.com/pauses.info" target="_blank" rel="noreferrer" className="hover:text-[#B59970] transition-colors">@pauses.info</a>
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <Mail className="w-4 h-4 text-[#B59970]" /> 
+                                    <a href="mailto:pauses.info@gmail.com" className="hover:text-[#B59970] transition-colors">pauses.info@gmail.com</a>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[#B59970]" /> 
+                                    <span>San Gerónimo 3194, 1er piso, timbre 6<br/>Santa Fe Capital</span>
+                                </li>
                             </ul>
                         </div>
 

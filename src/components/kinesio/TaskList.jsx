@@ -1,8 +1,167 @@
 import React, { useState } from 'react';
-import { Calendar, CalendarClock, CheckCircle2, Circle, Clock, PlusCircle, Check, AlertCircle } from 'lucide-react';
+import { Calendar, CalendarClock, CheckCircle2, Circle, Clock, PlusCircle, Check, AlertCircle, Trash2, Edit2, X } from 'lucide-react';
+import { 
+  useGetTasksQuery, 
+  useCreateTaskMutation, 
+  useUpdateTaskMutation, 
+  useDeleteTaskMutation 
+} from '../../services/api/kinesioApi';
 
 const TaskList = () => {
-  const [newTask, setNewTask] = useState('');
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [editingTitle, setEditingTitle] = useState('');
+
+  const { data: tasks = [], isLoading } = useGetTasksQuery();
+  const [createTask] = useCreateTaskMutation();
+  const [updateTask] = useUpdateTaskMutation();
+  const [deleteTask] = useDeleteTaskMutation();
+
+  const handleAddTask = async () => {
+    if (!newTaskTitle.trim()) return;
+    try {
+      await createTask({ title: newTaskTitle, status: 'pending', due_date: 'Hoy' }).unwrap();
+      setNewTaskTitle('');
+    } catch (err) {
+      console.error('Failed to create task', err);
+    }
+  };
+
+  const handleToggleStatus = async (task) => {
+    try {
+      await updateTask({ 
+        id: task.id, 
+        status: task.status === 'completed' ? 'pending' : 'completed' 
+      }).unwrap();
+    } catch (err) {
+      console.error('Failed to update task', err);
+    }
+  };
+
+  const handleDeleteTask = async (id) => {
+    try {
+      await deleteTask(id).unwrap();
+    } catch (err) {
+      console.error('Failed to delete task', err);
+    }
+  };
+
+  const startEditing = (task) => {
+    setEditingTaskId(task.id);
+    setEditingTitle(task.title);
+  };
+
+  const handleUpdateTitle = async () => {
+    if (!editingTitle.trim()) return;
+    try {
+      await updateTask({ id: editingTaskId, title: editingTitle }).unwrap();
+      setEditingTaskId(null);
+      setEditingTitle('');
+    } catch (err) {
+      console.error('Failed to update task', err);
+    }
+  };
+
+  const cancelEditing = () => {
+    setEditingTaskId(null);
+    setEditingTitle('');
+  };
+
+  if (isLoading) {
+    return <div className="p-8">Cargando tareas...</div>;
+  }
+
+  const completedTasks = tasks.filter(t => t.status === 'completed');
+  const pendingTasks = tasks.filter(t => t.status !== 'completed');
+  
+  // For simplicity, we can just treat all pending as "Hoy" if due_date is "Hoy" or not set, 
+  // and "Próximas" otherwise.
+  const todayTasks = pendingTasks.filter(t => !t.due_date || t.due_date.toLowerCase() === 'hoy');
+  const upcomingTasks = pendingTasks.filter(t => t.due_date && t.due_date.toLowerCase() !== 'hoy');
+
+  const totalTasks = tasks.length;
+  const progressPercent = totalTasks === 0 ? 0 : Math.round((completedTasks.length / totalTasks) * 100);
+
+  const renderTask = (task, isCompleted) => {
+    const isEditing = editingTaskId === task.id;
+
+    return (
+      <div key={task.id} className="flex items-start gap-4 group">
+        <div 
+          className={`mt-0.5 cursor-pointer ${isCompleted ? 'text-[#10B981]' : 'text-gray-300 hover:text-[#0A58CA]'}`}
+          onClick={() => handleToggleStatus(task)}
+        >
+          {isCompleted ? <CheckCircle2 size={20} /> : <div className="w-5 h-5 rounded border-2 border-current flex items-center justify-center"></div>}
+        </div>
+        <div className="flex-1">
+          {isEditing ? (
+            <div className="flex items-center gap-2">
+              <input 
+                type="text" 
+                value={editingTitle}
+                onChange={(e) => setEditingTitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleUpdateTitle();
+                  if (e.key === 'Escape') cancelEditing();
+                }}
+                autoFocus
+                className="flex-1 bg-white border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A58CA]"
+              />
+              <button onClick={handleUpdateTitle} className="text-green-600 hover:text-green-700">
+                <Check size={16} />
+              </button>
+              <button onClick={cancelEditing} className="text-gray-400 hover:text-gray-600">
+                <X size={16} />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <p 
+                className={`text-sm font-medium ${isCompleted ? 'text-gray-400 line-through' : 'text-gray-800'}`}
+                onDoubleClick={() => !isCompleted && startEditing(task)}
+              >
+                {task.title}
+              </p>
+              <div className="flex items-center gap-2">
+                {!isCompleted && (
+                  <button 
+                    className="text-gray-800 hover:text-blue-600 transition-colors"
+                    onClick={() => startEditing(task)}
+                    title="Editar tarea"
+                  >
+                    <Edit2 size={16} />
+                  </button>
+                )}
+                <button 
+                  className="text-gray-800 hover:text-red-600 transition-colors"
+                  onClick={() => handleDeleteTask(task.id)}
+                  title="Eliminar tarea"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {!isCompleted && !isEditing && task.is_high_priority && (
+            <div className="flex items-center gap-1.5 mt-1 text-[#EF4444]">
+              <AlertCircle size={14} />
+              <span className="text-xs font-bold">Alta Prioridad</span>
+            </div>
+          )}
+          {!isCompleted && !isEditing && task.due_time && (
+            <div className="flex items-center gap-1.5 mt-1 text-gray-500">
+              <Clock size={14} />
+              <span className="text-xs font-semibold">{task.due_time}</span>
+            </div>
+          )}
+          {!isCompleted && !isEditing && task.due_date && task.due_date.toLowerCase() !== 'hoy' && (
+            <p className="text-xs font-semibold text-gray-500 mt-1">{task.due_date}</p>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="w-full h-full bg-[#F8FAFC] p-4 md:p-8 flex flex-col gap-6 font-sans overflow-y-auto">
@@ -18,10 +177,10 @@ const TaskList = () => {
         <div className="w-full md:w-64">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm font-semibold text-gray-700">Progreso Diario</span>
-            <span className="text-sm font-bold text-[#0A58CA]">65%</span>
+            <span className="text-sm font-bold text-[#0A58CA]">{progressPercent}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-[#0A58CA] h-2 rounded-full" style={{ width: '65%' }}></div>
+            <div className="bg-[#0A58CA] h-2 rounded-full transition-all duration-500" style={{ width: `${progressPercent}%` }}></div>
           </div>
         </div>
       </div>
@@ -33,12 +192,16 @@ const TaskList = () => {
         </div>
         <input 
           type="text"
-          value={newTask}
-          onChange={(e) => setNewTask(e.target.value)}
+          value={newTaskTitle}
+          onChange={(e) => setNewTaskTitle(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleAddTask()}
           placeholder="Agregar nueva tarea..."
           className="flex-1 bg-transparent border-none text-gray-700 focus:outline-none focus:ring-0 text-base"
         />
-        <button className="bg-[#0A58CA] hover:bg-blue-700 text-white px-6 py-2 rounded-full font-bold shadow-sm transition-colors text-sm">
+        <button 
+          onClick={handleAddTask}
+          className="bg-[#0A58CA] hover:bg-blue-700 text-white px-6 py-2 rounded-full font-bold shadow-sm transition-colors text-sm"
+        >
           Agregar
         </button>
       </div>
@@ -51,48 +214,16 @@ const TaskList = () => {
             <h2 className="text-xl font-bold text-gray-900">Hoy</h2>
           </div>
           <span className="bg-[#EDE9FE] text-[#6D28D9] w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold">
-            3
+            {todayTasks.length}
           </span>
         </div>
 
         <div className="flex flex-col gap-5">
-          {/* Task 1 */}
-          <div className="flex items-start gap-4">
-            <div className="mt-0.5 text-gray-300 hover:text-gray-400 cursor-pointer">
-              <div className="w-5 h-5 rounded border-2 border-gray-300"></div>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-800">Llamar al Paciente X sobre resultados de análisis</p>
-              <div className="flex items-center gap-1.5 mt-1 text-[#EF4444]">
-                <AlertCircle size={14} />
-                <span className="text-xs font-bold">Alta Prioridad</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Task 2 */}
-          <div className="flex items-start gap-4">
-            <div className="mt-0.5 text-gray-300 hover:text-gray-400 cursor-pointer">
-              <div className="w-5 h-5 rounded border-2 border-gray-300"></div>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-800">Revisar resultados de laboratorio del Sr. Smith</p>
-              <div className="flex items-center gap-1.5 mt-1 text-gray-500">
-                <Clock size={14} />
-                <span className="text-xs font-semibold">2:00 PM</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Task 3 */}
-          <div className="flex items-start gap-4">
-            <div className="mt-0.5 text-gray-300 hover:text-gray-400 cursor-pointer">
-              <div className="w-5 h-5 rounded border-2 border-gray-300"></div>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-800">Consulta con el Dr. Lee</p>
-            </div>
-          </div>
+          {todayTasks.length === 0 ? (
+            <p className="text-sm text-gray-400">No hay tareas para hoy.</p>
+          ) : (
+            todayTasks.map(task => renderTask(task, false))
+          )}
         </div>
       </div>
 
@@ -107,25 +238,11 @@ const TaskList = () => {
           </div>
           
           <div className="flex flex-col gap-5">
-            <div className="flex items-start gap-4">
-              <div className="mt-0.5 text-gray-300 hover:text-gray-400 cursor-pointer">
-                <div className="w-5 h-5 rounded border-2 border-gray-300"></div>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-800">Actualizar inventario</p>
-                <p className="text-xs font-semibold text-gray-500 mt-1">Mañana</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="mt-0.5 text-gray-300 hover:text-gray-400 cursor-pointer">
-                <div className="w-5 h-5 rounded border-2 border-gray-300"></div>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-800">Preparar reporte mensual</p>
-                <p className="text-xs font-semibold text-gray-500 mt-1">Viernes</p>
-              </div>
-            </div>
+            {upcomingTasks.length === 0 ? (
+              <p className="text-sm text-gray-400">No hay tareas próximas.</p>
+            ) : (
+              upcomingTasks.map(task => renderTask(task, false))
+            )}
           </div>
         </div>
 
@@ -137,23 +254,11 @@ const TaskList = () => {
           </div>
           
           <div className="flex flex-col gap-5">
-            <div className="flex items-start gap-4">
-              <div className="mt-0.5 text-[#10B981]">
-                <CheckCircle2 size={20} />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-400 line-through">Reunión matutina del equipo</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="mt-0.5 text-[#10B981]">
-                <CheckCircle2 size={20} />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-400 line-through">Revisar signos vitales nocturnos</p>
-              </div>
-            </div>
+            {completedTasks.length === 0 ? (
+              <p className="text-sm text-gray-400">No hay tareas completadas.</p>
+            ) : (
+              completedTasks.map(task => renderTask(task, true))
+            )}
           </div>
         </div>
 
