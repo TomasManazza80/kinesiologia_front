@@ -102,7 +102,7 @@ const PatientList = () => {
       }
 
       return true;
-  });
+  }).sort((a, b) => a.nombre.localeCompare(b.nombre));
 
   const calculateAge = (dob) => {
       if (!dob) return 'N/A';

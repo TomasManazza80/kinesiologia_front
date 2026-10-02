@@ -498,6 +498,130 @@ export default function PausasLanding() {
                 </div>
             </section>
 
+            {/* SECCIÓN PROFESIONALES DISPONIBLES */}
+            <section id="profesionales" className="py-20 bg-white border-t border-slate-200/80">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    
+                    <div className="text-center max-w-2xl mx-auto space-y-3 mb-16">
+                        <span className="text-xs font-bold uppercase tracking-widest text-[#B59970] bg-[#B59970]/5 px-3.5 py-1.5 rounded-full">
+                            NUESTRO EQUIPO
+                        </span>
+                        <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
+                            Profesionales Disponibles
+                        </h2>
+                        <p className="text-slate-600 text-sm font-medium">
+                            Selecciona al especialista con quien deseas realizar tu consulta de evaluación integral.
+                        </p>
+                    </div>
+
+                    {/* Professionals Grid */}
+                    {isLoadingProfs ? (
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-8">
+                            {[1, 2, 3].map((n) => (
+                                <div key={n} className="h-72 bg-slate-100 rounded-2xl md:rounded-3xl animate-pulse" />
+                            ))}
+                        </div>
+                    ) : professionals.length > 0 ? (
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-8">
+                            {professionals.map((prof) => {
+                                const specialtiesList = Array.isArray(prof.specialty) 
+                                    ? prof.specialty.join(', ') 
+                                    : (prof.specialty || 'Kinesiología & Pausas');
+
+                                return (
+                                    <motion.div 
+                                        key={prof.id}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ duration: 0.35, ease: "easeOut" }}
+                                        whileHover={{ y: -6, transition: springConfig }}
+                                        className="bg-[#f8fafc] rounded-2xl md:rounded-3xl p-4 md:p-6 border border-slate-200 hover:border-[#B59970]/40 hover:shadow-xl transition-all flex flex-col justify-between group"
+                                    >
+                                        <div className="space-y-3 md:space-y-4">
+                                            <div className="flex flex-col xl:flex-row items-start xl:items-center gap-2 md:gap-4">
+                                                <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-[#B59970]/15 border border-[#B59970]/30 overflow-hidden flex-shrink-0 flex items-center justify-center text-[#B59970] group-hover:scale-105 transition-transform">
+                                                    {prof.profile_picture || prof.avatar_url || prof.image ? (
+                                                        <img src={prof.profile_picture || prof.avatar_url || prof.image} alt={prof.name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <User className="w-8 h-8" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-bold text-slate-900 text-lg group-hover:text-[#B59970] transition-colors">
+                                                        {prof.name}
+                                                    </h3>
+                                                    <span className="inline-block text-xs font-bold text-[#B59970] bg-[#B59970]/15/70 px-3 py-1 rounded-full mt-1 border border-[#B59970]/30">
+                                                        {specialtiesList}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <p className="text-xs text-slate-600 font-medium line-clamp-3 leading-relaxed">
+                                                {prof.bio || prof.description || 'Profesional certificado con amplia experiencia en atención integral de la menopausia y andropausia.'}
+                                            </p>
+                                        </div>
+
+                                        <div className="pt-4 md:pt-6 border-t border-slate-200/80 mt-4 md:mt-6 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 lg:gap-0">
+                                            <AvailabilityIndicator professionalId={prof.id} />
+                                            <motion.button
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                                onClick={() => navigate(`/reservar?profesional=${prof.id}`)}
+                                                className="w-full lg:w-auto justify-center bg-[#13263E] hover:bg-[#B59970] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1"
+                                            >
+                                                <span>Reservar</span>
+                                                <ArrowUpRight className="w-3.5 h-3.5" />
+                                            </motion.button>
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        // Fallback Professionals Grid
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-8">
+                            {[
+                                { name: "Dra. Carolina Rossi", spec: "Endocrinología", desc: "Especialista en climaterio, menopausia y regulación metabólica integral." },
+                                { name: "Lic. Martín Gómez", spec: "Kinesiólogo Pélvico", desc: "Experto en rehabilitación de suelo pélvico, incontinencia y disfunciones sexuales." },
+                                { name: "Lic. Ana Martínez", spec: "Psicología Clínica", desc: "Acompañamiento terapéutico durante las transiciones hormonales y vitales." }
+                            ].map((prof, i) => (
+                                <motion.div 
+                                    key={i} 
+                                    initial={{ opacity: 0, y: 20 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ duration: 0.35, ease: "easeOut" }}
+                                    whileHover={{ y: -6, transition: springConfig }} 
+                                    className="bg-[#f8fafc] rounded-2xl md:rounded-3xl p-4 md:p-6 border border-slate-200 flex flex-col justify-between"
+                                >
+                                    <div className="space-y-3 md:space-y-4">
+                                        <div className="flex flex-col xl:flex-row items-start xl:items-center gap-2 md:gap-4">
+                                            <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-[#B59970]/15 text-[#B59970] flex items-center justify-center font-bold">
+                                                <User className="w-6 h-6 md:w-7 md:h-7" />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-bold text-slate-900 text-base">{prof.name}</h3>
+                                                <span className="text-xs font-bold text-[#B59970] bg-[#B59970]/15 px-2.5 py-0.5 rounded-full">
+                                                    {prof.spec}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <p className="text-xs text-slate-600 leading-relaxed font-medium">{prof.desc}</p>
+                                    </div>
+                                    <div className="pt-4 md:pt-6 border-t border-slate-200 mt-4 md:mt-6 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 lg:gap-0">
+                                        <span className="text-xs font-bold text-emerald-600">Turnos Disponibles</span>
+                                        <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/reservar')} className="w-full lg:w-auto justify-center bg-[#13263E] text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center">
+                                            Reservar
+                                        </motion.button>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </section>
+
             {/* QUIÉNES SOMOS SECTION */}
             <section id="quienes-somos" className="py-24 bg-[#B59970]/5/50 border-y border-blue-100/80 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-[#B59970]/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
@@ -763,130 +887,6 @@ export default function PausasLanding() {
                         }
                         })}
                     </div>
-                </div>
-            </section>
-
-            {/* SECCIÓN PROFESIONALES DISPONIBLES */}
-            <section id="profesionales" className="py-20 bg-white border-t border-slate-200/80">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    
-                    <div className="text-center max-w-2xl mx-auto space-y-3 mb-16">
-                        <span className="text-xs font-bold uppercase tracking-widest text-[#B59970] bg-[#B59970]/5 px-3.5 py-1.5 rounded-full">
-                            NUESTRO EQUIPO
-                        </span>
-                        <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
-                            Profesionales Disponibles
-                        </h2>
-                        <p className="text-slate-600 text-sm font-medium">
-                            Selecciona al especialista con quien deseas realizar tu consulta de evaluación integral.
-                        </p>
-                    </div>
-
-                    {/* Professionals Grid */}
-                    {isLoadingProfs ? (
-                        <div className="flex md:grid flex-nowrap overflow-x-auto md:overflow-visible md:grid-cols-3 gap-6 md:gap-8 pb-8 md:pb-0 snap-x snap-mandatory hide-scrollbar">
-                            {[1, 2, 3].map((n) => (
-                                <div key={n} className="w-[85vw] sm:w-[320px] md:w-auto flex-shrink-0 snap-center h-72 bg-slate-100 rounded-3xl animate-pulse" />
-                            ))}
-                        </div>
-                    ) : professionals.length > 0 ? (
-                        <div className="flex md:grid flex-nowrap overflow-x-auto md:overflow-visible md:grid-cols-3 gap-6 md:gap-8 pb-8 md:pb-0 snap-x snap-mandatory hide-scrollbar">
-                            {professionals.map((prof) => {
-                                const specialtiesList = Array.isArray(prof.specialty) 
-                                    ? prof.specialty.join(', ') 
-                                    : (prof.specialty || 'Kinesiología & Pausas');
-
-                                return (
-                                    <motion.div 
-                                        key={prof.id}
-                                        initial={{ opacity: 0, y: 20 }}
-                                        whileInView={{ opacity: 1, y: 0 }}
-                                        viewport={{ once: true }}
-                                        transition={{ duration: 0.35, ease: "easeOut" }}
-                                        whileHover={{ y: -6, transition: springConfig }}
-                                        className="w-[85vw] sm:w-[320px] md:w-auto flex-shrink-0 snap-center bg-[#f8fafc] rounded-3xl p-6 border border-slate-200 hover:border-[#B59970]/40 hover:shadow-xl transition-all flex flex-col justify-between group"
-                                    >
-                                        <div className="space-y-4">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-16 h-16 rounded-2xl bg-[#B59970]/15 border border-[#B59970]/30 overflow-hidden flex-shrink-0 flex items-center justify-center text-[#B59970] group-hover:scale-105 transition-transform">
-                                                    {prof.profile_picture || prof.avatar_url || prof.image ? (
-                                                        <img src={prof.profile_picture || prof.avatar_url || prof.image} alt={prof.name} className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <User className="w-8 h-8" />
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <h3 className="font-bold text-slate-900 text-lg group-hover:text-[#B59970] transition-colors">
-                                                        {prof.name}
-                                                    </h3>
-                                                    <span className="inline-block text-xs font-bold text-[#B59970] bg-[#B59970]/15/70 px-3 py-1 rounded-full mt-1 border border-[#B59970]/30">
-                                                        {specialtiesList}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            <p className="text-xs text-slate-600 font-medium line-clamp-3 leading-relaxed">
-                                                {prof.bio || prof.description || 'Profesional certificado con amplia experiencia en atención integral de la menopausia y andropausia.'}
-                                            </p>
-                                        </div>
-
-                                        <div className="pt-6 border-t border-slate-200/80 mt-6 flex items-center justify-between">
-                                            <AvailabilityIndicator professionalId={prof.id} />
-                                            <motion.button
-                                                whileHover={{ scale: 1.05 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                onClick={() => navigate(`/reservar?profesional=${prof.id}`)}
-                                                className="bg-[#13263E] hover:bg-[#B59970] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1"
-                                            >
-                                                <span>Reservar</span>
-                                                <ArrowUpRight className="w-3.5 h-3.5" />
-                                            </motion.button>
-                                        </div>
-                                    </motion.div>
-                                );
-                            })}
-                        </div>
-                    ) : (
-                        // Fallback Professionals Grid
-                        <div className="flex md:grid flex-nowrap overflow-x-auto md:overflow-visible md:grid-cols-3 gap-6 md:gap-8 pb-8 md:pb-0 snap-x snap-mandatory hide-scrollbar">
-                            {[
-                                { name: "Dra. Carolina Rossi", spec: "Endocrinología", desc: "Especialista en climaterio, menopausia y regulación metabólica integral." },
-                                { name: "Lic. Martín Gómez", spec: "Kinesiólogo Pélvico", desc: "Experto en rehabilitación de suelo pélvico, incontinencia y disfunciones sexuales." },
-                                { name: "Lic. Ana Martínez", spec: "Psicología Clínica", desc: "Acompañamiento terapéutico durante las transiciones hormonales y vitales." }
-                            ].map((prof, i) => (
-                                <motion.div 
-                                    key={i} 
-                                    initial={{ opacity: 0, y: 20 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.35, ease: "easeOut" }}
-                                    whileHover={{ y: -6, transition: springConfig }} 
-                                    className="bg-[#f8fafc] rounded-3xl p-6 border border-slate-200 flex flex-col justify-between"
-                                >
-                                    <div className="space-y-4">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-14 h-14 rounded-2xl bg-[#B59970]/15 text-[#B59970] flex items-center justify-center font-bold">
-                                                <User className="w-7 h-7" />
-                                            </div>
-                                            <div>
-                                                <h3 className="font-bold text-slate-900 text-base">{prof.name}</h3>
-                                                <span className="text-xs font-bold text-[#B59970] bg-[#B59970]/15 px-2.5 py-0.5 rounded-full">
-                                                    {prof.spec}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <p className="text-xs text-slate-600 leading-relaxed font-medium">{prof.desc}</p>
-                                    </div>
-                                    <div className="pt-6 border-t border-slate-200 mt-6 flex items-center justify-between">
-                                        <span className="text-xs font-bold text-emerald-600">Turnos Disponibles</span>
-                                        <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/reservar')} className="bg-[#13263E] text-white text-xs font-bold px-4 py-2 rounded-xl">
-                                            Reservar
-                                        </motion.button>
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </div>
-                    )}
                 </div>
             </section>
 

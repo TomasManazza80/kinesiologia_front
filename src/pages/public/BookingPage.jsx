@@ -786,61 +786,7 @@ export default function BookingPage() {
                                         </div>
                                     </div>
 
-                                    {!accessToken && (
-                                        <div className="bg-blue-50 p-6 rounded-2xl border border-blue-200 mt-2">
-                                            <h4 className="font-bold text-blue-900 text-lg mb-2 flex items-center gap-2">
-                                                <User size={24} aria-hidden="true" />
-                                                Crea una cuenta (Opcional)
-                                            </h4>
-                                            <p className="text-base text-blue-800 mb-5">
-                                                Ingresa una contraseña para poder gestionar tus turnos desde nuestro sistema en el futuro.
-                                            </p>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                <div>
-                                                    <label htmlFor="password" className="block text-sm font-bold text-gray-900 mb-2">Crear Contraseña</label>
-                                                    <div className="relative">
-                                                        <input
-                                                            id="password"
-                                                            type={showPassword ? "text" : "password"}
-                                                            value={password}
-                                                            onChange={(e) => setPassword(e.target.value)}
-                                                            placeholder="Mínimo 6 caracteres"
-                                                            className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 text-base text-gray-900 outline-none focus:border-blue-700 focus:ring-4 focus:ring-blue-100 transition-all bg-white pr-12"
-                                                        />
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setShowPassword(!showPassword)}
-                                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-blue-700 focus:outline-none rounded-lg focus:ring-2 focus:ring-blue-600"
-                                                            aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                                                        >
-                                                            {showPassword ? <EyeOff size={24} aria-hidden="true" /> : <Eye size={24} aria-hidden="true" />}
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <label htmlFor="confirmPassword" className="block text-sm font-bold text-gray-900 mb-2">Repetir Contraseña</label>
-                                                    <div className="relative">
-                                                        <input
-                                                            id="confirmPassword"
-                                                            type={showConfirmPassword ? "text" : "password"}
-                                                            value={confirmPassword}
-                                                            onChange={(e) => setConfirmPassword(e.target.value)}
-                                                            placeholder="Vuelva a escribirla"
-                                                            className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 text-base text-gray-900 outline-none focus:border-blue-700 focus:ring-4 focus:ring-blue-100 transition-all bg-white pr-12"
-                                                        />
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-blue-700 focus:outline-none rounded-lg focus:ring-2 focus:ring-blue-600"
-                                                            aria-label={showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                                                        >
-                                                            {showConfirmPassword ? <EyeOff size={24} aria-hidden="true" /> : <Eye size={24} aria-hidden="true" />}
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
+
                                 </div>
 
                                 {requiresPayment && (
