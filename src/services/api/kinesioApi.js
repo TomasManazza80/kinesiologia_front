@@ -49,7 +49,7 @@ export const kinesioApi = authApi.injectEndpoints({
                 method: 'POST',
                 body: data,
             }),
-            invalidatesTags: ['Professionals']
+            invalidatesTags: ['Professionals', 'Users']
         }),
         updateProfessional: build.mutation({
             query: ({ id, ...data }) => ({
@@ -57,14 +57,29 @@ export const kinesioApi = authApi.injectEndpoints({
                 method: 'PUT',
                 body: data,
             }),
-            invalidatesTags: ['Professionals']
+            invalidatesTags: ['Professionals', 'Users']
         }),
         deleteProfessional: build.mutation({
             query: ({ id }) => ({
                 url: `/api/kinesio/professionals/${id}`,
                 method: 'DELETE'
             }),
-            invalidatesTags: ['Professionals']
+            invalidatesTags: ['Professionals', 'Users']
+        }),
+        getUsers: build.query({
+            query: () => ({
+                url: '/api/kinesio/users',
+                method: 'GET',
+            }),
+            providesTags: ['Users'],
+        }),
+        updateUserRole: build.mutation({
+            query: ({ id, role }) => ({
+                url: `/api/kinesio/users/${id}/role`,
+                method: 'PATCH',
+                body: { role },
+            }),
+            invalidatesTags: ['Users', 'Professionals'],
         }),
         updateProfile: build.mutation({
             query: (data) => ({
@@ -451,5 +466,7 @@ export const {
     useGetTasksQuery,
     useCreateTaskMutation,
     useUpdateTaskMutation,
-    useDeleteTaskMutation
+    useDeleteTaskMutation,
+    useGetUsersQuery,
+    useUpdateUserRoleMutation
 } = kinesioApi;

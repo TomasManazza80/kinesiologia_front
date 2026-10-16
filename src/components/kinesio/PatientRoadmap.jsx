@@ -92,17 +92,17 @@ const PatientRoadmap = ({ currentStage, roadmapNotes = {}, onCompleteStage, onFi
       bgClass = 'bg-green-500 hover:bg-green-600';
       borderClass = 'border-green-500';
       textClass = 'text-white';
-      icon = <Check size={16} strokeWidth={3} />;
+      icon = <Check size={14} strokeWidth={3} />;
     } else if (status === 'current') {
       bgClass = 'bg-blue-500 hover:bg-blue-600';
       borderClass = 'border-blue-500 ring-4 ring-blue-100';
       textClass = 'text-white';
-      icon = <Activity size={16} />;
+      icon = <Activity size={14} />;
     } else {
       bgClass = 'bg-white';
       borderClass = 'border-gray-200';
       textClass = 'text-gray-400';
-      icon = <span className="text-xs font-bold">{index + 1}</span>;
+      icon = <span className="text-[11px] font-bold">{index + 1}</span>;
     }
 
     const stageData = roadmapNotes[index];
@@ -112,7 +112,7 @@ const PatientRoadmap = ({ currentStage, roadmapNotes = {}, onCompleteStage, onFi
     return (
       <div className="relative flex flex-col items-center flex-1" key={index}>
         {index < totalStages - 1 && (
-          <div className="absolute top-4 left-[50%] w-full h-[2px] -z-10">
+          <div className="absolute top-3.5 left-[50%] w-full h-[2px] -z-10">
             <div className={`h-full w-full ${status === 'completed' ? 'bg-green-500' : 'bg-gray-200'}`}></div>
           </div>
         )}
@@ -123,30 +123,30 @@ const PatientRoadmap = ({ currentStage, roadmapNotes = {}, onCompleteStage, onFi
             disabled={!isClickable}
             title={isClickable ? "Ver/Añadir anotaciones" : `Instancia ${index + 1}`}
             className={`
-                relative w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-300 z-10
+                relative w-7 h-7 rounded-full flex items-center justify-center border-2 transition-all duration-300 z-10
                 ${bgClass} ${borderClass} ${textClass}
                 ${isClickable ? 'cursor-pointer transform hover:scale-110 shadow-md' : 'cursor-default'}
             `}
             >
             {icon}
             {hasNotes && status === 'completed' && (
-                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-400 border border-white rounded-full"></span>
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 border border-white rounded-full"></span>
             )}
             </button>
             
             {/* Tooltip con autor (solo en desktop) */}
             {authorName && status === 'completed' && (
-                <div className="absolute top-10 w-max max-w-[120px] bg-gray-800 text-white text-[9px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none text-center">
+                <div className="absolute top-9 w-max max-w-[120px] bg-gray-800 text-white text-[9px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none text-center">
                     Completado por:<br/>{authorName}
                 </div>
             )}
         </div>
         
-        <div className={`mt-2 text-[10px] font-bold tracking-wide uppercase text-center ${status === 'current' ? 'text-blue-600' : status === 'completed' ? 'text-green-600' : 'text-gray-400'}`}>
+        <div className={`mt-1.5 text-[9px] font-bold tracking-wide uppercase text-center ${status === 'current' ? 'text-blue-600' : status === 'completed' ? 'text-green-600' : 'text-gray-400'}`}>
           {status === 'current' ? 'Actual' : `Inst. ${index + 1}`}
         </div>
         {status === 'completed' && stageData?.date && (
-            <div className="text-[9px] text-gray-500 font-medium text-center mt-0.5 whitespace-nowrap">
+            <div className="text-[8px] text-gray-500 font-medium text-center mt-0.5 whitespace-nowrap">
                 {dayjs(stageData.date).format('DD/MM/YYYY')}
             </div>
         )}
@@ -156,27 +156,27 @@ const PatientRoadmap = ({ currentStage, roadmapNotes = {}, onCompleteStage, onFi
 
   return (
     <>
-      <div className="w-full bg-white border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] rounded-2xl p-6 mb-6">
-        <div className="flex justify-between items-end mb-6">
+      <div className="w-full bg-white border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] rounded-2xl p-4 sm:p-5 mb-5">
+        <div className="flex justify-between items-end mb-4 gap-2">
           <div>
-            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <Activity className="text-blue-500" />
+            <h2 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-1.5">
+              <Activity size={18} className="text-blue-500 shrink-0" />
               Hoja de Ruta del Tratamiento
             </h2>
-            <p className="text-sm text-gray-500 mt-1">Haz clic en la etapa actual para añadir notas y marcarla como completada. Puedes ver/editar etapas previas.</p>
+            <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">Haz clic en la etapa actual para añadir notas y marcarla como completada. Puedes ver/editar etapas previas.</p>
           </div>
-          <div className="text-right">
-            <div className="text-3xl font-black text-blue-600">{Math.round((safeCurrentStage / totalStages) * 100)}%</div>
-            <div className="text-xs font-bold text-gray-400 uppercase tracking-wide">Completado</div>
+          <div className="text-right shrink-0">
+            <div className="text-2xl font-black text-blue-600 leading-none">{Math.round((safeCurrentStage / totalStages) * 100)}%</div>
+            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mt-0.5">Completado</div>
           </div>
         </div>
 
-        <div className="bg-gray-50/50 rounded-xl p-6 border border-gray-100">
-          <div className="flex flex-col gap-8">
+        <div className="bg-gray-50/50 rounded-xl p-3.5 sm:p-4 border border-gray-100">
+          <div className="flex flex-col gap-5 sm:gap-6">
             <div className="relative">
               <div className="absolute -left-2 top-0 h-full w-1 bg-gradient-to-b from-blue-200 to-indigo-200 rounded-full"></div>
-              <div className="pl-4">
-                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Mes 1: Fase de Ingreso y Estabilización</h3>
+              <div className="pl-3 sm:pl-4">
+                <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2.5">Mes 1: Fase de Ingreso y Estabilización</h3>
                 <div className="flex justify-between items-start w-full relative">
                   {[0, 1, 2, 3].map(i => renderStageNode(i))}
                 </div>
@@ -185,8 +185,8 @@ const PatientRoadmap = ({ currentStage, roadmapNotes = {}, onCompleteStage, onFi
 
             <div className="relative">
               <div className="absolute -left-2 top-0 h-full w-1 bg-gradient-to-b from-indigo-200 to-purple-200 rounded-full"></div>
-              <div className="pl-4">
-                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Mes 2: Desarrollo y Adaptación</h3>
+              <div className="pl-3 sm:pl-4">
+                <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2.5">Mes 2: Desarrollo y Adaptación</h3>
                 <div className="flex justify-between items-start w-full relative">
                   {[4, 5, 6, 7].map(i => renderStageNode(i))}
                 </div>
@@ -195,8 +195,8 @@ const PatientRoadmap = ({ currentStage, roadmapNotes = {}, onCompleteStage, onFi
 
             <div className="relative">
               <div className="absolute -left-2 top-0 h-full w-1 bg-gradient-to-b from-purple-200 to-pink-200 rounded-full"></div>
-              <div className="pl-4">
-                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Mes 3: Consolidación y Alta</h3>
+              <div className="pl-3 sm:pl-4">
+                <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2.5">Mes 3: Consolidación y Alta</h3>
                 <div className="flex justify-between items-start w-full relative">
                   {[8, 9, 10, 11].map(i => renderStageNode(i))}
                 </div>

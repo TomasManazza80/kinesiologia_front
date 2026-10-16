@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Filter, CalendarDays, Download, Search, HeadphonesIcon, LayoutGrid, ChevronLeft, ChevronRight, X, Check, List, History } from "lucide-react";
@@ -72,7 +72,20 @@ const AppointmentCalendar = () => {
     // Data Fetching
     const { data: professionalsData, isLoading: isProfLoading } = useGetProfessionalsQuery();
     const professionals = (professionalsData?.data || []).filter(p => p.is_active !== false && p.is_active !== 0 && p.is_active !== 'false' && p.is_active !== null && (p.is_public === true || p.is_public === 1 || p.is_public === 'true'));
-    const activeProfessionalId = (['ADMIN', 'EMPLOYEE'].includes(user?.role) && selectedProfessional) ? selectedProfessional : user?.id;
+    
+    const defaultProfId = professionals.find(p => p.id === user?.id)?.id || professionals[0]?.id || user?.id;
+    const activeProfessionalId = (['ADMIN', 'EMPLOYEE'].includes(user?.role) && selectedProfessional) ? selectedProfessional : defaultProfId;
+
+    useEffect(() => {
+        if (!selectedProfessional && professionals && professionals.length > 0) {
+            const currentIsProf = professionals.find(p => p.id === user?.id);
+            if (currentIsProf) {
+                setSelectedProfessional(currentIsProf.id);
+            } else {
+                setSelectedProfessional(professionals[0].id);
+            }
+        }
+    }, [professionals, user?.id, selectedProfessional]);
 
     const { data: patientsData } = useGetPatientsQuery();
     const patients = patientsData || [];
@@ -186,7 +199,10 @@ const AppointmentCalendar = () => {
                 const dayOfWeek = date.day();
                 const colIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
                 if (colIndex >= 0 && colIndex < 7) {
-                    appointmentsByDay[colIndex].push(appt);
+                    const colDateStr = dayjs(displayDays[colIndex]).format('YYYY-MM-DD');
+                    if (date.format('YYYY-MM-DD') === colDateStr) {
+                        appointmentsByDay[colIndex].push(appt);
+                    }
                 }
             } else {
                 // Diario mode

@@ -41,10 +41,6 @@ export default function BookingPage() {
     const [patientDni, setPatientDni] = useState('');
     const [patientPhone, setPatientPhone] = useState('');
     const [patientEmail, setPatientEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
 
     const navigate = useNavigate();
@@ -155,11 +151,6 @@ export default function BookingPage() {
     const handleSubmitAppointment = async () => {
         if (!patientName || !patientDni || !patientPhone) return;
         try {
-            if (!accessToken && password && password !== confirmPassword) {
-                toast({ title: 'Error', description: 'Las contraseñas no coinciden', variant: 'destructive' });
-                return;
-            }
-
             const response = await createAppointment({
                 professional_id: selectedSpecialistId,
                 date: selectedDate.date,
@@ -168,14 +159,8 @@ export default function BookingPage() {
                 patient_name: patientName,
                 patient_dni: patientDni,
                 patient_phone: patientPhone,
-                patient_email: patientEmail,
-                password: password || undefined
+                patient_email: patientEmail
             }).unwrap();
-
-            if (response.accessToken) {
-                dispatch(setAccessToken(response.accessToken));
-                dispatch(setUser(response.user));
-            }
 
             if (response.init_point) {
                 // Redirect to MercadoPago
@@ -191,8 +176,6 @@ export default function BookingPage() {
                 setPatientName('');
                 setPatientDni('');
                 setPatientPhone('');
-                setPassword('');
-                setConfirmPassword('');
             }, 8000);
         } catch (error) {
             toast({ title: 'Error', description: error?.data?.message || 'Error al confirmar el turno', variant: 'destructive' });

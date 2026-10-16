@@ -25,6 +25,15 @@ const formatDateString = (date) => {
     return `${year}-${month}-${day}`;
 };
 
+export const isPausesPatient = (p) => Boolean(
+  p?.is_pauses === true || 
+  p?.is_pauses === 'true' || 
+  p?.is_pauses === 1 || 
+  p?.admissionData?.is_pauses === true || 
+  p?.admissionData?.is_pauses === 'true' || 
+  p?.admissionData?.is_pauses === 1
+);
+
 const PatientList = () => {
   const navigate = useNavigate();
   const user = useSelector(state => state.authSlice.userInfo);
@@ -42,7 +51,7 @@ const PatientList = () => {
   const [editingPatient, setEditingPatient] = useState(null);
   const [patientToShare, setPatientToShare] = useState(null);
 
-  const filters = ['Todos los Pacientes', 'Visitas Recientes', 'Requiere Seguimiento', 'Nuevos esta Semana'];
+  const filters = ['Todos los Pacientes', 'Pacientes Pauses', 'Visitas Recientes', 'Requiere Seguimiento', 'Nuevos esta Semana'];
 
   const filteredPatients = patients.filter(p => {
       if (!p || !p.nombre) return false;
@@ -64,6 +73,10 @@ const PatientList = () => {
       // 2. Active Filter Chips
       if (activeFilter === 'Todos los Pacientes') {
           return true;
+      }
+
+      if (activeFilter === 'Pacientes Pauses') {
+          return isPausesPatient(p);
       }
 
       const now = new Date();
@@ -125,6 +138,8 @@ const PatientList = () => {
               gender: patient.gender || '',
               blood_type: patient.blood_type || '',
               status: patient.status || '',
+              is_pauses: isPausesPatient(patient),
+              admissionData: patient.admissionData || {},
               email: patient.datos_contacto?.email || '',
               phone: patient.datos_contacto?.phone || '',
               professionalIds: patient.professionals ? patient.professionals.map(p => p.id) : []
@@ -137,6 +152,7 @@ const PatientList = () => {
               gender: '',
               blood_type: '',
               status: '',
+              is_pauses: false,
               email: '',
               phone: '',
               professionalIds: []
@@ -148,6 +164,7 @@ const PatientList = () => {
   const handleSave = async (e) => {
       e.preventDefault();
       try {
+          const isPausesVal = Boolean(editingPatient.is_pauses);
           const payload = {
               nombre: editingPatient.nombre,
               dni: editingPatient.dni || null,
@@ -155,6 +172,11 @@ const PatientList = () => {
               gender: editingPatient.gender,
               blood_type: editingPatient.blood_type,
               status: editingPatient.status,
+              is_pauses: isPausesVal,
+              admissionData: {
+                  ...(editingPatient.admissionData || {}),
+                  is_pauses: isPausesVal
+              },
               datos_contacto: {
                   email: editingPatient.email,
                   phone: editingPatient.phone
@@ -273,7 +295,9 @@ const PatientList = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {filteredPatients.map((patient) => (
+                  {filteredPatients.map((patient) => {
+                    const isPauses = isPausesPatient(patient);
+                    return (
                     <tr 
                       key={patient.id} 
                       onClick={() => navigate(`/pacientes/${patient.id}`)}
@@ -281,11 +305,58 @@ const PatientList = () => {
                     >
                       <td className="p-4 pl-6">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-[#EDE9FE] text-[#6D28D9] shrink-0">
-                            {getInitials(patient.nombre)}
+                          {/* Avatar del usuario con foto del logo de pauses al lado */}
+                          <div className="flex items-center gap-2 shrink-0">
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-[#EDE9FE] text-[#6D28D9] shadow-2xs">
+                              {getInitials(patient.nombre)}
+                            </div>
+
+                            {/* Al lado del logo del usuario: Foto del logo de Pauses o indicador Particular */}
+                            {isPauses ? (
+                              <div 
+                                className="w-8 h-8 rounded-full bg-white border-2 border-emerald-400 p-0.5 shadow-xs flex items-center justify-center shrink-0 hover:scale-105 transition-transform" 
+                                title="Paciente de Pauses"
+                              >
+                                <img 
+                                  src="/images/pausesLogo.png" 
+                                  alt="Pauses" 
+                                  className="w-full h-full object-contain rounded-full" 
+                                />
+                              </div>
+                            ) : (
+                              <div 
+                                className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 shadow-2xs flex items-center justify-center text-slate-400 shrink-0" 
+                                title="Paciente de Profesional Particular"
+                              >
+                                <User size={15} className="text-slate-500" />
+                              </div>
+                            )}
                           </div>
+
                           <div>
-                            <div className="font-bold text-gray-900">{patient.nombre}</div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-bold text-gray-900">{patient.nombre}</span>
+                              {isPauses ? (
+                                <span 
+                                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0] shadow-2xs"
+                                  title="Paciente de Pauses"
+                                >
+                                  <img 
+                                    src="/images/pausesLogo.png" 
+                                    alt="Pauses" 
+                                    className="h-3.5 w-auto object-contain" 
+                                  />
+                                  <span>Pauses</span>
+                                </span>
+                              ) : (
+                                <span 
+                                  className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200"
+                                  title="Paciente de Profesional Particular"
+                                >
+                                  <span>Particular</span>
+                                </span>
+                              )}
+                            </div>
                             <div className="text-xs text-gray-500">ID: {patient.id}</div>
                           </div>
                         </div>
@@ -368,7 +439,8 @@ const PatientList = () => {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
               {filteredPatients.length === 0 && (
@@ -497,6 +569,18 @@ const PatientList = () => {
                                   <option value="Inactivo">Inactivo</option>
                               </select>
                           </div>
+                      </div>
+
+                      <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-1">Tipo de Paciente</label>
+                          <select 
+                              className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:border-blue-500 bg-white"
+                              value={editingPatient?.is_pauses ? 'pauses' : 'individual'}
+                              onChange={(e) => setEditingPatient({...editingPatient, is_pauses: e.target.value === 'pauses'})}
+                          >
+                              <option value="individual">Paciente individual</option>
+                              <option value="pauses">Paciente de pauses</option>
+                          </select>
                       </div>
 
                       {['ADMIN', 'EMPLOYEE'].includes(user?.role) && (

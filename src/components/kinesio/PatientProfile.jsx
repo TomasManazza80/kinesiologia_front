@@ -20,6 +20,7 @@ import {
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import SharePatientModal from './SharePatientModal.jsx';
+import { toast } from '../ui/use-toast';
 
 dayjs.locale('es');
 
@@ -126,7 +127,7 @@ const PatientProfile = () => {
 
     return (
         <div className="w-full min-h-full bg-[#F8FAFC] p-3 md:p-8 flex flex-col gap-5 md:gap-6 font-sans">
-            {/* Header / Back Button */}
+            {/* Header / Back Button & Actions */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-start md:items-center gap-3 md:gap-4">
                     <button
@@ -140,19 +141,155 @@ const PatientProfile = () => {
                         <p className="text-gray-500 text-sm mt-1">Gestión completa de información y registros.</p>
                     </div>
                 </div>
-                <button
-                    onClick={() => setIsShareModalOpen(true)}
-                    className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 md:py-2.5 rounded-xl font-bold text-sm md:text-xs transition-all shadow-sm flex items-center justify-center gap-2 min-h-[44px]"
-                    title="Compartir o enviar ficha e historial médico a otro profesional"
-                >
-                    <Share2 size={18} className="md:w-4 md:h-4" /> Compartir Ficha / Historial
-                </button>
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                    <button
+                        onClick={() => {
+                            setEditFormData({
+                                nombre: patient.nombre || '',
+                                dni: patient.dni || '',
+                                fecha_nacimiento: patient.fecha_nacimiento ? patient.fecha_nacimiento.split('T')[0] : '',
+                                gender: patient.gender || '',
+                                blood_type: patient.blood_type || '',
+                                phone: patient.datos_contacto?.phone || patient.datos_contacto?.telefono || '',
+                                email: patient.datos_contacto?.email || '',
+                                is_pauses: Boolean(patient.is_pauses ?? patient.admissionData?.is_pauses)
+                            });
+                            setIsEditModalOpen(true);
+                        }}
+                        className="flex-1 md:flex-none bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 px-4 py-3 md:py-2.5 rounded-xl font-bold text-sm md:text-xs transition-all shadow-xs flex items-center justify-center gap-2 min-h-[44px]"
+                        title="Editar datos del paciente"
+                    >
+                        <Pencil size={16} /> Editar Datos
+                    </button>
+                    <button
+                        onClick={() => setIsShareModalOpen(true)}
+                        className="flex-1 md:flex-none bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 md:py-2.5 rounded-xl font-bold text-sm md:text-xs transition-all shadow-sm flex items-center justify-center gap-2 min-h-[44px]"
+                        title="Compartir o enviar ficha e historial médico a otro profesional"
+                    >
+                        <Share2 size={18} className="md:w-4 md:h-4" /> Compartir Ficha / Historial
+                    </button>
+                </div>
             </div>
+
+            {/* Patient Identity & Type Banner Card */}
+            {(() => {
+                const isPauses = Boolean(patient.is_pauses ?? patient.admissionData?.is_pauses);
+                return (
+            <div className="bg-white rounded-2xl border border-gray-100 p-4 md:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    {/* Avatar del usuario con foto del logo de pauses al lado */}
+                    <div className="flex items-center gap-3 shrink-0">
+                        <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center font-bold text-lg md:text-xl bg-[#EDE9FE] text-[#6D28D9] shadow-inner">
+                            {getInitials(patient.nombre)}
+                        </div>
+                        {isPauses ? (
+                            <div 
+                                className="w-10 h-10 rounded-full bg-white border-2 border-emerald-400 p-0.5 shadow-xs flex items-center justify-center shrink-0 hover:scale-105 transition-transform" 
+                                title="Paciente de Pauses"
+                            >
+                                <img 
+                                    src="/images/pausesLogo.png" 
+                                    alt="Pauses" 
+                                    className="w-full h-full object-contain rounded-full" 
+                                />
+                            </div>
+                        ) : (
+                            <div 
+                                className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 shadow-2xs flex items-center justify-center text-slate-400 shrink-0" 
+                                title="Paciente de Profesional Particular"
+                            >
+                                <User size={18} className="text-slate-500" />
+                            </div>
+                        )}
+                    </div>
+                    <div>
+                        <div className="flex items-center gap-2.5 flex-wrap">
+                            <h2 className="text-xl md:text-2xl font-bold text-gray-900">{patient.nombre}</h2>
+                            {isPauses ? (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0] shadow-2xs">
+                                    <img src="/images/pausesLogo.png" alt="Pauses" className="h-4 w-auto object-contain" />
+                                    Paciente de Pauses
+                                </span>
+                            ) : (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                                    Paciente individual
+                                </span>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-3 text-xs md:text-sm text-gray-500 mt-1 flex-wrap">
+                            <span>ID: <strong className="text-gray-700">{patient.id}</strong></span>
+                            <span>•</span>
+                            <span>DNI: <strong className="text-gray-700">{patient.dni || 'Sin DNI'}</strong></span>
+                            <span>•</span>
+                            <span>Edad: <strong className="text-gray-700">{calculateAge(patient.fecha_nacimiento)} años</strong></span>
+                            {patient.datos_contacto?.phone && (
+                                <>
+                                    <span>•</span>
+                                    <span>Tel: <strong className="text-gray-700">{patient.datos_contacto.phone}</strong></span>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Patient Type Selector Input */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 bg-gray-50/80 border border-gray-200/80 p-2.5 sm:px-4 sm:py-3 rounded-xl shrink-0">
+                    <label htmlFor="patient-type-select" className="text-xs font-bold uppercase tracking-wider text-gray-600 whitespace-nowrap">
+                        Tipo de Paciente:
+                    </label>
+                    <div className="relative inline-flex items-center">
+                        <select
+                            id="patient-type-select"
+                            value={isPauses ? 'pauses' : 'individual'}
+                            onChange={async (e) => {
+                                const newIsPauses = e.target.value === 'pauses';
+                                try {
+                                    await updatePatient({ 
+                                        id: patient.id, 
+                                        is_pauses: newIsPauses,
+                                        admissionData: { ...(patient.admissionData || {}), is_pauses: newIsPauses }
+                                    }).unwrap();
+                                    toast({
+                                        title: 'Perfil actualizado',
+                                        description: `El paciente ahora está registrado como ${newIsPauses ? 'Paciente de Pauses' : 'Paciente Individual'}.`,
+                                        variant: 'success'
+                                    });
+                                } catch (err) {
+                                    toast({
+                                        title: 'Error',
+                                        description: 'No se pudo actualizar el tipo de paciente.',
+                                        variant: 'destructive'
+                                    });
+                                }
+                            }}
+                            className={`appearance-none cursor-pointer text-xs font-bold pl-3.5 pr-8 py-2 rounded-lg border transition-all outline-none ${
+                                isPauses
+                                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100 shadow-2xs'
+                                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 shadow-2xs'
+                            }`}
+                        >
+                            <option value="individual">Paciente individual</option>
+                            <option value="pauses">Paciente de pauses</option>
+                        </select>
+                        <ChevronDown size={14} className="pointer-events-none absolute right-2.5 text-current opacity-60" />
+                    </div>
+                    {isPauses && (
+                        <img 
+                            src="/images/pausesLogo.png" 
+                            alt="Pauses" 
+                            className="h-6 w-auto object-contain hidden sm:block ml-1" 
+                            title="Paciente de Pauses"
+                        />
+                    )}
+                </div>
+            </div>
+                );
+            })()}
 
             <div className="flex flex-col lg:flex-row gap-5 md:gap-6 items-start">
 
-                {/* Left Column: Ficha Médica */}
-                <div className="w-full lg:w-1/2 bg-white rounded-2xl border border-gray-100 p-4 md:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex flex-col gap-5 md:gap-6">
+                {/* Left Column: Ficha Médica (Wider for better visibility) */}
+                <div className="w-full lg:w-[62%] xl:w-[65%] bg-white rounded-2xl border border-gray-100 p-4 md:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex flex-col gap-5 md:gap-6">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-1 md:mb-2 border-b border-gray-200 pb-4">
                         <h2 className="text-xl font-serif text-gray-900">Ficha Médica del Paciente</h2>
                         <button className="flex items-center justify-center gap-2 text-sm md:text-xs text-gray-600 hover:text-gray-900 border border-gray-300 px-4 md:px-3 py-2 md:py-1.5 rounded-lg bg-gray-50 min-h-[44px] w-full sm:w-auto" onClick={() => window.print()}>
@@ -166,8 +303,8 @@ const PatientProfile = () => {
                     />
                 </div>
 
-                {/* Right Column: Tabs & Content */}
-                <div className="w-full lg:w-1/2 flex flex-col gap-5 md:gap-4">
+                {/* Right Column: Hoja de Ruta, Tabs & Content (Compacted) */}
+                <div className="w-full lg:w-[38%] xl:w-[35%] flex flex-col gap-5 md:gap-4">
                     
                     <PatientRoadmap 
                         currentStage={patient.admissionData?.roadmapStage || 0}
@@ -216,24 +353,24 @@ const PatientProfile = () => {
                         }}
                     />
 
-                    <div className="flex flex-col sm:flex-row bg-white rounded-xl border border-gray-100 p-1.5 shadow-sm w-full lg:w-fit overflow-hidden gap-1 sm:gap-0">
+                    <div className="flex flex-col sm:flex-row bg-white rounded-xl border border-gray-100 p-1.5 shadow-sm w-full overflow-hidden gap-1 sm:gap-0">
                         <button
                             onClick={() => setActiveTab('clinica')}
-                            className={`min-h-[44px] w-full sm:flex-1 md:flex-none px-6 py-3 md:py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center justify-center ${activeTab === 'clinica' ? 'bg-[#0A58CA] text-white shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
+                            className={`min-h-[42px] w-full sm:flex-1 px-3 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap flex items-center justify-center ${activeTab === 'clinica' ? 'bg-[#0A58CA] text-white shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
                         >
                             Inicio y Datos
                         </button>
                         <button
                             onClick={() => setActiveTab('turnos')}
-                            className={`min-h-[44px] w-full sm:flex-1 md:flex-none px-6 py-3 md:py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center justify-center ${activeTab === 'turnos' ? 'bg-[#0A58CA] text-white shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
+                            className={`min-h-[42px] w-full sm:flex-1 px-3 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap flex items-center justify-center ${activeTab === 'turnos' ? 'bg-[#0A58CA] text-white shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
                         >
-                            Historial de Turnos ({patientAppointments.length})
+                            Turnos ({patientAppointments.length})
                         </button>
                         <button
                             onClick={() => setActiveTab('ciclos')}
-                            className={`min-h-[44px] w-full sm:flex-1 md:flex-none px-6 py-3 md:py-2.5 rounded-lg text-sm font-bold transition-all whitespace-nowrap flex items-center justify-center ${activeTab === 'ciclos' ? 'bg-[#0A58CA] text-white shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
+                            className={`min-h-[42px] w-full sm:flex-1 px-3 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap flex items-center justify-center ${activeTab === 'ciclos' ? 'bg-[#0A58CA] text-white shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
                         >
-                            Ciclos Terminados ({patient.admissionData?.completedCycles?.length || 0})
+                            Ciclos ({patient.admissionData?.completedCycles?.length || 0})
                         </button>
                     </div>
 
@@ -443,6 +580,17 @@ const PatientProfile = () => {
                                         onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
                                     />
                                 </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Tipo de Paciente</label>
+                                    <select
+                                        className="w-full border border-gray-200 rounded-lg p-3 md:p-2.5 text-base md:text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none min-h-[44px] bg-white"
+                                        value={editFormData.is_pauses ? 'pauses' : 'individual'}
+                                        onChange={(e) => setEditFormData({ ...editFormData, is_pauses: e.target.value === 'pauses' })}
+                                    >
+                                        <option value="individual">Paciente individual</option>
+                                        <option value="pauses">Paciente de pauses</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                         <div className="p-4 border-t border-gray-100 bg-gray-50 flex flex-col-reverse sm:flex-row justify-end gap-3">
@@ -463,6 +611,11 @@ const PatientProfile = () => {
                                             fecha_nacimiento: editFormData.fecha_nacimiento || null,
                                             gender: editFormData.gender,
                                             blood_type: editFormData.blood_type,
+                                            is_pauses: Boolean(editFormData.is_pauses),
+                                            admissionData: {
+                                                ...(patient.admissionData || {}),
+                                                is_pauses: Boolean(editFormData.is_pauses)
+                                            },
                                             datos_contacto: {
                                                 phone: editFormData.phone,
                                                 telefono: editFormData.phone,

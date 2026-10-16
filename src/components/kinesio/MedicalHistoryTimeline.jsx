@@ -643,17 +643,48 @@ const MedicalHistoryEntry = () => {
                 </div>
 
                 <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                    {patients && patients.filter(p => p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || (p.dni && p.dni.includes(searchTerm))).map(p => (
+                    {patients && patients.filter(p => p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || (p.dni && p.dni.includes(searchTerm))).map(p => {
+                        const isPauses = Boolean(p.is_pauses ?? p.admissionData?.is_pauses);
+                        return (
                         <div 
                             key={p.id}
                             onClick={() => navigate(`/pacientes/${p.id}`)}
                             className="flex items-center gap-4 p-4 hover:bg-blue-50 rounded-xl cursor-pointer border border-transparent hover:border-blue-100 transition-colors group"
                         >
-                            <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold shadow-sm">
-                                {getInitials(p.nombre)}
+                            <div className="flex items-center gap-2.5 shrink-0">
+                                <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold shadow-sm">
+                                    {getInitials(p.nombre)}
+                                </div>
+                                {isPauses ? (
+                                    <div 
+                                        className="w-8 h-8 rounded-full bg-white border-2 border-emerald-400 p-0.5 shadow-xs flex items-center justify-center shrink-0 hover:scale-105 transition-transform" 
+                                        title="Paciente de Pauses"
+                                    >
+                                        <img src="/images/pausesLogo.png" alt="Pauses" className="w-full h-full object-contain rounded-full" />
+                                    </div>
+                                ) : (
+                                    <div 
+                                        className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 shadow-2xs flex items-center justify-center text-slate-400 shrink-0" 
+                                        title="Paciente de Profesional Particular"
+                                    >
+                                        <User size={15} className="text-slate-500" />
+                                    </div>
+                                )}
                             </div>
                             <div>
-                                <h4 className="font-bold text-gray-900 group-hover:text-blue-700">{p.nombre}</h4>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <h4 className="font-bold text-gray-900 group-hover:text-blue-700">{p.nombre}</h4>
+                                    {isPauses ? (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0]">
+                                            <img src="/images/pausesLogo.png" alt="Pauses" className="h-3 w-auto object-contain" />
+                                            Pauses
+                                        </span>
+                                    ) : (
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                                            Particular
+                                        </span>
+                                    )}
+                                </div>
                                 <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-2">
                                     <span>DNI: {p.dni || 'No registrado'}</span>
                                     <span>•</span>
@@ -661,7 +692,8 @@ const MedicalHistoryEntry = () => {
                                 </p>
                             </div>
                         </div>
-                    ))}
+                    );
+                    })}
                     {patients && patients.filter(p => p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || (p.dni && p.dni.includes(searchTerm))).length === 0 && (
                         <div className="text-center p-8 text-gray-500 bg-gray-50 rounded-xl border border-gray-100">
                             No se encontraron pacientes que coincidan con su búsqueda.
