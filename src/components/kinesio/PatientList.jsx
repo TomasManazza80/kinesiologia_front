@@ -78,6 +78,7 @@ const PatientList = () => {
 
   const visiblePatients = patients.filter(p => {
     if (isPausesPatient(p)) return true;
+    if (user?.role === 'ADMIN') return true;
     if (!user?.id) return false;
     const assignedIds = (p.professionals || []).map(prof => prof.id);
     return assignedIds.includes(user.id);

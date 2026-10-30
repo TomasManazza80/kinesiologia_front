@@ -36,13 +36,22 @@ const MedicalHistoryEntry = () => {
   const visiblePatients = useMemo(() => {
     if (!patients) return [];
     return patients.filter(p => {
-      const isPauses = Boolean(p.is_pauses ?? p.admissionData?.is_pauses);
+      if (user?.role === 'ADMIN') return true;
+      const isPauses = Boolean(
+        p.is_pauses === true || 
+        p.is_pauses === 'true' || 
+        p.is_pauses === 1 ||
+        p.admissionData?.is_pauses === true || 
+        p.admissionData?.is_pauses === 'true' || 
+        p.admissionData?.is_pauses === 'pauses' ||
+        p.admissionData?.is_pauses === 1
+      );
       if (isPauses) return true;
       if (!user?.id) return false;
       const assignedIds = (p.professionals || []).map(prof => prof.id);
       return assignedIds.includes(user.id);
     });
-  }, [patients, user?.id]);
+  }, [patients, user?.id, user?.role]);
 
   const { data: historyList = [], isLoading: isLoadingHistory, refetch: refetchHistory } = useGetMedicalHistoryQuery(id, { skip: !id });
   const { data: records = [], isLoading: isLoadingRecords, refetch: refetchRecords } = useGetMedicalRecordsQuery(id, { skip: !id });
