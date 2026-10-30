@@ -12,7 +12,14 @@ const SharePatientModal = ({ patient, isOpen, onClose }) => {
     const [selectedProfIds, setSelectedProfIds] = useState([]);
     const [note, setNote] = useState('');
 
-    const professionals = (professionalsResponse?.data || []).filter(p => p.is_active !== false);
+    const professionals = (professionalsResponse?.data || []).filter(p => 
+        Boolean(p.is_active) && 
+        p.is_active !== 'false' && 
+        p.is_active !== 0 &&
+        (p.role === 'ADMIN' || p.role === 'EMPLOYEE') &&
+        p.role !== 'USER' &&
+        p.role !== 'PATIENT'
+    );
 
     // Pre-populate or reset selected professionals when modal opens or patient changes
     useEffect(() => {

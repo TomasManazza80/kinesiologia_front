@@ -286,7 +286,26 @@ export default function BookingPage() {
     const selectedSpecialist = professionals.find(p => p.id === selectedSpecialistId);
     const requiresPayment = selectedSpecialist && selectedSpecialist.require_payment && selectedSpecialist.session_fee > 0 && !!selectedSpecialist.mp_access_token;
 
-    const currentMonthLabel = dayjs().startOf('isoWeek').add(weekOffset, 'weeks').format('MMMM YYYY');
+    const currentWeekDate = useMemo(() => dayjs().startOf('isoWeek').add(weekOffset, 'weeks'), [weekOffset]);
+    const currentMonthName = currentWeekDate.format('MMMM');
+    const currentYear = currentWeekDate.year();
+
+    const yearOptions = useMemo(() => {
+        const baseYear = dayjs().year();
+        const set = new Set([baseYear - 1, baseYear, baseYear + 1, baseYear + 2, currentYear]);
+        return Array.from(set).sort((a, b) => a - b);
+    }, [currentYear]);
+
+    const handleYearChange = (e) => {
+        const newYear = parseInt(e.target.value, 10);
+        const targetDate = currentWeekDate.year(newYear);
+        const baseWeek = dayjs().startOf('isoWeek');
+        const diffDays = targetDate.startOf('isoWeek').diff(baseWeek, 'day');
+        const newOffset = Math.round(diffDays / 7);
+        setWeekOffset(newOffset);
+        setSelectedDate(null);
+        setSelectedTime(null);
+    };
     const isReadyToConfirm = selectedSpecialistId && selectedDate && selectedTime;
 
     return (
@@ -490,7 +509,23 @@ export default function BookingPage() {
                                             >
                                                 <ChevronLeft size={24} className="text-gray-700" aria-hidden="true" />
                                             </button>
-                                            <h3 className="font-bold text-xl text-gray-900 capitalize" aria-live="polite">{currentMonthLabel}</h3>
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="font-bold text-xl text-gray-900 capitalize" aria-live="polite">
+                                                    {currentMonthName}
+                                                </h3>
+                                                <select
+                                                    value={currentYear}
+                                                    onChange={handleYearChange}
+                                                    className="font-bold text-lg md:text-xl text-gray-900 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg px-2 py-1 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-600 transition-colors"
+                                                    aria-label="Seleccionar año"
+                                                >
+                                                    {yearOptions.map((y) => (
+                                                        <option key={y} value={y}>
+                                                            {y}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
                                             <button
                                                 onClick={() => setWeekOffset(w => w + 1)}
                                                 className="p-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 flex items-center justify-center"

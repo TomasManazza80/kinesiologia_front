@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSelector } from "react-redux";
 import { Search, Plus, RotateCcw, Edit, X, Trash2, User, Settings, Share2, Send, ChevronDown } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useGetPatientsQuery, useUpdatePatientMutation, useCreatePatientMutation, useDeletePatientMutation, useGetProfessionalsQuery } from '../../services/api/kinesioApi.js';
 import { toast } from '../ui/use-toast';
 import SharePatientModal from './SharePatientModal.jsx';
@@ -36,25 +36,68 @@ export const isPausesPatient = (p) => Boolean(
 
 const PatientList = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const user = useSelector(state => state.authSlice.userInfo);
-  const [activeFilter, setActiveFilter] = useState('Todos los Pacientes');
+  const [mainTab, setMainTab] = useState('pauses'); // 'pauses' | 'particulares' | 'todos'
+  const [activeFilter, setActiveFilter] = useState('Todos');
   const [searchQuery, setSearchQuery] = useState('');
+
+  React.useEffect(() => {
+    if (location.state?.openNewModal && user?.role === 'ADMIN') {
+      const prefill = location.state.prefill || {};
+      setEditingPatient({
+        nombre: prefill.nombre || '',
+        dni: prefill.dni || '',
+        fecha_nacimiento: '',
+        gender: '',
+        blood_type: '',
+        status: 'activo',
+        is_pauses: true,
+        email: prefill.datos_contacto?.email || '',
+        phone: prefill.datos_contacto?.telefono || prefill.datos_contacto?.phone || '',
+        professionalIds: user?.id ? [user.id] : []
+      });
+      setIsModalOpen(true);
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, user?.role, user?.id]);
 
   const { data: patients = [], isLoading } = useGetPatientsQuery();
   const [updatePatient, { isLoading: isUpdating }] = useUpdatePatientMutation();
   const [createPatient, { isLoading: isCreating }] = useCreatePatientMutation();
   const [deletePatient] = useDeletePatientMutation();
   const { data: professionalsResponse } = useGetProfessionalsQuery();
-  const professionals = (professionalsResponse?.data || []).filter(p => p.is_active !== false);
+  const professionals = (professionalsResponse?.data || []).filter(p => 
+    Boolean(p.is_active) && 
+    p.is_active !== 'false' && 
+    p.is_active !== 0 &&
+    (p.role === 'ADMIN' || p.role === 'EMPLOYEE') &&
+    p.role !== 'USER' &&
+    p.role !== 'PATIENT'
+  );
+
+  const visiblePatients = patients.filter(p => {
+    if (isPausesPatient(p)) return true;
+    if (!user?.id) return false;
+    const assignedIds = (p.professionals || []).map(prof => prof.id);
+    return assignedIds.includes(user.id);
+  });
+
+  const pausesCount = visiblePatients.filter(isPausesPatient).length;
+  const particularesCount = visiblePatients.filter(p => !isPausesPatient(p)).length;
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
   const [patientToShare, setPatientToShare] = useState(null);
 
-  const filters = ['Todos los Pacientes', 'Pacientes Pauses', 'Visitas Recientes', 'Requiere Seguimiento', 'Nuevos esta Semana'];
+  const filters = ['Todos', 'Visitas Recientes', 'Requiere Seguimiento', 'Nuevos esta Semana'];
 
-  const filteredPatients = patients.filter(p => {
+  const filteredPatients = visiblePatients.filter(p => {
       if (!p || !p.nombre) return false;
+
+      // 0. Primary Segmented Tab Filter (Pauses vs Particulares)
+      if (mainTab === 'pauses' && !isPausesPatient(p)) return false;
+      if (mainTab === 'particulares' && isPausesPatient(p)) return false;
 
       // 1. Text Search Filter
       const query = searchQuery.trim().toLowerCase();
@@ -70,13 +113,9 @@ const PatientList = () => {
           }
       }
 
-      // 2. Active Filter Chips
-      if (activeFilter === 'Todos los Pacientes') {
+      // 2. Active Secondary Filter Chips
+      if (activeFilter === 'Todos') {
           return true;
-      }
-
-      if (activeFilter === 'Pacientes Pauses') {
-          return isPausesPatient(p);
       }
 
       const now = new Date();
@@ -152,10 +191,10 @@ const PatientList = () => {
               gender: '',
               blood_type: '',
               status: '',
-              is_pauses: false,
+              is_pauses: mainTab !== 'particulares',
               email: '',
               phone: '',
-              professionalIds: []
+              professionalIds: user?.id ? [user.id] : []
           });
       }
       setIsModalOpen(true);
@@ -218,7 +257,7 @@ const PatientList = () => {
   return (
     <div className="w-full flex flex-col min-h-full bg-white p-4 md:p-8 relative">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-[#111827]">Pacientes</h1>
           <p className="text-gray-500 mt-1">Gestiona el historial y datos de tus pacientes.</p>
@@ -241,13 +280,66 @@ const PatientList = () => {
           >
             <Settings size={18} className="text-purple-600" /> Editar Estructura Historial
           </button>
-          <button 
-            onClick={() => handleOpenModal()}
-            className="bg-[#0A58CA] hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-semibold shadow-sm transition-all flex items-center gap-2 text-sm whitespace-nowrap"
-          >
-            <Plus size={18} /> Nuevo Paciente
-          </button>
+          {user?.role === 'ADMIN' && (
+            <button 
+              onClick={() => handleOpenModal()}
+              className="bg-[#0A58CA] hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-semibold shadow-sm transition-all flex items-center gap-2 text-sm whitespace-nowrap"
+            >
+              <Plus size={18} /> Nuevo Paciente
+            </button>
+          )}
         </div>
+      </div>
+
+      {/* Primary Segmented Tabs: Pacientes Pauses vs Pacientes Particulares */}
+      <div className="flex border-b border-gray-200 mb-6 gap-2 sm:gap-6 overflow-x-auto">
+        <button
+          onClick={() => { setMainTab('pauses'); setActiveFilter('Todos'); }}
+          className={`pb-3 font-bold text-sm sm:text-base flex items-center gap-2 border-b-2 transition-all whitespace-nowrap ${
+            mainTab === 'pauses'
+              ? 'border-emerald-600 text-emerald-800'
+              : 'border-transparent text-gray-500 hover:text-gray-800'
+          }`}
+        >
+          <img src="/images/pausesLogo.png" alt="Pauses" className="h-4 w-auto object-contain" />
+          <span>Pacientes Pauses</span>
+          <span className={`px-2 py-0.5 rounded-full text-xs font-black ${
+            mainTab === 'pauses' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600'
+          }`}>
+            {pausesCount}
+          </span>
+        </button>
+
+        <button
+          onClick={() => { setMainTab('particulares'); setActiveFilter('Todos'); }}
+          className={`pb-3 font-bold text-sm sm:text-base flex items-center gap-2 border-b-2 transition-all whitespace-nowrap ${
+            mainTab === 'particulares'
+              ? 'border-blue-600 text-blue-700'
+              : 'border-transparent text-gray-500 hover:text-gray-800'
+          }`}
+        >
+          <User size={16} />
+          <span>Pacientes Particulares (Privados)</span>
+          <span className={`px-2 py-0.5 rounded-full text-xs font-black ${
+            mainTab === 'particulares' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
+          }`}>
+            {particularesCount}
+          </span>
+        </button>
+
+        <button
+          onClick={() => { setMainTab('todos'); setActiveFilter('Todos'); }}
+          className={`pb-3 font-semibold text-sm sm:text-base flex items-center gap-2 border-b-2 transition-all whitespace-nowrap ${
+            mainTab === 'todos'
+              ? 'border-gray-800 text-gray-900'
+              : 'border-transparent text-gray-400 hover:text-gray-700'
+          }`}
+        >
+          <span>Todos</span>
+          <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+            {patients.length}
+          </span>
+        </button>
       </div>
 
       {/* Filter Chips */}
@@ -275,7 +367,7 @@ const PatientList = () => {
               <p className="font-semibold text-gray-800 text-base">No se encontraron pacientes</p>
               <p className="text-xs text-gray-400 mt-1">No hay pacientes que coincidan con el filtro "{activeFilter}"{searchQuery ? ` y la búsqueda "${searchQuery}"` : ''}.</p>
               <button 
-                  onClick={() => { setActiveFilter('Todos los Pacientes'); setSearchQuery(''); }}
+                  onClick={() => { setMainTab('todos'); setActiveFilter('Todos'); setSearchQuery(''); }}
                   className="mt-4 px-4 py-2 bg-purple-50 text-[#6D28D9] rounded-lg text-xs font-bold hover:bg-purple-100 transition-colors"
               >
                   Ver todos los pacientes
@@ -578,8 +670,8 @@ const PatientList = () => {
                               value={editingPatient?.is_pauses ? 'pauses' : 'individual'}
                               onChange={(e) => setEditingPatient({...editingPatient, is_pauses: e.target.value === 'pauses'})}
                           >
-                              <option value="individual">Paciente individual</option>
-                              <option value="pauses">Paciente de pauses</option>
+                              <option value="pauses">Paciente de Pauses (Público para Administradores)</option>
+                              <option value="individual">Paciente Particular (Privado del Profesional)</option>
                           </select>
                       </div>
 

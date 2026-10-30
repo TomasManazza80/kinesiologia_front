@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { 
     useGetPatientsQuery,
     useGetMedicalHistoryQuery,
@@ -29,7 +30,20 @@ const MedicalHistoryEntry = () => {
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const isTemplateMode = searchParams.get('mode') === 'template' || location.state?.mode === 'template';
 
+  const user = useSelector(state => state.authSlice?.userInfo);
   const { data: patients, isLoading: isLoadingPatients } = useGetPatientsQuery();
+
+  const visiblePatients = useMemo(() => {
+    if (!patients) return [];
+    return patients.filter(p => {
+      const isPauses = Boolean(p.is_pauses ?? p.admissionData?.is_pauses);
+      if (isPauses) return true;
+      if (!user?.id) return false;
+      const assignedIds = (p.professionals || []).map(prof => prof.id);
+      return assignedIds.includes(user.id);
+    });
+  }, [patients, user?.id]);
+
   const { data: historyList = [], isLoading: isLoadingHistory, refetch: refetchHistory } = useGetMedicalHistoryQuery(id, { skip: !id });
   const { data: records = [], isLoading: isLoadingRecords, refetch: refetchRecords } = useGetMedicalRecordsQuery(id, { skip: !id });
   const { data: templates = [], isLoading: isLoadingTemplates } = useGetTemplatesQuery();
@@ -76,9 +90,9 @@ const MedicalHistoryEntry = () => {
   }, [templates, selectedTemplateId]);
 
   const patient = useMemo(() => {
-    if (!patients || !id) return null;
-    return patients.find(p => p.id === parseInt(id));
-  }, [patients, id]);
+    if (!visiblePatients || !id) return null;
+    return visiblePatients.find(p => p.id === parseInt(id));
+  }, [visiblePatients, id]);
 
   const allConsultations = useMemo(() => {
     const list = [];
@@ -643,7 +657,7 @@ const MedicalHistoryEntry = () => {
                 </div>
 
                 <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                    {patients && patients.filter(p => p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || (p.dni && p.dni.includes(searchTerm))).map(p => {
+                    {visiblePatients && visiblePatients.filter(p => p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || (p.dni && p.dni.includes(searchTerm))).map(p => {
                         const isPauses = Boolean(p.is_pauses ?? p.admissionData?.is_pauses);
                         return (
                         <div 
@@ -694,7 +708,7 @@ const MedicalHistoryEntry = () => {
                         </div>
                     );
                     })}
-                    {patients && patients.filter(p => p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || (p.dni && p.dni.includes(searchTerm))).length === 0 && (
+                    {visiblePatients && visiblePatients.filter(p => p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || (p.dni && p.dni.includes(searchTerm))).length === 0 && (
                         <div className="text-center p-8 text-gray-500 bg-gray-50 rounded-xl border border-gray-100">
                             No se encontraron pacientes que coincidan con su búsqueda.
                         </div>

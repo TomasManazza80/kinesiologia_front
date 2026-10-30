@@ -225,10 +225,13 @@ export const kinesioApi = authApi.injectEndpoints({
         }),
         // Availability Endpoints
         getAvailability: build.query({
-            query: (professional_id) => ({ 
-                url: `/api/kinesio/availability${professional_id ? `?professional_id=${professional_id}` : ''}`, 
-                method: 'GET' 
-            }),
+            query: (arg) => {
+                const profId = typeof arg === 'object' && arg !== null ? arg.professional_id : arg;
+                return {
+                    url: `/api/kinesio/availability${profId ? `?professional_id=${profId}` : ''}`,
+                    method: 'GET'
+                };
+            },
             providesTags: ['Availability']
         }),
         saveAvailability: build.mutation({
@@ -237,7 +240,7 @@ export const kinesioApi = authApi.injectEndpoints({
                 method: 'POST',
                 body: data,
             }),
-            invalidatesTags: ['Availability']
+            invalidatesTags: ['Availability', 'AvailableSlots']
         }),
         // Balance Endpoints
         getBalance: build.query({

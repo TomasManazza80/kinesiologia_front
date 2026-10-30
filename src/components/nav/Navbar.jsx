@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {Link, useLocation, useNavigate} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
-import {LogOut, Settings, Bell, LayoutDashboard, Users, Calendar, FileText, Home, Menu, X} from "lucide-react";
+import {LogOut, Settings, Bell, LayoutDashboard, Users, Calendar, FileText, Home, Menu, X, HeadphonesIcon} from "lucide-react";
 import {logoutUser} from "../../services/auth/authActions.js";
 
 const parseJwt = (token) => {
@@ -34,7 +34,12 @@ const Navbar = ({children}) => {
         },
         {
             path: '/pacientes',
-            title: 'Historiales Medicos',
+            title: 'Historiales Médicos',
+        },
+        {
+            path: '/turnos',
+            title: 'Turnos',
+            icon: Calendar
         },
         {
             path: '/balance',
@@ -86,17 +91,23 @@ const Navbar = ({children}) => {
                     {/* Centered Navigation */}
                     <nav className="hidden md:flex items-center gap-2">
                         {navItems.map((item) => {
-                            const isActive = location.pathname === item.path;
+                            const isExact = location.pathname === item.path;
+                            const isTurnosActive = (item.path === '/turnos' || item.path === '/dashboard') && 
+                                (location.pathname === '/turnos' || location.pathname === '/dashboard');
+                            const isActive = item.path === '/turnos' ? isTurnosActive : (item.path === '/dashboard' ? isExact : isExact);
+                            const Icon = item.icon;
+
                             return (
                                 <Link
                                     key={item.path}
                                     to={item.path}
-                                    className={`px-5 py-2.5 rounded-full text-[14px] font-semibold transition-all duration-200 ${
+                                    className={`px-4 py-2 rounded-xl text-[14px] font-bold transition-all duration-200 flex items-center gap-2 ${
                                         isActive
-                                            ? 'bg-[#13263E] text-white shadow-md shadow-[#13263E]/20'
-                                            : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+                                            ? 'border-2 border-[#1D68F2] text-[#1D68F2] bg-white shadow-xs'
+                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 border-2 border-transparent'
                                     }`}
                                 >
+                                    {Icon && <Icon size={16} className={isActive ? 'text-[#1D68F2]' : 'text-gray-400'} />}
                                     {item.title}
                                 </Link>
                             );
@@ -104,7 +115,21 @@ const Navbar = ({children}) => {
                     </nav>
 
                     {/* Right Actions */}
-                    <div className="flex items-center gap-5">
+                    <div className="flex items-center gap-4">
+                        {/* Ayuda / Soporte matching mockup */}
+                        <button 
+                            onClick={() => window.open('https://wa.me/3245937358', '_blank')}
+                            className="hidden md:flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-amber-300 bg-[#FFFBEB] text-[#92400E] text-xs font-bold hover:bg-amber-100 transition-colors shadow-xs"
+                            title="Ayuda / Soporte"
+                        >
+                            <div className="w-5 h-5 rounded-full bg-amber-200 flex items-center justify-center text-amber-800">
+                                <HeadphonesIcon size={12} />
+                            </div>
+                            <span>Ayuda / Soporte</span>
+                        </button>
+
+                        <div className="w-px h-6 bg-gray-200 hidden md:block"></div>
+
                         <Link 
                             to="/" 
                             className="flex items-center gap-2 px-3 py-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors border border-transparent hover:border-gray-200"
@@ -113,7 +138,6 @@ const Navbar = ({children}) => {
                             <Home size={18} />
                             <span className="text-sm font-semibold hidden sm:inline">Inicio</span>
                         </Link>
-                        <div className="w-px h-6 bg-gray-200"></div>
                         <button 
                             onClick={() => navigate('/perfil')} 
                             className="text-gray-400 hover:text-[#3B82F6] transition-colors"
@@ -130,15 +154,24 @@ const Navbar = ({children}) => {
                         {/* User Avatar Action */}
                         <div 
                             onClick={() => navigate('/perfil')}
-                            className="flex items-center gap-2 cursor-pointer group hover:bg-gray-50 px-2 py-1.5 rounded-xl transition-all border border-transparent hover:border-gray-200"
+                            className="flex items-center gap-2.5 cursor-pointer group hover:bg-gray-50 px-2.5 py-1.5 rounded-xl transition-all border border-transparent hover:border-gray-200"
                             title="Ver mi perfil de usuario"
                         >
-                            <div className="h-9 w-9 rounded-full bg-[#B59970]/15 overflow-hidden border-2 border-transparent group-hover:border-[#B59970] transition-all shadow-xs flex items-center justify-center font-bold text-xs text-[#13263E]">
-                                <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || user?.nombre || user?.email || 'User')}&background=0A58CA&color=fff`} alt="Avatar" className="w-full h-full object-cover"/>
+                            <div className="h-9 w-9 rounded-full bg-[#1D68F2] text-white font-black text-xs flex items-center justify-center shadow-xs">
+                                {(() => {
+                                    const n = user?.name || user?.nombre || 'TM';
+                                    const parts = n.trim().split(/\s+/).filter(Boolean);
+                                    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+                                    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+                                })()}
                             </div>
                             <div className="hidden lg:flex flex-col text-left">
-                                <span className="text-xs font-bold text-gray-800 leading-tight">{user?.name || user?.nombre || 'Mi Perfil'}</span>
-                                <span className="text-[10px] text-gray-500 font-semibold">{user?.role || 'PROFESIONAL'}</span>
+                                <span className="text-xs font-black text-gray-800 leading-tight">
+                                    {user?.name || user?.nombre || 'Tomás Manazza'}
+                                </span>
+                                <span className="text-[10px] text-gray-500 font-bold">
+                                    {user?.role === 'ADMIN' ? 'Administrador' : (user?.role || 'Profesional')}
+                                </span>
                             </div>
                         </div>
                     </div>

@@ -18,6 +18,12 @@ body {
     scrollbar-color: var(--foreground) var(--background);
 }
 
+/* Evitar que el scroll de textareas se encadene */
+textarea,
+[data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
 h1 {
     font-size: 1.75rem;
     line-height: 2.5rem;

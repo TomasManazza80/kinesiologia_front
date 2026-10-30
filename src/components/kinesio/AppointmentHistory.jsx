@@ -35,8 +35,8 @@ const AppointmentHistory = () => {
     const filteredAppointments = useMemo(() => {
         if (!appointments) return [];
         return appointments.filter(appt => {
-            const matchesSearch = appt.patient?.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                                  appt.patient?.apellido?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            const patientDisplayName = appt.patient ? `${appt.patient.nombre || ''} ${appt.patient.apellido || ''}`.trim() : (appt.patient_name || '');
+            const matchesSearch = patientDisplayName.toLowerCase().includes(searchTerm.toLowerCase()) || 
                                   appt.motivo?.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesStatus = statusFilter === 'ALL' || appt.estado === statusFilter;
             return matchesSearch && matchesStatus;
@@ -231,11 +231,11 @@ const AppointmentHistory = () => {
                                                 </div>
                                                 <div>
                                                     <div className="font-semibold text-gray-900">
-                                                        {appt.patient ? `${appt.patient.nombre || ''} ${appt.patient.apellido || ''}`.trim() : 'Sin paciente'}
+                                                        {appt.patient ? `${appt.patient.nombre || ''} ${appt.patient.apellido || ''}`.trim() : (appt.patient_name || 'Sin paciente')}
                                                     </div>
                                                     <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
                                                         <Phone size={12} />
-                                                        <span>{appt.patient?.datos_contacto?.telefono || appt.patient?.datos_contacto?.phone || 'Sin teléfono'}</span>
+                                                        <span>{appt.patient?.datos_contacto?.telefono || appt.patient?.datos_contacto?.phone || appt.patient_phone || 'Sin teléfono'}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -328,7 +328,7 @@ const AppointmentHistory = () => {
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Paciente</label>
                                 <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl font-medium text-gray-700">
-                                    {editingAppt.patient?.nombre} {editingAppt.patient?.apellido}
+                                    {editingAppt.patient ? `${editingAppt.patient.nombre || ''} ${editingAppt.patient.apellido || ''}`.trim() : (editingAppt.patient_name || 'Sin nombre')}
                                 </div>
                             </div>
                             
@@ -383,7 +383,7 @@ const AppointmentHistory = () => {
                         </div>
                         <h3 className="text-xl font-bold text-gray-900 mb-2">¿Eliminar turno?</h3>
                         <p className="text-gray-500 text-sm mb-6">
-                            Estás a punto de eliminar el turno de <span className="font-bold text-gray-700">{deletingAppt.patient?.nombre}</span>. Esta acción no se puede deshacer.
+                            Estás a punto de eliminar el turno de <span className="font-bold text-gray-700">{deletingAppt.patient?.nombre || deletingAppt.patient_name || 'este paciente'}</span>. Esta acción no se puede deshacer.
                         </p>
                         <div className="flex gap-3">
                             <button onClick={() => setDeletingAppt(null)} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-xl transition-colors">

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
+import {
     CalendarCheck, LogIn, ArrowUpRight, Menu, X, LayoutDashboard, LogOut, User
 } from 'lucide-react';
 import { logoutUser } from '../../services/auth/authActions.js';
@@ -38,17 +38,18 @@ export default function PublicNavbar({ className = '' }) {
     };
 
     return (
-        <header className={`gsap-header sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm ${className}`}>
+        <>
+            <header className={`gsap-header fixed top-0 left-0 right-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm ${className}`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
-                    
+
                     {/* Logo / Brand */}
                     <Link to="/" className="flex items-center gap-3 group">
-                        <motion.img 
+                        <motion.img
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            src="/images/pausesLogo.png" 
-                            alt="Pauses Logo" 
+                            src="/images/pausesLogo.png"
+                            alt="Pauses Logo"
                             className="h-16 md:h-[70px] w-auto object-contain scale-150 ml-6 md:ml-8"
                         />
                     </Link>
@@ -58,13 +59,13 @@ export default function PublicNavbar({ className = '' }) {
                         <a href="/#inicio" onClick={(e) => handleNavClick(e, '#inicio')} className="hover:text-[#B59970] transition-colors">Inicio</a>
                         <a href="/#quienes-somos" onClick={(e) => handleNavClick(e, '#quienes-somos')} className="hover:text-[#B59970] transition-colors">Quiénes Somos</a>
                         <a href="/#servicios" onClick={(e) => handleNavClick(e, '#servicios')} className="hover:text-[#B59970] transition-colors">Servicios</a>
-                        <a href="/#profesionales" onClick={(e) => handleNavClick(e, '#profesionales')} className="hover:text-[#B59970] transition-colors">Profesionales</a>
-                        <a href="/#faq" onClick={(e) => handleNavClick(e, '#faq')} className="hover:text-[#B59970] transition-colors">FAQ</a>
+                        <a href="/#faq" onClick={(e) => handleNavClick(e, '#faq')} className="hover:text-[#B59970] transition-colors">Preguntas frecuentes</a>
+                        <a href="/#faq" onClick={(e) => handleNavClick(e, '#faq')} className="hover:text-[#B59970] transition-colors">Ubicación</a>
                     </nav>
 
                     {/* Action Buttons */}
                     <div className="hidden lg:flex items-center gap-3">
-                        <Link 
+                        <Link
                             to="/mis-turnos"
                             className="text-xs font-bold text-slate-600 hover:text-[#B59970] px-3 py-2 rounded-xl transition-colors flex items-center gap-1.5"
                         >
@@ -73,7 +74,7 @@ export default function PublicNavbar({ className = '' }) {
                         </Link>
 
                         {isAdminOrStaff && (
-                            <Link 
+                            <Link
                                 to="/dashboard"
                                 className="text-xs font-bold text-[#B59970] bg-[#B59970]/5 hover:bg-[#B59970]/15 px-3 py-2 rounded-xl transition-colors flex items-center gap-1.5"
                             >
@@ -83,7 +84,7 @@ export default function PublicNavbar({ className = '' }) {
                         )}
 
                         {!token ? (
-                            <Link 
+                            <Link
                                 to="/login"
                                 className="text-xs font-bold text-slate-500 hover:text-slate-900 px-3 py-2 rounded-xl transition-colors flex items-center gap-1.5"
                             >
@@ -138,7 +139,7 @@ export default function PublicNavbar({ className = '' }) {
             {/* Mobile Dropdown Menu */}
             <AnimatePresence>
                 {mobileMenuOpen && (
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
@@ -149,8 +150,7 @@ export default function PublicNavbar({ className = '' }) {
                             <a href="/#inicio" onClick={(e) => handleNavClick(e, '#inicio')}>Inicio</a>
                             <a href="/#quienes-somos" onClick={(e) => handleNavClick(e, '#quienes-somos')}>Quiénes Somos</a>
                             <a href="/#servicios" onClick={(e) => handleNavClick(e, '#servicios')}>Servicios</a>
-                            <a href="/#profesionales" onClick={(e) => handleNavClick(e, '#profesionales')}>Profesionales</a>
-                            <a href="/#faq" onClick={(e) => handleNavClick(e, '#faq')}>FAQ</a>
+                            <a href="/#faq" onClick={(e) => handleNavClick(e, '#faq')}>Ubicación</a>
                         </nav>
                         <div className="pt-4 border-t border-slate-100 flex flex-col gap-2">
                             <Link to="/mis-turnos" onClick={() => setMobileMenuOpen(false)} className="text-sm font-semibold text-slate-700 py-2 flex items-center gap-2">
@@ -174,6 +174,8 @@ export default function PublicNavbar({ className = '' }) {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </header>
+            </header>
+            <div className="h-20 w-full shrink-0" aria-hidden="true" />
+        </>
     );
 }

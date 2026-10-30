@@ -123,6 +123,43 @@ const EditableField = ({ value, onSave, isTextArea = false, type = "text" }) => 
   );
 };
 
+const AutoResizeTextarea = ({ value, onChange, onBlur, placeholder, className }) => {
+  const textareaRef = useRef(null);
+
+  const adjustHeight = () => {
+    const el = textareaRef.current;
+    if (el) {
+      el.style.height = 'auto';
+      el.style.height = `${Math.max(el.scrollHeight, 48)}px`;
+    }
+  };
+
+  useEffect(() => {
+    adjustHeight();
+  }, [value]);
+
+  return (
+    <textarea
+      ref={(el) => {
+        textareaRef.current = el;
+        if (el) {
+          el.style.height = 'auto';
+          el.style.height = `${Math.max(el.scrollHeight, 48)}px`;
+        }
+      }}
+      value={value}
+      onChange={(e) => {
+        adjustHeight();
+        if (onChange) onChange(e);
+      }}
+      onBlur={onBlur}
+      placeholder={placeholder}
+      className={className}
+      rows={1}
+    />
+  );
+};
+
 const FichaMedicaView = ({ patient, legacyHistory, onUpdatePatient }) => {
   const { data: professionalsResponse } = useGetProfessionalsQuery();
   const currentUser = useSelector((state) => state.authSlice?.userInfo) || {};
@@ -615,13 +652,12 @@ const FichaMedicaView = ({ patient, legacyHistory, onUpdatePatient }) => {
                   </button>
                 </div>
                 <div>
-                  <textarea
-                    rows={3}
+                  <AutoResizeTextarea
                     value={dev.devolucion || ''}
                     onChange={(e) => handleDevolucionTextChange(dev.id, e.target.value)}
                     onBlur={handleDevolucionBlur}
                     placeholder="Escriba aquí la devolución..."
-                    className="w-full bg-transparent border border-pink-200 hover:border-pink-300 focus:bg-white focus:border-blue-400 focus:ring-1 focus:ring-blue-400 rounded outline-none p-2 transition-all text-xs resize-y min-h-[4rem]"
+                    className="w-full bg-transparent border border-pink-200 hover:border-pink-300 focus:bg-white focus:border-blue-400 focus:ring-1 focus:ring-blue-400 rounded outline-none p-2 transition-all text-xs resize-none overflow-hidden min-h-[4rem] leading-relaxed"
                   />
                 </div>
               </div>

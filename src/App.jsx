@@ -33,7 +33,7 @@ import LiveViewPage from "./pages/admin/LiveViewPage.jsx";
 function App() {
     return (
         <ReactLenis root options={{ lerp: 0.08, duration: 1.2, smoothWheel: true }}>
-            <div className="min-h-screen w-full max-w-full overflow-x-hidden zoom-desktop">
+            <div className="min-h-screen w-full max-w-full overflow-x-clip zoom-desktop">
                 <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
                     <Provider store={store}>
                         <Router>
@@ -55,6 +55,27 @@ import AdminRoute from "./components/auth/ProtectedRoute.jsx";
 const AppContent = () => {
     const location = useLocation();
     const [isAppLoading, setIsAppLoading] = useState(true);
+
+    useEffect(() => {
+        // Asegurar que el body tenga scroll normal
+        document.body.style.overflow = '';
+
+        const handleWheelCapture = (e) => {
+            if (!e.target || !e.target.closest) return;
+            // Solo marcar textareas o modales flotantes explícitos para no bloquear el scroll de las páginas
+            const modalOrTextarea = e.target.closest(
+                'textarea, [role="dialog"], .fixed.z-50, .fixed.z-\\[60\\], .fixed.z-\\[100\\], .fixed.z-\\[9999\\]'
+            );
+            if (modalOrTextarea && !modalOrTextarea.hasAttribute('data-lenis-prevent')) {
+                modalOrTextarea.setAttribute('data-lenis-prevent', 'true');
+            }
+        };
+
+        window.addEventListener('wheel', handleWheelCapture, { capture: true, passive: true });
+        return () => {
+            window.removeEventListener('wheel', handleWheelCapture, { capture: true });
+        };
+    }, []);
 
     useEffect(() => {
         let isLanding = location.pathname === '/' || location.pathname === '/pausas';

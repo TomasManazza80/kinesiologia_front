@@ -52,6 +52,13 @@ const PatientProfile = () => {
         return [...allAppointments].sort((a, b) => new Date(b.fecha_hora) - new Date(a.fecha_hora));
     }, [allAppointments]);
 
+    const completedCyclesCount = useMemo(() => {
+        if (!patient) return 0;
+        const cycles = patient.admissionData?.completedCycles?.length || 0;
+        const isCurrentFinished = Number(patient.admissionData?.roadmapStage || 0) >= 12;
+        return cycles + (isCurrentFinished ? 1 : 0);
+    }, [patient]);
+
     const allConsultations = useMemo(() => {
         const list = [];
 
@@ -351,6 +358,26 @@ const PatientProfile = () => {
                                 } 
                             });
                         }}
+                        hasCompletedCycles={(patient.admissionData?.completedCycles || []).length > 0}
+                        onRestoreLastCycle={() => {
+                            const existingCycles = patient.admissionData?.completedCycles || [];
+                            if (existingCycles.length === 0) return;
+                            const [lastCycle, ...remaining] = existingCycles;
+                            updatePatient({ 
+                                id: patient.id, 
+                                admissionData: { 
+                                    ...(patient.admissionData || {}), 
+                                    roadmapStage: lastCycle.previousStage !== undefined ? lastCycle.previousStage : 12,
+                                    roadmapNotes: lastCycle.notes || {},
+                                    completedCycles: remaining
+                                } 
+                            });
+                            toast({
+                                title: "Ciclo Restaurado",
+                                description: "Se ha deshecho el cierre de ciclo y restaurado el tratamiento previo.",
+                                duration: 3000
+                            });
+                        }}
                     />
 
                     <div className="flex flex-col sm:flex-row bg-white rounded-xl border border-gray-100 p-1.5 shadow-sm w-full overflow-hidden gap-1 sm:gap-0">
@@ -370,7 +397,7 @@ const PatientProfile = () => {
                             onClick={() => setActiveTab('ciclos')}
                             className={`min-h-[42px] w-full sm:flex-1 px-3 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap flex items-center justify-center ${activeTab === 'ciclos' ? 'bg-[#0A58CA] text-white shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
                         >
-                            Ciclos ({patient.admissionData?.completedCycles?.length || 0})
+                            Ciclos ({completedCyclesCount})
                         </button>
                     </div>
 

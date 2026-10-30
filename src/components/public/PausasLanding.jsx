@@ -392,7 +392,7 @@ export default function PausasLanding() {
                                 <motion.a
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
-                                    href="#profesionales"
+                                    href="#quienes-somos"
                                     className="flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-900 font-bold text-base px-7 py-4 rounded-full border border-slate-200 shadow-sm hover:border-slate-300 transition-all"
                                 >
                                     <span>{currentData.ctaSecondary}</span>
@@ -498,136 +498,102 @@ export default function PausasLanding() {
                 </div>
             </section>
 
-            {/* SECCIÓN PROFESIONALES DISPONIBLES */}
-            <section id="profesionales" className="py-20 bg-white border-t border-slate-200/80">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    
-                    <div className="text-center max-w-2xl mx-auto space-y-3 mb-16">
-                        <span className="text-xs font-bold uppercase tracking-widest text-[#B59970] bg-[#B59970]/5 px-3.5 py-1.5 rounded-full">
-                            NUESTRO EQUIPO
-                        </span>
-                        <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
-                            Profesionales Disponibles
-                        </h2>
-                        <p className="text-slate-600 text-sm font-medium">
-                            Selecciona al especialista con quien deseas realizar tu consulta de evaluación integral.
-                        </p>
-                    </div>
+            {/* PROCEDIMIENTO / PROGRAMA INTEGRAL DE 3 MESES */}
+            {pageData.procedure && (
+                <section id="procedimiento" className="py-20 bg-[#f8fafc]">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div id="procedure-section" className="pt-4">
+                            <motion.div 
+                                initial={{ opacity: 0, y: -20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true, amount: 0.8 }}
+                                transition={{ duration: 0.5, ease: "easeOut" }}
+                                className="text-center max-w-2xl mx-auto mb-14"
+                            >
+                                <span className="inline-block py-1.5 px-4 rounded-full bg-[#13263E]/5 text-[#13263E] text-xs font-bold tracking-widest mb-3 border border-[#13263E]/10">
+                                    {pageData.procedure.badge}
+                                </span>
+                                <h3 className="text-3xl sm:text-4xl font-extrabold text-slate-900">{pageData.procedure.title}</h3>
+                                <p className="text-slate-600 text-base mt-4 font-medium">{pageData.procedure.subtitle}</p>
+                            </motion.div>
 
-                    {/* Professionals Grid */}
-                    {isLoadingProfs ? (
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-8">
-                            {[1, 2, 3].map((n) => (
-                                <div key={n} className="h-72 bg-slate-100 rounded-2xl md:rounded-3xl animate-pulse" />
-                            ))}
-                        </div>
-                    ) : professionals.length > 0 ? (
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-8">
-                            {professionals.map((prof) => {
-                                const specialtiesList = Array.isArray(prof.specialty) 
-                                    ? prof.specialty.join(', ') 
-                                    : (prof.specialty || 'Kinesiología & Pausas');
+                            <div className="flex md:grid flex-nowrap overflow-x-auto md:overflow-visible md:grid-cols-3 gap-6 md:gap-8 relative pb-8 md:pb-0 snap-x snap-mandatory hide-scrollbar">
+                                {/* Línea conectora animada (solo desktop) */}
+                                <div className="hidden md:block absolute top-8 left-[16%] right-[16%] h-[2px] bg-gradient-to-r from-[#13263E] via-[#B59970] to-emerald-600 opacity-40 z-0 animate-pulse"></div>
+                                
+                                {pageData.procedure.items && pageData.procedure.items.map((item, index) => {
+                                    const delay = 0.1 + (index * 0.15);
+                                    let ringColor = '';
+                                    let borderColorHover = '';
+                                    
+                                    if (index === 0) {
+                                        ringColor = 'bg-[#13263E]';
+                                        borderColorHover = 'hover:border-[#13263E]/30';
+                                    } else if (index === 1) {
+                                        ringColor = 'bg-[#B59970]';
+                                        borderColorHover = 'hover:border-[#B59970]/40';
+                                    } else {
+                                        ringColor = 'bg-emerald-600';
+                                        borderColorHover = 'hover:border-emerald-500/40';
+                                    }
+                                    
+                                    const hoverBgColor = index === 0 ? 'group-hover:bg-[#B59970]' : index === 1 ? 'group-hover:bg-[#13263E]' : 'group-hover:bg-[#B59970]';
+                                    const IconComp = IconMap[item.icon] || CalendarCheck;
 
-                                return (
-                                    <motion.div 
-                                        key={prof.id}
-                                        initial={{ opacity: 0, y: 20 }}
-                                        whileInView={{ opacity: 1, y: 0 }}
-                                        viewport={{ once: true }}
-                                        transition={{ duration: 0.35, ease: "easeOut" }}
-                                        whileHover={{ y: -6, transition: springConfig }}
-                                        className="bg-[#f8fafc] rounded-2xl md:rounded-3xl p-4 md:p-6 border border-slate-200 hover:border-[#B59970]/40 hover:shadow-xl transition-all flex flex-col justify-between group"
-                                    >
-                                        <div className="space-y-3 md:space-y-4">
-                                            <div className="flex flex-col xl:flex-row items-start xl:items-center gap-2 md:gap-4">
-                                                <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-[#B59970]/15 border border-[#B59970]/30 overflow-hidden flex-shrink-0 flex items-center justify-center text-[#B59970] group-hover:scale-105 transition-transform">
-                                                    {prof.profile_picture || prof.avatar_url || prof.image ? (
-                                                        <img src={prof.profile_picture || prof.avatar_url || prof.image} alt={prof.name} className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <User className="w-8 h-8" />
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <h3 className="font-bold text-slate-900 text-lg group-hover:text-[#B59970] transition-colors">
-                                                        {prof.name}
-                                                    </h3>
-                                                    <span className="inline-block text-xs font-bold text-[#B59970] bg-[#B59970]/15/70 px-3 py-1 rounded-full mt-1 border border-[#B59970]/30">
-                                                        {specialtiesList}
-                                                    </span>
+                                    return (
+                                        <motion.div 
+                                            key={item.id || index}
+                                            initial={{ opacity: 0, y: 80, scale: 0.9 }}
+                                            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                                            viewport={{ once: true, amount: 0.3 }}
+                                            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: delay }}
+                                            className={`w-[85vw] sm:w-[320px] md:w-auto flex-shrink-0 snap-center bg-white rounded-3xl border border-slate-200 shadow-lg hover:shadow-2xl ${borderColorHover} transition-all duration-300 relative z-10 flex flex-col overflow-hidden group hover:-translate-y-2 hover:scale-[1.02]`}
+                                        >
+                                            <div className="w-full h-52 relative overflow-hidden">
+                                                <img src={item.image || "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&q=80&w=600&h=400"} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={item.title} />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                                                <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md rounded-full p-2 border border-white/30 text-white shadow-lg">
+                                                    <IconComp className="w-5 h-5" />
                                                 </div>
                                             </div>
+                                            <div className="p-8 pt-12 flex flex-col items-center text-center relative flex-1">
+                                                <div className={`absolute -top-10 w-20 h-20 rounded-full ${ringColor} text-white flex items-center justify-center font-extrabold text-2xl shadow-xl border-4 border-white ${hoverBgColor} transition-colors duration-300`}>
+                                                    {item.badge}
+                                                </div>
+                                                <h4 className="font-bold text-slate-900 text-xl mb-3">{item.title}</h4>
+                                                <p className="text-sm text-slate-600 font-medium leading-relaxed">
+                                                    {item.description}
+                                                </p>
+                                            </div>
+                                        </motion.div>
+                                    );
+                                })}
+                            </div>
 
-                                            <p className="text-xs text-slate-600 font-medium line-clamp-3 leading-relaxed">
-                                                {prof.bio || prof.description || 'Profesional certificado con amplia experiencia en atención integral de la menopausia y andropausia.'}
-                                            </p>
-                                        </div>
-
-                                        <div className="pt-4 md:pt-6 border-t border-slate-200/80 mt-4 md:mt-6 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 lg:gap-0">
-                                            <AvailabilityIndicator professionalId={prof.id} />
-                                            <motion.button
-                                                whileHover={{ scale: 1.05 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                onClick={() => navigate(`/reservar?profesional=${prof.id}`)}
-                                                className="w-full lg:w-auto justify-center bg-[#13263E] hover:bg-[#B59970] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1"
-                                            >
-                                                <span>Reservar</span>
-                                                <ArrowUpRight className="w-3.5 h-3.5" />
-                                            </motion.button>
-                                        </div>
-                                    </motion.div>
-                                );
-                            })}
-                        </div>
-                    ) : (
-                        // Fallback Professionals Grid
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-8">
-                            {[
-                                { name: "Dra. Carolina Rossi", spec: "Endocrinología", desc: "Especialista en climaterio, menopausia y regulación metabólica integral." },
-                                { name: "Lic. Martín Gómez", spec: "Kinesiólogo Pélvico", desc: "Experto en rehabilitación de suelo pélvico, incontinencia y disfunciones sexuales." },
-                                { name: "Lic. Ana Martínez", spec: "Psicología Clínica", desc: "Acompañamiento terapéutico durante las transiciones hormonales y vitales." }
-                            ].map((prof, i) => (
-                                <motion.div 
-                                    key={i} 
-                                    initial={{ opacity: 0, y: 20 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.35, ease: "easeOut" }}
-                                    whileHover={{ y: -6, transition: springConfig }} 
-                                    className="bg-[#f8fafc] rounded-2xl md:rounded-3xl p-4 md:p-6 border border-slate-200 flex flex-col justify-between"
+                            {/* CTA del Plan Integral */}
+                            <div className="mt-10 text-center">
+                                <motion.button
+                                    whileHover={{ scale: 1.04, y: -2 }}
+                                    whileTap={{ scale: 0.96 }}
+                                    transition={springConfig}
+                                    onClick={() => navigate('/reservar')}
+                                    className="inline-flex items-center gap-3 bg-[#13263E] hover:bg-[#B59970] text-white font-bold text-sm sm:text-base px-8 py-3.5 rounded-full shadow-lg shadow-[#13263E]/20 transition-all"
                                 >
-                                    <div className="space-y-3 md:space-y-4">
-                                        <div className="flex flex-col xl:flex-row items-start xl:items-center gap-2 md:gap-4">
-                                            <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-[#B59970]/15 text-[#B59970] flex items-center justify-center font-bold">
-                                                <User className="w-6 h-6 md:w-7 md:h-7" />
-                                            </div>
-                                            <div>
-                                                <h3 className="font-bold text-slate-900 text-base">{prof.name}</h3>
-                                                <span className="text-xs font-bold text-[#B59970] bg-[#B59970]/15 px-2.5 py-0.5 rounded-full">
-                                                    {prof.spec}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <p className="text-xs text-slate-600 leading-relaxed font-medium">{prof.desc}</p>
-                                    </div>
-                                    <div className="pt-4 md:pt-6 border-t border-slate-200 mt-4 md:mt-6 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 lg:gap-0">
-                                        <span className="text-xs font-bold text-emerald-600">Turnos Disponibles</span>
-                                        <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/reservar')} className="w-full lg:w-auto justify-center bg-[#13263E] text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center">
-                                            Reservar
-                                        </motion.button>
-                                    </div>
-                                </motion.div>
-                            ))}
+                                    <span>Agendar Plan Integral de 3 Meses</span>
+                                    <ArrowUpRight className="w-4 h-4" />
+                                </motion.button>
+                            </div>
                         </div>
-                    )}
-                </div>
-            </section>
+                    </div>
+                </section>
+            )}
 
-            {/* QUIÉNES SOMOS SECTION */}
+            {/* QUIÉNES SOMOS */}
             <section id="quienes-somos" className="py-24 bg-[#B59970]/5/50 border-y border-blue-100/80 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-[#B59970]/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
                 <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#13263E]/5 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none"></div>
                 
-                <div className="gsap-statement max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div className="gsap-statement max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <motion.div 
                         initial={{ opacity: 0, y: -20 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -646,7 +612,8 @@ export default function PausasLanding() {
                         </p>
                     </motion.div>
 
-                    <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
+                    {/* LOS 3 DIVS: PROGRAMA INTEGRAL, SALUD SIN FRAGMENTAR, HOJA DE RUTA */}
+                    <div className="grid md:grid-cols-2 gap-12 items-center mb-16 max-w-6xl mx-auto">
                         <div className="space-y-8">
                             <motion.div 
                                 initial={{ opacity: 0, x: -30 }}
@@ -712,7 +679,7 @@ export default function PausasLanding() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, amount: 0.5 }}
                         transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
-                        className="max-w-3xl mx-auto text-center mt-20"
+                        className="max-w-3xl mx-auto text-center mt-20 mb-20"
                     >
                         <Heart className="w-10 h-10 text-[#B59970] mx-auto mb-6 animate-pulse" />
                         <p className="text-xl sm:text-2xl font-medium text-slate-800 leading-relaxed mb-8">
@@ -722,170 +689,225 @@ export default function PausasLanding() {
                             Grupo Pauses
                         </span>
                     </motion.div>
-                </div>
-            </section>
 
-            {/* SECCIÓN INFORMACIÓN DE PAUSAS Y SERVICIOS */}
-            <section id="servicios" className="py-20 bg-[#f8fafc]">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    
-                    <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
-                        <div>
-                            <span className="text-xs font-bold uppercase tracking-widest text-[#B59970]">{pageData.services.badge}</span>
-                            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-1">
-                                {pageData.services.title}
-                            </h2>
+                    {/* PROFESIONALES / NUESTRO EQUIPO (UNIFICADO EN QUIÉNES SOMOS) */}
+                    <div id="profesionales" className="pt-16 border-t border-slate-200/80">
+                        <div className="text-center max-w-2xl mx-auto space-y-3 mb-16">
+                            <span className="text-xs font-bold uppercase tracking-widest text-[#B59970] bg-[#B59970]/10 px-3.5 py-1.5 rounded-full">
+                                NUESTRO EQUIPO
+                            </span>
+                            <h3 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
+                                Profesionales Disponibles
+                            </h3>
+                            <p className="text-slate-600 text-sm font-medium">
+                                Selecciona al especialista con quien deseas realizar tu consulta de evaluación integral.
+                            </p>
                         </div>
-                        <a href="#profesionales" className="text-sm font-bold text-[#B59970] hover:text-[#13263E] flex items-center gap-1">
-                            <span>{pageData.services.linkText}</span>
-                            <ArrowUpRight className="w-4 h-4" />
-                        </a>
-                    </div>
 
-                    {/* Procedimiento de 3 Meses */}
-                    {pageData.procedure && (
-                        <div id="procedure-section" className="mb-24 pt-8">
-                            <motion.div 
-                            initial={{ opacity: 0, y: -20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true, amount: 0.8 }}
-                            transition={{ duration: 0.5, ease: "easeOut" }}
-                            className="text-center max-w-2xl mx-auto mb-14"
-                        >
-                                <span className="inline-block py-1.5 px-4 rounded-full bg-[#13263E]/5 text-[#13263E] text-xs font-bold tracking-widest mb-3 border border-[#13263E]/10">
-                                    {pageData.procedure.badge}
-                                </span>
-                                <h3 className="text-3xl sm:text-4xl font-extrabold text-slate-900">{pageData.procedure.title}</h3>
-                                <p className="text-slate-600 text-base mt-4 font-medium">{pageData.procedure.subtitle}</p>
-                            </motion.div>
-                            <div className="flex md:grid flex-nowrap overflow-x-auto md:overflow-visible md:grid-cols-3 gap-6 md:gap-8 relative pb-8 md:pb-0 snap-x snap-mandatory hide-scrollbar">
-                                {/* Línea conectora animada (solo desktop) */}
-                                <div className="hidden md:block absolute top-8 left-[16%] right-[16%] h-[2px] bg-gradient-to-r from-[#13263E] via-[#B59970] to-emerald-600 opacity-40 z-0 animate-pulse"></div>
-                                
-                                {pageData.procedure.items && pageData.procedure.items.map((item, index) => {
-                                    const delay = 0.1 + (index * 0.15);
-                                    let ringColor = '';
-                                    let borderColorHover = '';
-                                    
-                                    if (index === 0) {
-                                        ringColor = 'bg-[#13263E]';
-                                        borderColorHover = 'hover:border-[#13263E]/30';
-                                    } else if (index === 1) {
-                                        ringColor = 'bg-[#B59970]';
-                                        borderColorHover = 'hover:border-[#B59970]/40';
-                                    } else {
-                                        ringColor = 'bg-emerald-600';
-                                        borderColorHover = 'hover:border-emerald-500/40';
-                                    }
-                                    
-                                    const hoverBgColor = index === 0 ? 'group-hover:bg-[#B59970]' : index === 1 ? 'group-hover:bg-[#13263E]' : 'group-hover:bg-[#B59970]';
-                                    
-                                    const IconComp = IconMap[item.icon] || CalendarCheck;
+                        {/* Professionals Grid */}
+                        {isLoadingProfs ? (
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-8">
+                                {[1, 2, 3].map((n) => (
+                                    <div key={n} className="h-72 bg-white/70 rounded-2xl md:rounded-3xl animate-pulse" />
+                                ))}
+                            </div>
+                        ) : professionals.length > 0 ? (
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-8">
+                                {professionals.map((prof) => {
+                                    const specialtiesList = Array.isArray(prof.specialty) 
+                                        ? prof.specialty.join(', ') 
+                                        : (prof.specialty || 'Kinesiología & Pausas');
 
                                     return (
                                         <motion.div 
-                                            key={item.id || index}
-                                            initial={{ opacity: 0, y: 80, scale: 0.9 }}
-                                            whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                                            viewport={{ once: true, amount: 0.3 }}
-                                            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: delay }}
-                                            className={`w-[85vw] sm:w-[320px] md:w-auto flex-shrink-0 snap-center bg-white rounded-3xl border border-slate-200 shadow-lg hover:shadow-2xl ${borderColorHover} transition-all duration-300 relative z-10 flex flex-col overflow-hidden group hover:-translate-y-2 hover:scale-[1.02]`}
+                                            key={prof.id}
+                                            initial={{ opacity: 0, y: 20 }}
+                                            whileInView={{ opacity: 1, y: 0 }}
+                                            viewport={{ once: true }}
+                                            transition={{ duration: 0.35, ease: "easeOut" }}
+                                            whileHover={{ y: -6, transition: springConfig }}
+                                            className="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 border border-slate-200/80 hover:border-[#B59970]/40 hover:shadow-xl transition-all flex flex-col justify-between group"
                                         >
-                                            <div className="w-full h-52 relative overflow-hidden">
-                                                <img src={item.image || "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&q=80&w=600&h=400"} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={item.title} />
-                                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                                                <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md rounded-full p-2 border border-white/30 text-white shadow-lg">
-                                                    <IconComp className="w-5 h-5" />
+                                            <div className="space-y-3 md:space-y-4">
+                                                <div className="flex flex-col xl:flex-row items-start xl:items-center gap-2 md:gap-4">
+                                                    <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-[#B59970]/15 border border-[#B59970]/30 overflow-hidden flex-shrink-0 flex items-center justify-center text-[#B59970] group-hover:scale-105 transition-transform">
+                                                        {prof.profile_picture || prof.avatar_url || prof.image ? (
+                                                            <img src={prof.profile_picture || prof.avatar_url || prof.image} alt={prof.name} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <User className="w-8 h-8" />
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-bold text-slate-900 text-lg group-hover:text-[#B59970] transition-colors">
+                                                            {prof.name}
+                                                        </h3>
+                                                        <span className="inline-block text-xs font-bold text-[#B59970] bg-[#B59970]/15/70 px-3 py-1 rounded-full mt-1 border border-[#B59970]/30">
+                                                            {specialtiesList}
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div className="p-8 pt-12 flex flex-col items-center text-center relative flex-1">
-                                                <div className={`absolute -top-10 w-20 h-20 rounded-full ${ringColor} text-white flex items-center justify-center font-extrabold text-2xl shadow-xl border-4 border-white ${hoverBgColor} transition-colors duration-300`}>
-                                                    {item.badge}
-                                                </div>
-                                                <h4 className="font-bold text-slate-900 text-xl mb-3">{item.title}</h4>
-                                                <p className="text-sm text-slate-600 font-medium leading-relaxed">
-                                                    {item.description}
+
+                                                <p className="text-xs text-slate-600 font-medium line-clamp-3 leading-relaxed">
+                                                    {prof.bio || prof.description || 'Profesional certificado con amplia experiencia en atención integral de la menopausia y andropausia.'}
                                                 </p>
+                                            </div>
+
+                                            <div className="pt-4 md:pt-6 border-t border-slate-200/80 mt-4 md:mt-6 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 lg:gap-0">
+                                                <AvailabilityIndicator professionalId={prof.id} />
+                                                <motion.button
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    onClick={() => navigate(`/reservar?profesional=${prof.id}`)}
+                                                    className="w-full lg:w-auto justify-center bg-[#13263E] hover:bg-[#B59970] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1"
+                                                >
+                                                    <span>Reservar</span>
+                                                    <ArrowUpRight className="w-3.5 h-3.5" />
+                                                </motion.button>
                                             </div>
                                         </motion.div>
                                     );
                                 })}
                             </div>
-                        </div>
-                    )}
-
-                    {/* Services Cards Grid */}
-                    <div id="services-grid" className="flex md:grid flex-nowrap overflow-x-auto md:overflow-visible md:grid-cols-3 gap-6 md:gap-8 pb-8 md:pb-0 snap-x snap-mandatory hide-scrollbar">
-                        {pageData.services.items.map((item, index) => {
-                            const IconComp = IconMap[item.icon] || Stethoscope;
-                            if (item.isHighlighted) {
-                                return (
+                        ) : (
+                            // Fallback Professionals Grid
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-8">
+                                {[
+                                    { name: "Dra. Carolina Rossi", spec: "Endocrinología", desc: "Especialista en climaterio, menopausia y regulación metabólica integral." },
+                                    { name: "Lic. Martín Gómez", spec: "Kinesiólogo Pélvico", desc: "Experto en rehabilitación de suelo pélvico, incontinencia y disfunciones sexuales." },
+                                    { name: "Lic. Ana Martínez", spec: "Psicología Clínica", desc: "Acompañamiento terapéutico durante las transiciones hormonales y vitales." }
+                                ].map((prof, i) => (
                                     <motion.div 
-                                        key={item.id || index}
-                                        initial={{ opacity: 0, y: 60, scale: 0.95 }}
-                                        whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                                        viewport={{ once: true, amount: 0.2 }}
-                                        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: index * 0.15 }}
-                                        className="w-[85vw] sm:w-[320px] md:w-auto flex-shrink-0 snap-center bg-[#13263E] text-white rounded-3xl p-8 border border-[#13263E] shadow-2xl flex flex-col justify-between space-y-6 transform lg:-translate-y-2 hover:-translate-y-4 hover:shadow-[0_20px_40px_rgba(19,38,62,0.3)] transition-all duration-300"
+                                        key={i} 
+                                        initial={{ opacity: 0, y: 20 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ duration: 0.35, ease: "easeOut" }}
+                                        whileHover={{ y: -6, transition: springConfig }} 
+                                        className="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 border border-slate-200/80 flex flex-col justify-between"
                                     >
-                                        <div className="space-y-4">
-                                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#B59970]/50/20 border border-[#B59970]/30 text-[#B59970] text-xs font-bold">
-                                                <IconComp className="w-3.5 h-3.5 text-[#B59970]" />
-                                                <span>{item.badge}</span>
+                                        <div className="space-y-3 md:space-y-4">
+                                            <div className="flex flex-col xl:flex-row items-start xl:items-center gap-2 md:gap-4">
+                                                <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-[#B59970]/15 text-[#B59970] flex items-center justify-center font-bold">
+                                                    <User className="w-6 h-6 md:w-7 md:h-7" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-bold text-slate-900 text-base">{prof.name}</h3>
+                                                    <span className="text-xs font-bold text-[#B59970] bg-[#B59970]/15 px-2.5 py-0.5 rounded-full">
+                                                        {prof.spec}
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <h3 className="text-2xl font-extrabold text-white">{item.title}</h3>
-                                            <p className="text-sm text-white/80 leading-relaxed font-normal">
-                                                {item.description}
-                                            </p>
+                                            <p className="text-xs text-slate-600 leading-relaxed font-medium">{prof.desc}</p>
                                         </div>
-                                        <div className="pt-4 border-t border-white/10 flex items-center justify-between">
-                                            <span className="text-xs text-[#B59970] font-semibold">{item.footerText}</span>
-                                            <motion.button
-                                                whileHover={{ scale: 1.05 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                transition={springConfig}
-                                                onClick={() => navigate('/reservar')}
-                                                className="bg-[#13263E] hover:bg-[#B59970]/50 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-1.5"
-                                            >
-                                                <span>{item.btnText}</span>
-                                                <ArrowUpRight className="w-3.5 h-3.5" />
+                                        <div className="pt-4 md:pt-6 border-t border-slate-200 mt-4 md:mt-6 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 lg:gap-0">
+                                            <span className="text-xs font-bold text-emerald-600">Turnos Disponibles</span>
+                                            <motion.button whileTap={{ scale: 0.95 }} onClick={() => navigate('/reservar')} className="w-full lg:w-auto justify-center bg-[#13263E] text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center">
+                                                Reservar
                                             </motion.button>
                                         </div>
                                     </motion.div>
-                                );
-                        } else {
-                            return (
-                                <motion.div 
-                                    key={item.id || index}
-                                    initial={{ opacity: 0, y: 60, scale: 0.95 }}
-                                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                                    viewport={{ once: true, amount: 0.2 }}
-                                    transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: index * 0.15 }}
-                                    className="w-[85vw] sm:w-[320px] md:w-auto flex-shrink-0 snap-center bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-[#B59970]/30 hover:-translate-y-2 transition-all duration-300 flex flex-col justify-between space-y-6"
-                                >
-                                        <div className="space-y-4">
-                                            <div className="w-12 h-12 rounded-2xl bg-[#B59970]/5 text-[#B59970] flex items-center justify-center">
-                                                <IconComp className="w-6 h-6" />
-                                            </div>
-                                            <h3 className="text-xl font-bold text-slate-900">{item.title}</h3>
-                                            <p className="text-sm text-slate-600 leading-relaxed font-medium">
-                                                {item.description}
-                                            </p>
-                                        </div>
-                                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                                        <span className="text-xs font-bold text-slate-400">{item.footerText}</span>
-                                        <motion.button
-                                            whileTap={{ scale: 0.95 }}
-                                            onClick={() => navigate('/reservar')}
-                                            className="bg-slate-100 hover:bg-[#13263E] hover:text-white text-slate-700 text-xs font-bold px-4 py-2 rounded-xl transition-all"
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </section>
+
+            {/* SECCIÓN SERVICIOS: TURNOS PARTICULARES */}
+            <section id="servicios" className="py-24 bg-[#f8fafc] border-t border-slate-200 relative overflow-hidden">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                    <div id="turnos-particulares">
+                        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+                            <div>
+                                <span className="text-xs font-bold uppercase tracking-widest text-[#B59970] bg-[#B59970]/10 px-3 py-1 rounded-full inline-block mb-3">
+                                    ATENCIÓN INDIVIDUAL
+                                </span>
+                                <h3 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
+                                    Turnos Particulares por Especialidad
+                                </h3>
+                                <p className="text-slate-600 text-sm font-medium mt-2 max-w-2xl">
+                                    Si preferís atenderte de manera puntual con una especialista, podés seleccionar la disciplina y agendar tu turno particular.
+                                </p>
+                            </div>
+                            <a href="#profesionales" className="text-sm font-bold text-[#B59970] hover:text-[#13263E] flex items-center gap-1 self-start md:self-auto">
+                                <span>Ver equipo médico</span>
+                                <ArrowUpRight className="w-4 h-4" />
+                            </a>
+                        </div>
+
+                        {/* Services Cards Grid */}
+                        <div id="services-grid" className="flex md:grid flex-nowrap overflow-x-auto md:overflow-visible md:grid-cols-3 gap-6 md:gap-8 pb-8 md:pb-0 snap-x snap-mandatory hide-scrollbar">
+                            {pageData.services.items.map((item, index) => {
+                                const IconComp = IconMap[item.icon] || Stethoscope;
+                                if (item.isHighlighted) {
+                                    return (
+                                        <motion.div 
+                                            key={item.id || index}
+                                            initial={{ opacity: 0, y: 60, scale: 0.95 }}
+                                            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                                            viewport={{ once: true, amount: 0.2 }}
+                                            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: index * 0.15 }}
+                                            className="w-[85vw] sm:w-[320px] md:w-auto flex-shrink-0 snap-center bg-[#13263E] text-white rounded-3xl p-8 border border-[#13263E] shadow-2xl flex flex-col justify-between space-y-6 transform lg:-translate-y-2 hover:-translate-y-4 hover:shadow-[0_20px_40px_rgba(19,38,62,0.3)] transition-all duration-300"
                                         >
-                                            {item.btnText}
-                                        </motion.button>
-                                    </div>
-                                </motion.div>
-                            );
-                        }
-                        })}
+                                            <div className="space-y-4">
+                                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#B59970]/50/20 border border-[#B59970]/30 text-[#B59970] text-xs font-bold">
+                                                    <IconComp className="w-3.5 h-3.5 text-[#B59970]" />
+                                                    <span>{item.badge}</span>
+                                                </div>
+                                                <h3 className="text-2xl font-extrabold text-white">{item.title}</h3>
+                                                <p className="text-sm text-white/80 leading-relaxed font-normal">
+                                                    {item.description}
+                                                </p>
+                                            </div>
+                                            <div className="pt-4 border-t border-white/10 flex items-center justify-between">
+                                                <span className="text-xs text-[#B59970] font-semibold">{item.footerText}</span>
+                                                <motion.button
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    transition={springConfig}
+                                                    onClick={() => navigate('/reservar')}
+                                                    className="bg-[#13263E] hover:bg-[#B59970]/50 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-1.5"
+                                                >
+                                                    <span>{item.btnText}</span>
+                                                    <ArrowUpRight className="w-3.5 h-3.5" />
+                                                </motion.button>
+                                            </div>
+                                        </motion.div>
+                                    );
+                                } else {
+                                    return (
+                                        <motion.div 
+                                            key={item.id || index}
+                                            initial={{ opacity: 0, y: 60, scale: 0.95 }}
+                                            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                                            viewport={{ once: true, amount: 0.2 }}
+                                            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: index * 0.15 }}
+                                            className="w-[85vw] sm:w-[320px] md:w-auto flex-shrink-0 snap-center bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-[#B59970]/30 hover:-translate-y-2 transition-all duration-300 flex flex-col justify-between space-y-6"
+                                        >
+                                            <div className="space-y-4">
+                                                <div className="w-12 h-12 rounded-2xl bg-[#B59970]/5 text-[#B59970] flex items-center justify-center">
+                                                    <IconComp className="w-6 h-6" />
+                                                </div>
+                                                <h3 className="text-xl font-bold text-slate-900">{item.title}</h3>
+                                                <p className="text-sm text-slate-600 leading-relaxed font-medium">
+                                                    {item.description}
+                                                </p>
+                                            </div>
+                                            <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                                                <span className="text-xs font-bold text-slate-400">{item.footerText}</span>
+                                                <motion.button
+                                                    whileTap={{ scale: 0.95 }}
+                                                    onClick={() => navigate('/reservar')}
+                                                    className="bg-slate-100 hover:bg-[#13263E] hover:text-white text-slate-700 text-xs font-bold px-4 py-2 rounded-xl transition-all"
+                                                >
+                                                    {item.btnText}
+                                                </motion.button>
+                                            </div>
+                                        </motion.div>
+                                    );
+                                }
+                            })}
+                        </div>
                     </div>
                 </div>
             </section>
@@ -966,29 +988,30 @@ export default function PausasLanding() {
                             </motion.div>
                         ))}
                     </div>
-                    
-                    {/* Mapa Permanente */}
-                    <motion.div 
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, amount: 0.5 }}
-                        transition={{ duration: 0.4, delay: 0.2, ease: "easeOut" }}
-                        className="max-w-4xl mx-auto mt-12 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm"
-                    >
-                        <div className="w-full h-[350px] rounded-xl overflow-hidden">
-                            <iframe 
-                                title="Ubicación Pauses"
-                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3396.84168279143!2d-60.70655089524536!3d-31.638184836126566!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95b5a9b915c79e43%3A0x28e1b110f6e5f8ac!2sSan%20Jer%C3%B3nimo%203194%2C%20S3000FQO%20Santa%20Fe%20de%20la%20Vera%20Cruz%2C%20Santa%20Fe!5e0!3m2!1ses-419!2sar!4v1790830598415!5m2!1ses-419!2sar" 
-                                width="100%" 
-                                height="100%" 
-                                style={{ border: 0 }} 
-                                allowFullScreen="" 
-                                loading="lazy" 
-                                referrerPolicy="strict-origin-when-cross-origin"
-                            ></iframe>
-                        </div>
-                    </motion.div>
                 </div>
+                    
+                {/* Mapa Permanente Full Width */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.3 }}
+                    transition={{ duration: 0.4, delay: 0.2, ease: "easeOut" }}
+                    className="w-full mt-12 border-t border-slate-200 overflow-hidden"
+                >
+                    <div className="w-full h-[380px] sm:h-[420px]">
+                        <iframe 
+                            title="Ubicación Pauses"
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3396.84168279143!2d-60.70655089524536!3d-31.638184836126566!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95b5a9b915c79e43%3A0x28e1b110f6e5f8ac!2sSan%20Jer%C3%B3nimo%203194%2C%20S3000FQO%20Santa%20Fe%20de%20la%20Vera%20Cruz%2C%20Santa%20Fe!5e0!3m2!1ses-419!2sar!4v1790830598415!5m2!1ses-419!2sar" 
+                            width="100%" 
+                            height="100%" 
+                            style={{ border: 0 }} 
+                            allowFullScreen="" 
+                            loading="lazy" 
+                            referrerPolicy="strict-origin-when-cross-origin"
+                            className="w-full h-full"
+                        ></iframe>
+                    </div>
+                </motion.div>
             </section>
 
             {/* FOOTER */}
@@ -1008,9 +1031,8 @@ export default function PausasLanding() {
                         <div>
                             <h4 className="font-bold text-slate-900 uppercase tracking-wider mb-3">Navegación</h4>
                             <ul className="space-y-2 font-medium">
-                                <li><a href="#pausas" className="hover:text-[#B59970]">Especialidades</a></li>
                                 <li><a href="#servicios" className="hover:text-[#B59970]">Servicios</a></li>
-                                <li><a href="#profesionales" className="hover:text-[#B59970]">Profesionales</a></li>
+                                <li><a href="#quienes-somos" className="hover:text-[#B59970]">Quiénes Somos</a></li>
                                 <li><Link to="/reservar" className="hover:text-[#B59970]">Reservar Turno</Link></li>
                             </ul>
                         </div>
@@ -1065,9 +1087,9 @@ export default function PausasLanding() {
                     </div>
                     <span>Turnos</span>
                 </button>
-                <a href="#profesionales" className="flex flex-col items-center gap-0.5 hover:text-[#B59970]">
+                <a href="#quienes-somos" className="flex flex-col items-center gap-0.5 hover:text-[#B59970]">
                     <Users className="w-5 h-5 text-[#B59970]" />
-                    <span>Equipo</span>
+                    <span>Quiénes Somos</span>
                 </a>
             </div>
 
